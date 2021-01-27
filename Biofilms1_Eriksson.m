@@ -63,7 +63,7 @@ for iter=1:10000
         S(i)=(S(i+1)+S(i-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
 
         %Boundary Conditions After Iteration
-        S(1)=0;
+        S(1)=S(2);
         S(end)=So;
         
         if S(i)<0
