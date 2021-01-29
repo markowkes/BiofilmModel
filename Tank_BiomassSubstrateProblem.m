@@ -35,6 +35,9 @@ x(1)=xo;
 S(1)=So;
 
 for i = 1:N-1
+   
+    % Insert loop over spacial coordinate zeta for substrate diffusion,
+    % particulates, biomass growth within biofilm, etc
 
     t(i+1) = t(i) + dt;
     
