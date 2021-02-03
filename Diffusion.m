@@ -23,8 +23,8 @@ tol=1e-6;
 
 %Iterations
 
-tic
 for iter=1:200
+tic
         c=2:1:N-1;
         Snew(c)=(S(c+1)+S(c-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
 
