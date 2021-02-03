@@ -20,7 +20,7 @@ N=tFin/dt; %Number of steps
 %x = @(S) (Qdot*Sin/V)-(S*Qdot/V)+V; %Biomass wrt substrate concetration
 %m = @(x,S) ((mmax*S)/(Km+S)); %Monod Growth Kinetics
 
-dsdt = @(x,t,S) -((((mmax*S)/(Km+S))*x)/Yxs)+Qdot*Sin-Qdot*S; %Substrate Concentration Change wrt time
+dsdt = @(x,t,S) -((((mmax*S)/(Km+S))*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V); %Substrate Concentration Change wrt time
 dxdt = @(x,t,S) (((mmax*S)/(Km+S))-(Qdot/V))*x; %Biomass Concentration Change wrt time
 
 
@@ -35,6 +35,9 @@ x(1)=xo;
 S(1)=So;
 
 for i = 1:N-1
+   
+    % Insert loop over spacial coordinate zeta for substrate diffusion,
+    % particulates, biomass growth within biofilm, etc
 
     t(i+1) = t(i) + dt;
     
