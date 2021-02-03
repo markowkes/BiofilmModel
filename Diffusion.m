@@ -23,23 +23,8 @@ tol=1e-6;
 
 %Iterations
 
-% tic
-% for iter=1:200
-%         c=2:1:N-1;
-%         Snew(c)=(S(c+1)+S(c-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
-% 
-%         %Boundary Conditions After Iteration
-%         Snew(1)=S(2);
-%         Snew(end)=So;
-%         
-%         Snew(Snew < 0) = 0;
-% 
-%          S=Snew;
-% end
-% toc
-
 tic
-while abs(max(Snew(10)-S(10)))>tol
+for iter=1:200
         c=2:1:N-1;
         Snew(c)=(S(c+1)+S(c-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
 
@@ -48,9 +33,24 @@ while abs(max(Snew(10)-S(10)))>tol
         Snew(end)=So;
         
         Snew(Snew < 0) = 0;
-        
+
+         S=Snew;
 end
 toc
+
+% tic
+% while abs(max(Snew(10)-S(10)))>tol
+%         c=2:1:N-1;
+%         Snew(c)=(S(c+1)+S(c-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
+% 
+%         %Boundary Conditions After Iteration
+%         Snew(1)=S(2);
+%         Snew(end)=So;
+%         
+%         Snew(Snew < 0) = 0;
+%         
+% end
+% toc
 
 
 figure(1); clf(1)
