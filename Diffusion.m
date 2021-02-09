@@ -1,4 +1,4 @@
-function [S]=Diffusion(Lf,So,mewmax,Xb,Yxs,De)
+function [S,bflux,flux]=Diffusion(Lf,So,mewmax,Xb,Yxs,De)
 %This Function will take initial tank conditions and model the diffusion of
 % substrates into the biofilm. The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
@@ -12,46 +12,44 @@ dz=z(2)-z(1); %m
 
 %Substrate in Biofilm Boundary Conditions
 S=zeros(1,N);
-S(N)=So;
-
+S(end)=So; %initially assume boundary concentration = So
 Snew=zeros(1,N);
-Snew(N)=So;
 
 
-%End Condition
-tol=1e-6;
+%Boundary Flux Consideration
+Daq=2e-4; % m^2/s (oxygen.. online)
+Ll=Lf/100; %Boundary Layer Thickness
+Kl=Daq/Ll; %
+
+Sstep=.01; %g/m^2 (Step size for Boundary Concentration shooting method)
 
 %Iterations
-
-for iter=1:200
 tic
-        c=2:1:N-1;
-        Snew(c)=(S(c+1)+S(c-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
+for iter=1:1000
 
+        c=2:1:N-1; %array to run concentrations through
+        Snew(c)=(S(c+1)+S(c-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
+    
         %Boundary Conditions After Iteration
-        Snew(1)=S(2);
-        Snew(end)=So;
+        Snew(1)=Snew(2);
+        Snew(end)=S(end);
         
+        %Flux Calculations
+              bflux=(Snew(end)-Snew(end-1))/dz; %Biofilm Flux at boundary
+              flux=(Daq*(So-Snew(end)))/(Ll*De); %Boundary Layer Flux
+              
+        %Flux Matching 
+          if bflux>flux                  
+              Snew(end)=Snew(end)-Sstep;      
+          end
+          if flux>bflux
+              Snew(end)=Snew(end)+Sstep;           
+          end
+      
         Snew(Snew < 0) = 0;
 
          S=Snew;
 end
-toc
-
-% tic
-% while abs(max(Snew(10)-S(10)))>tol
-%         c=2:1:N-1;
-%         Snew(c)=(S(c+1)+S(c-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
-% 
-%         %Boundary Conditions After Iteration
-%         Snew(1)=S(2);
-%         Snew(end)=So;
-%         
-%         Snew(Snew < 0) = 0;
-%         
-% end
-% toc
-
 
 figure(1); clf(1)
 plot(z,S)

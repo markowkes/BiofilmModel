@@ -17,5 +17,5 @@ So=25; %g m-3	bulk fluid substrate concentration
 % De=input('effective diffusion\n');
 % Xb=input('biomass density\n');
 
-[S]=Diffusion(Lf,So,mewmax,Xb,Yxs,De)
+[S,bflux,flux]=Diffusion(Lf,So,mewmax,Xb,Yxs,De)
 
