@@ -42,7 +42,7 @@ Km=3; %g m-3	Monod half saturation coefficient
 Yxs=0.5; %gx gs-1	biomass yield coefficient on substrate
 De=5.00E-05; %m2 d-1	effective diffusion coefficient of substrate in biofilm
 Xb=20000; %g m-3	biomass density in biofilm
-Lf=4.00E-04; %m	biofilm thickness
+Lf=4.00E-4; %m	biofilm thickness
 So=25; %g m-3	bulk fluid substrate concentration
 
 %Setup for solution
@@ -54,23 +54,43 @@ dz=z(2)-z(1); %m
 
 %Substrate in Biofilm Boundary Conditions
 S=zeros(1,N);
-S(1)=0;
-S(N)=So;
+S(end)=So; %initially assume boundary concentration = So
+Snew=zeros(1,N);
+
+
+%Boundary Flux Consideration
+Daq=2e-5; % m^2/s (oxygen.. online)
+Ll=Lf/100; %Boundary Layer Thickness
+Kl=Daq/Ll; %
+
+Sstep=.01; %g/m^2 (Step size for Boundary Concentration shooting method)
 
 %Iterations
-for iter=1:10000
-    for i=2:N-1
-        S(i)=(S(i+1)+S(i-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
+tic
+for iter=1:1000
 
+        c=2:1:N-1; %array to run concentrations through
+        Snew(c)=(S(c+1)+S(c-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
+    
         %Boundary Conditions After Iteration
-        S(1)=S(2);
-        S(end)=So;
+        Snew(1)=Snew(2);
+        Snew(end)=S(end);
         
-        if S(i)<0
-            S(i)=0;
-        end
-    end
+        %Flux Calculations
+              bflux=(Snew(end)-Snew(end-1))/dz; %Biofilm Flux at boundary
+              flux=(Daq*(So-Snew(end)))/(Ll*De); %Boundary Layer Flux
+              
+        %Flux Matching 
+          if bflux>flux                  
+              Snew(end)=Snew(end)-Sstep;      
+          end
+          if flux>bflux
+              Snew(end)=Snew(end)+Sstep;           
+          end
+      
+        Snew(Snew < 0) = 0;
 
+         S=Snew;
 end
 
 figure(1); clf(1)
