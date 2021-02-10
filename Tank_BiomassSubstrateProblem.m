@@ -24,6 +24,8 @@ Daq=2e-5; %diffusion coefficient of water(assumed at boundary) [m/s^2]
 Lf=4.00E-4; %biofilm thickness [m]
 LL=Lf/100; %thickness of boundary layer [m]
 Co=So; %substrate concentration
+Xb=20000; %g m-3	biomass density in biofilm
+De=5.00E-05; %m2 d-1	effective diffusion coefficient of substrate in biofilm
 
 %Time Constraints
 tFin=2; %[s]
@@ -34,9 +36,10 @@ N=tFin/dt; %Number of steps
 %x = @(S) (Qdot*Sin/V)-(S*Qdot/V)+V; %Biomass wrt substrate concetration
 %m = @(x,S) ((mmax*S)/(Km+S)); %Monod Growth Kinetics
 
-%Calling Biofilm Surface Substrate Concentration from 'Biofilms1_Eriksson'
-function [Snew] = ?????(mewmax,Km,Yxs,De,Xb,Lf,So,Daq,Ll,Kl);
-Cs=Snew(end);
+%Calling Biofilm Surface Substrate Concentration from 'Diffusion'
+[Sb,bflux,flux]=Diffusion(Lf,So,mmax,Xb,Yxs,De);
+Cs=Sb(end);
+
 
 
 dsdt = @(x,t,S) -((((mmax*S)/(Km+S))*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
@@ -81,4 +84,7 @@ title('Biomass and Substrate Concentrations For Filling/Draining Tank')
 xlabel('Time')
 ylabel('Amount of Biomass/Substrate in Tank')
 legend('Biomass','Substrate')
+
+
+
 

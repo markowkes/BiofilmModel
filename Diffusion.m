@@ -1,4 +1,4 @@
-function [S,bflux,flux]=Diffusion(Lf,So,mewmax,Xb,Yxs,De)
+function [Sb,bflux,flux]=Diffusion(Lf,So,mewmax,Xb,Yxs,De)
 %This Function will take initial tank conditions and model the diffusion of
 % substrates into the biofilm. The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
@@ -11,8 +11,8 @@ z=linspace(0,Lf,N); %m
 dz=z(2)-z(1); %m
 
 %Substrate in Biofilm Boundary Conditions
-S=zeros(1,N);
-S(end)=So; %initially assume boundary concentration = So
+Sb=zeros(1,N);
+Sb(end)=So; %initially assume boundary concentration = So
 Snew=zeros(1,N);
 
 
@@ -28,11 +28,11 @@ tic
 for iter=1:1000
 
         c=2:1:N-1; %array to run concentrations through
-        Snew(c)=(S(c+1)+S(c-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
+        Snew(c)=(Sb(c+1)+Sb(c-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
     
         %Boundary Conditions After Iteration
         Snew(1)=Snew(2);
-        Snew(end)=S(end);
+        Snew(end)=Sb(end);
         
         %Flux Calculations
               bflux=(Snew(end)-Snew(end-1))/dz; %Biofilm Flux at boundary
@@ -48,11 +48,11 @@ for iter=1:1000
       
         Snew(Snew < 0) = 0;
 
-         S=Snew;
+         Sb=Snew;
 end
 
 figure(1); clf(1)
-plot(z,S)
+plot(z,Sb)
 xlabel('Depth of Biofilm [m]','fontsize',20)
 ylabel('Substrate Concentration within Biofilm [g/m^3]','fontsize',20)
 
