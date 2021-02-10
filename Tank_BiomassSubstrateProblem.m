@@ -16,12 +16,13 @@ SA=(V/H)+2*((V/L)+(V/W)); %tank surface area [m^2]
 Qdot=1; %[flow rate in/out, m^3]
 Sin=25; %Inflow of substrates to tank, [g/m^3]
 
-%Miscellaneous Parameters
+%Biofilm Parameters
 mmax=20; %max specific growth rate
 Km=3; %Monod half-saturation coefficient(growth transitions from sat. to linear)
 Yxs=0.5; %ratio of substrate consumed to biomass produced
-Daq=???; %diffusion coefficient of water(assumed at boundary)
-LL=???; %thickness of boundary layer [m]
+Daq=2e-5; %diffusion coefficient of water(assumed at boundary) [m/s^2]
+Lf=4.00E-4; %biofilm thickness [m]
+LL=Lf/100; %thickness of boundary layer [m]
 Co=So; %substrate concentration
 
 %Time Constraints
@@ -32,6 +33,11 @@ N=tFin/dt; %Number of steps
 %S = @(x) Sin-(V/Qdot)*x+(V^2/Qdot); %Substrate concentration wrt biomass
 %x = @(S) (Qdot*Sin/V)-(S*Qdot/V)+V; %Biomass wrt substrate concetration
 %m = @(x,S) ((mmax*S)/(Km+S)); %Monod Growth Kinetics
+
+%Calling Biofilm Surface Substrate Concentration from 'Biofilms1_Eriksson'
+function [Snew] = ?????(mewmax,Km,Yxs,De,Xb,Lf,So,Daq,Ll,Kl);
+Cs=Snew(end);
+
 
 dsdt = @(x,t,S) -((((mmax*S)/(Km+S))*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
 % ^^^Substrate Concentration Change wrt time, now also considers flux
