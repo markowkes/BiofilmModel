@@ -17,7 +17,7 @@ Qdot=1; %[flow rate in/out, m^3]
 Sin=25; %Inflow of substrates to tank, [g/m^3]
 
 %Biofilm Parameters
-mmax=20; %max specific growth rate
+mumax=20; %max specific growth rate
 Km=3; %Monod half-saturation coefficient(growth transitions from sat. to linear)
 Yxs=0.5; %ratio of substrate consumed to biomass produced
 Daq=2e-5; %diffusion coefficient of water(assumed at boundary) [m/s^2]
@@ -34,18 +34,12 @@ N=tFin/dt; %Number of steps
 
 %S = @(x) Sin-(V/Qdot)*x+(V^2/Qdot); %Substrate concentration wrt biomass
 %x = @(S) (Qdot*Sin/V)-(S*Qdot/V)+V; %Biomass wrt substrate concetration
-%m = @(x,S) ((mmax*S)/(Km+S)); %Monod Growth Kinetics
+%m = @(x,S) ((mumax*S)/(Km+S)); %Monod Growth Kinetics
 
-%Calling Biofilm Surface Substrate Concentration from 'Diffusion'
-[Sb,bflux,flux]=Diffusion(Lf,So,mmax,Xb,Yxs,De);
-Cs=Sb(end);
-
-
-
-dsdt = @(x,t,S) -((((mmax*S)/(Km+S))*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
+dsdt = @(x,t,S,Cs) -((((mumax*S)/(Km+S))*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
 % ^^^Substrate Concentration Change wrt time, now also considers flux
 % through boundary layer of biofilm
-dxdt = @(x,t,S) (((mmax*S)/(Km+S))-(Qdot/V))*x; %Biomass Concentration Change wrt time
+dxdt = @(x,t,S,Cs) (((mumax*S)/(Km+S))-(Qdot/V))*x; %Biomass Concentration Change wrt time
 
 
 %Preallocation
@@ -62,21 +56,25 @@ for i = 1:N-1
    
     % Insert loop over spacial coordinate zeta for substrate diffusion,
     % particulates, biomass growth within biofilm, etc
+    
+    %Calling Biofilm Surface Substrate Concentration from 'Diffusion'
+    [Sb,bflux,flux]=Diffusion(Lf,S(i),mumax,Xb,Yxs,De);
+    Cs=Sb(end);
 
     t(i+1) = t(i) + dt;
     
-    xstar = x(i) + dt*dxdt(x(i),t(i),S(i));
-    Sstar = S(i) + dt*dsdt(x(i),t(i),S(i));
+    xstar = x(i) + dt*dxdt(x(i),t(i),S(i),Cs);
+    Sstar = S(i) + dt*dsdt(x(i),t(i),S(i),Cs);
     
-    x(i+1) = x(i) + dt/2*(dxdt(x(i),t(i),S(i))+dxdt(xstar,t(i+1),Sstar));
-    S(i+1) = S(i) + dt/2*(dsdt(x(i),t(i),S(i))+dsdt(xstar,t(i+1),Sstar)); 
+    x(i+1) = x(i) + dt/2*(dxdt(x(i),t(i),S(i),Cs)+dxdt(xstar,t(i+1),Sstar,Cs));
+    S(i+1) = S(i) + dt/2*(dsdt(x(i),t(i),S(i),Cs)+dsdt(xstar,t(i+1),Sstar,Cs)); 
     
  
 end
 
 
 %% plot
-figure(1); clf(1)
+figure(2); clf(2)
 plot(t,x)
 hold on
 plot(t,S)
