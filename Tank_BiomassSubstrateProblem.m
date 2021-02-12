@@ -34,12 +34,15 @@ N=tFin/dt; %Number of steps
 
 %S = @(x) Sin-(V/Qdot)*x+(V^2/Qdot); %Substrate concentration wrt biomass
 %x = @(S) (Qdot*Sin/V)-(S*Qdot/V)+V; %Biomass wrt substrate concetration
-%m = @(x,S) ((mumax*S)/(Km+S)); %Monod Growth Kinetics
+%mu = @(x,S) ((mumax*S)/(Km+S)); %Monod Growth Kinetics
 
-dsdt = @(x,t,S,Cs) -((((mumax*S)/(Km+S))*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
+%Call on 'mu_function' for mu value
+[mu] = mu_function(mumax,Km,S);
+
+dsdt = @(x,t,S,Cs,mu) -((mu*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
 % ^^^Substrate Concentration Change wrt time, now also considers flux
 % through boundary layer of biofilm
-dxdt = @(x,t,S,Cs) (((mumax*S)/(Km+S))-(Qdot/V))*x; %Biomass Concentration Change wrt time
+dxdt = @(x,t,S,Cs,mu) (mu-(Qdot/V))*x; %Biomass Concentration Change wrt time
 
 %Preallocation
 t = zeros(1,N); %Time
@@ -62,13 +65,12 @@ for i = 1:N-1
 
     t(i+1) = t(i) + dt;
     
-    xstar = x(i) + dt*dxdt(x(i),t(i),S(i),Cs);
-    Sstar = S(i) + dt*dsdt(x(i),t(i),S(i),Cs);
+    xstar = x(i) + dt*dxdt(x(i),t(i),S(i),Cs,mu);
+    Sstar = S(i) + dt*dsdt(x(i),t(i),S(i),Cs,mu);
     
-    x(i+1) = x(i) + dt/2*(dxdt(x(i),t(i),S(i),Cs)+dxdt(xstar,t(i+1),Sstar,Cs));
-    S(i+1) = S(i) + dt/2*(dsdt(x(i),t(i),S(i),Cs)+dsdt(xstar,t(i+1),Sstar,Cs)); 
+    x(i+1) = x(i) + dt/2*(dxdt(x(i),t(i),S(i),Cs,mu)+dxdt(xstar,t(i+1),Sstar,Cs,mu));
+    S(i+1) = S(i) + dt/2*(dsdt(x(i),t(i),S(i),Cs,mu)+dsdt(xstar,t(i+1),Sstar,Cs,mu)); 
     
-
 end
 
 
