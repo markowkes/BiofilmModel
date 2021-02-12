@@ -41,7 +41,6 @@ dsdt = @(x,t,S,Cs) -((((mumax*S)/(Km+S))*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA
 % through boundary layer of biofilm
 dxdt = @(x,t,S,Cs) (((mumax*S)/(Km+S))-(Qdot/V))*x; %Biomass Concentration Change wrt time
 
-
 %Preallocation
 t = zeros(1,N); %Time
 x = zeros(1,N); %Biomass Concentration in bulk liquid
@@ -69,7 +68,7 @@ for i = 1:N-1
     x(i+1) = x(i) + dt/2*(dxdt(x(i),t(i),S(i),Cs)+dxdt(xstar,t(i+1),Sstar,Cs));
     S(i+1) = S(i) + dt/2*(dsdt(x(i),t(i),S(i),Cs)+dsdt(xstar,t(i+1),Sstar,Cs)); 
     
- 
+
 end
 
 
