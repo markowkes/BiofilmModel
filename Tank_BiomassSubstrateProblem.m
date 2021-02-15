@@ -26,6 +26,7 @@ LL=Lf/100; %thickness of boundary layer [m]
 Co=So; %substrate concentration
 Xb=20000; %g m-3	biomass density in biofilm
 De=5.00E-05; %m2 d-1	effective diffusion coefficient of substrate in biofilm
+Vdet=???; %Velocity of mass leaving biofilm into bulk liquid
 
 %Time Constraints
 tFin=2; %[s]
@@ -36,13 +37,11 @@ N=tFin/dt; %Number of steps
 %x = @(S) (Qdot*Sin/V)-(S*Qdot/V)+V; %Biomass wrt substrate concetration
 %mu = @(x,S) ((mumax*S)/(Km+S)); %Monod Growth Kinetics
 
-%Call on 'mu_function' for mu value
-[mu] = mu_function(mumax,Km,S);
 
-dsdt = @(x,t,S,Cs,mu) -((mu*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
+dsdt = @(x,t,S,Cs,mu) -((mu(S)*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
 % ^^^Substrate Concentration Change wrt time, now also considers flux
 % through boundary layer of biofilm
-dxdt = @(x,t,S,Cs,mu) (mu-(Qdot/V))*x; %Biomass Concentration Change wrt time
+dxdt = @(x,t,S,Cs,mu) (mu(S)-(Qdot/V))*x+Vdet*SA*Xb; %Biomass Concentration Change wrt time
 
 %Preallocation
 t = zeros(1,N); %Time
@@ -62,6 +61,9 @@ for i = 1:N-1
     %Calling Biofilm Surface Substrate Concentration from 'Diffusion'
     [Sb,bflux,flux]=Diffusion(Lf,S(i),mumax,Xb,Yxs,De);
     Cs=Sb(end);
+    
+    %Call on 'mu_function' for mu value
+    [mu] = mu_function(mumax,Km,S(i));
 
     t(i+1) = t(i) + dt;
     
