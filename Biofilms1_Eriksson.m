@@ -59,15 +59,15 @@ Snew=zeros(1,N);
 
 
 %Boundary Flux Consideration
-Daq=2e-5; % m^2/s (oxygen.. online)
-Ll=Lf/100; %Boundary Layer Thickness
+Daq=1e-4; % m^2/s (oxygen.. online)
+Ll=Lf/50; %Boundary Layer Thickness
 Kl=Daq/Ll; %
 
-Sstep=.01; %g/m^2 (Step size for Boundary Concentration shooting method)
+%Sstep=.01; %g/m^2 (Step size for Boundary Concentration shooting method)
 
 %Iterations
 tic
-for iter=1:1000
+for iter=1:10000
 
         c=2:1:N-1; %array to run concentrations through
         Snew(c)=(S(c+1)+S(c-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
@@ -81,12 +81,7 @@ for iter=1:1000
               flux=(Daq*(So-Snew(end)))/(Ll*De); %Boundary Layer Flux
               
         %Flux Matching 
-          if bflux>flux                  
-              Snew(end)=Snew(end)-Sstep;      
-          end
-          if flux>bflux
-              Snew(end)=Snew(end)+Sstep;           
-          end
+         Snew(end)=So-Ll*De*(bflux/Daq);
       
         Snew(Snew < 0) = 0;
 
