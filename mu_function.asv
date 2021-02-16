@@ -1,0 +1,3 @@
+function [mu] = mu_function(mumax,Km,S)
+% This function will
+m = @(S) ((mumax*S)/(Km+S)); %Monod Growth Kinetics
