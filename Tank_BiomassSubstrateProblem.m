@@ -26,7 +26,6 @@ LL=Lf/100; %thickness of boundary layer [m]
 Co=So; %substrate concentration
 Xb=20000; %g m-3	biomass density in biofilm
 De=5.00E-05; %m2 d-1	effective diffusion coefficient of substrate in biofilm
-Vdet=???; %Velocity of mass leaving biofilm into bulk liquid
 
 %Time Constraints
 tFin=2; %[s]
@@ -56,8 +55,11 @@ for i = 1:N-1
     % Insert loop over spacial coordinate zeta for substrate diffusion,
     % particulates, biomass growth within biofilm, etc
     
+    %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
+    [Lf,Vdet,Vg]= BiofilmThickness_Fn(S,Lf_old,mu,Kdet,mumax,dt,dz)
+    
     %Call on Biofilm Surface Substrate Concentration from 'Diffusion'
-    [Sb,bflux,flux]=Diffusion(Lf,S(i),mumax,Xb,Yxs,De);
+    [Sb,bflux]=Diffusion(Lf,S(i),mumax,Xb,Yxs,De);
     Cs=Sb(end);
     
     %Call on 'mu_function' for mu value

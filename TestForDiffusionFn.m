@@ -2,7 +2,7 @@ clear;
 clc;
 
 %Steady State Test Conditions
-mewmax=20; %d-1	maximum specific growth rate
+mumax=20; %d-1	maximum specific growth rate
 Km=3; %g m-3	Monod half saturation coefficient
 Yxs=0.5; %gx gs-1	biomass yield coefficient on substrate
 De=5.00E-05; %m2 d-1	effective diffusion coefficient of substrate in biofilm
@@ -17,5 +17,4 @@ So=25; %g m-3	bulk fluid substrate concentration
 % De=input('effective diffusion\n');
 % Xb=input('biomass density\n');
 
-[S,bflux]=Diffusion(Lf,So,mewmax,Xb,Yxs,De)
-
+[S,bflux]=Diffusion(Lf,So,mumax,Xb,Yxs,De)

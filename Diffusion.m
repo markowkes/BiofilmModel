@@ -1,4 +1,4 @@
-function [Sb,bflux,flux]=Diffusion(Lf,So,mumax,Xb,Yxs,De)
+function [Sb,bflux]=Diffusion(Lf,So,mumax,Xb,Yxs,De)
 %This Function will take initial tank conditions and model the diffusion of
 % substrates into the biofilm. The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
@@ -34,7 +34,7 @@ for iter=1:1000
         
         %Flux Calculations
               bflux=(Snew(end)-Snew(end-1))/dz; %Biofilm Flux at boundary
-              flux=(Daq*(So-Snew(end)))/(Ll*De); %Boundary Layer Flux
+              flux=(Daq*(So-Snew(end)))/(Ll*De); %Boundary Layer Flux to ensure bflux=flux
               
         %Flux Matching       
         Snew(end)=So-Ll*De*(bflux/Daq);
