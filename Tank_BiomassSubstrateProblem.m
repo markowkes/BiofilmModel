@@ -35,8 +35,6 @@ N=tFin/dt; %Number of steps
 
 %S = @(x) Sin-(V/Qdot)*x+(V^2/Qdot); %Substrate concentration wrt biomass
 %x = @(S) (Qdot*Sin/V)-(S*Qdot/V)+V; %Biomass wrt substrate concetration
-%mu = @(x,S) ((mumax*S)/(Km+S)); %Monod Growth Kinetics
-
 
 dsdt = @(x,t,S,Cs,mu) -((mu(S)*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
 % ^^^Substrate Concentration Change wrt time, now also considers flux
@@ -58,7 +56,7 @@ for i = 1:N-1
     % Insert loop over spacial coordinate zeta for substrate diffusion,
     % particulates, biomass growth within biofilm, etc
     
-    %Calling Biofilm Surface Substrate Concentration from 'Diffusion'
+    %Call on Biofilm Surface Substrate Concentration from 'Diffusion'
     [Sb,bflux,flux]=Diffusion(Lf,S(i),mumax,Xb,Yxs,De);
     Cs=Sb(end);
     
@@ -77,14 +75,16 @@ end
 
 
 %% plot
-figure(2); clf(2)
-plot(t,x)
-hold on
-plot(t,S)
-title('Biomass and Substrate Concentrations For Filling/Draining Tank')
-xlabel('Time')
-ylabel('Amount of Biomass/Substrate in Tank')
-legend('Biomass','Substrate')
+% figure(2); clf(2)
+% plot(t,x)
+% hold on
+% plot(t,S)
+% title('Biomass and Substrate Concentrations For Filling/Draining Tank')
+% xlabel('Time')
+% ylabel('Amount of Biomass/Substrate in Tank')
+% legend('Biomass','Substrate')
+
+[]=outputs(t,x,S);
 
 
 

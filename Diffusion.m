@@ -1,4 +1,4 @@
-function [Sb,bflux,flux]=Diffusion(Lf,So,mewmax,Xb,Yxs,De)
+function [Sb,bflux,flux]=Diffusion(Lf,So,mumax,Xb,Yxs,De)
 %This Function will take initial tank conditions and model the diffusion of
 % substrates into the biofilm. The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
@@ -28,7 +28,7 @@ tic
 for iter=1:1000
 
         c=2:1:N-1; %array to run concentrations through
-        Snew(c)=(Sb(c+1)+Sb(c-1)-(mewmax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
+        Snew(c)=(Sb(c+1)+Sb(c-1)-(mumax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
     
         %Boundary Conditions After Iteration
         Snew(1)=Snew(2);
