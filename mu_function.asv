@@ -1,5 +1,0 @@
-function [mu] = mu_function(mumax,Km,Sb)
-% This function will allow for m to be calculated from the Monod Growth
-% Kinetics Equation
-mu = @(Sb) ((mumax*Sb)/(Km+S)); 
-end
