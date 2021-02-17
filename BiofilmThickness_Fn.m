@@ -7,7 +7,7 @@ function [Lf,Vdet,Vg]= BiofilmThickness_Fn(Sb,Lf_old,muSb,Kdet,mumax,dt,dz)
 %a given instant of time.
 
 %Biofilm Thickness
-Lf=Lf_old+dt*(muSb*Lf_old-Kdet*Lf_old^2); %New Biofilm thickness at instant
+Lf=Lf_old+dt*(.8*Lf_old-Kdet*Lf_old^2); %New Biofilm thickness at instant
 
 %Detachment
 Vdet=Kdet*Lf^2; %New %Velocity of mass leaving biofilm into bulk liquid

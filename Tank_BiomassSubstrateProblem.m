@@ -21,9 +21,9 @@ mumax=20; %max specific growth rate
 Km=3; %Monod half-saturation coefficient(growth transitions from sat. to linear)
 Yxs=0.5; %ratio of substrate consumed to biomass produced
 Daq=2e-5; %diffusion coefficient of water(assumed at boundary) [m/s^2]
-Lf=4.00E-4; %biofilm thickness [m]
-LL=Lf/100; %thickness of boundary layer [m]
-Lf_old=Lf;
+Lfo=4.00E-4; %biofilm thickness [m]
+LL=Lfo/100; %thickness of boundary layer [m]
+Lf_old=Lfo;
 Co=So; %substrate concentration
 Xb=20000; %g m^-3	biomass density in biofilm
 De=5.00E-05; %m2 d^-1	effective diffusion coefficient of substrate in biofilm
@@ -38,7 +38,7 @@ N=tFin/dt; %Number of steps
 %x = @(S) (Qdot*Sin/V)-(S*Qdot/V)+V; %Biomass wrt substrate concetration
 
 dxdt = @(x,t,S,Cs,mu,Vdet) (mu(S)-(Qdot/V))*x+Vdet*SA*Xb; %Biomass Concentration Change wrt time
-dsdt = @(x,t,S,Cs,mu) -((mu(S)*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LLo)*(Co-Cs))); 
+dsdt = @(x,t,S,Cs,mu) -((mu(S)*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
 % ^^^Substrate Concentration Change wrt time, now also considers flux
 % through boundary layer of biofilm
 
@@ -52,6 +52,7 @@ mu= zeros(1,N);
 t(1)=0;
 x(1)=xo;
 S(1)=So;
+Lf=Lfo;
 
 for i = 1:N-1
    
@@ -62,13 +63,12 @@ for i = 1:N-1
     [Sb,bflux,dz]=Diffusion(Lf,LL,S(i),mumax,Xb,Yxs,De);
     Cs=Sb(end);
     
+    %Call on 'mu_function' for mu value
+    [muSb,muS] = mu_function(mumax,Km,Sb,S(i));
+    
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
     [Lf,Vdet,Vg]= BiofilmThickness_Fn(Sb,Lf_old,muSb,Kdet,mumax,dt,dz);
     
-    %Call on 'mu_function' for mu value
-    [muSb,muS] = mu_function(mumax,Km,Sb(i),S(i));
-   
-
     t(i+1) = t(i) + dt;
     
     xstar = x(i) + dt*dxdt(x(i),t(i),S(i),Cs,muS,Vdet);
