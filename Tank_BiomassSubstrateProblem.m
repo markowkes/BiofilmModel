@@ -46,7 +46,7 @@ dsdt = @(x,t,S,Cs,mu) -((mu(S)*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)
 t = zeros(1,N); %Time
 x = zeros(1,N); %Biomass Concentration in bulk liquid
 S = zeros(1,N); %Substrate in bulk liquid
-mu= zeros(1,N); 
+
 
 %Initial Conditions
 t(1)=0;
