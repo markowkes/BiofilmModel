@@ -15,7 +15,7 @@ Vdet=Kdet*Lf^2; %New %Velocity of mass leaving biofilm into bulk liquid
 %Growth
 Vg=0; %initial condition for loop
 for i=1:length(Sb)-1
-    Vg=Vg+dz*((muSb(Sb(i))+muSb(Sb(i+1)))/2); %trapezoidal integration method for
+    Vg=Vg+dz*((muSb(i))+muSb(i+1))/2); %trapezoidal integration method for
                                         %new growth velocity of biofilm
 end
 end

@@ -63,19 +63,19 @@ for i = 1:N-1
     Cs=Sb(end);
     
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
-    [Lf,Vdet,Vg]= BiofilmThickness_Fn(Sb,Lf_old,mu,Kdet,mumax,dt,dz);
+    [Lf,Vdet,Vg]= BiofilmThickness_Fn(Sb,Lf_old,muSb,Kdet,mumax,dt,dz);
     
     %Call on 'mu_function' for mu value
-    [mu] = mu_function(mumax,Km,S(i));
+    [muSb,muS] = mu_function(mumax,Km,Sb(i),S(i));
    
 
     t(i+1) = t(i) + dt;
     
-    xstar = x(i) + dt*dxdt(x(i),t(i),S(i),Cs,mu,Vdet);
-    Sstar = S(i) + dt*dsdt(x(i),t(i),S(i),Cs,mu);
+    xstar = x(i) + dt*dxdt(x(i),t(i),S(i),Cs,muS,Vdet);
+    Sstar = S(i) + dt*dsdt(x(i),t(i),S(i),Cs,muS);
     
-    x(i+1) = x(i) + dt/2*(dxdt(x(i),t(i),S(i),Cs,mu,Vdet)+dxdt(xstar,t(i+1),Sstar,Cs,mu,Vdet));
-    S(i+1) = S(i) + dt/2*(dsdt(x(i),t(i),S(i),Cs,mu)+dsdt(xstar,t(i+1),Sstar,Cs,mu)); 
+    x(i+1) = x(i) + dt/2*(dxdt(x(i),t(i),S(i),Cs,muS,Vdet)+dxdt(xstar,t(i+1),Sstar,Cs,muS,Vdet));
+    S(i+1) = S(i) + dt/2*(dsdt(x(i),t(i),S(i),Cs,muS)+dsdt(xstar,t(i+1),Sstar,Cs,muS)); 
     
     Lf_old=Lf;
     
