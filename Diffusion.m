@@ -1,4 +1,4 @@
-function [Sb,bflux]=Diffusion(Lf,LL,So,mumax,Xb,Yxs,De)
+function [Sb,bflux,dz]=Diffusion(Lf,LL,So,mumax,Xb,Yxs,De)
 %This Function will take initial tank conditions and model the diffusion of
 % substrates into the biofilm. The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
