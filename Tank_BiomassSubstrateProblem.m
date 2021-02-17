@@ -23,9 +23,11 @@ Yxs=0.5; %ratio of substrate consumed to biomass produced
 Daq=2e-5; %diffusion coefficient of water(assumed at boundary) [m/s^2]
 Lf=4.00E-4; %biofilm thickness [m]
 LL=Lf/100; %thickness of boundary layer [m]
+Lf_old=Lf;
 Co=So; %substrate concentration
-Xb=20000; %g m-3	biomass density in biofilm
-De=5.00E-05; %m2 d-1	effective diffusion coefficient of substrate in biofilm
+Xb=20000; %g m^-3	biomass density in biofilm
+De=5.00E-05; %m2 d^-1	effective diffusion coefficient of substrate in biofilm
+Kdet=100/3600; % [1/ms] coefficient of detachment for biofilm
 
 %Time Constraints
 tFin=2; %[s]
@@ -35,15 +37,16 @@ N=tFin/dt; %Number of steps
 %S = @(x) Sin-(V/Qdot)*x+(V^2/Qdot); %Substrate concentration wrt biomass
 %x = @(S) (Qdot*Sin/V)-(S*Qdot/V)+V; %Biomass wrt substrate concetration
 
-dsdt = @(x,t,S,Cs,mu) -((mu(S)*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
+dxdt = @(x,t,S,Cs,mu,Vdet) (mu(S)-(Qdot/V))*x+Vdet*SA*Xb; %Biomass Concentration Change wrt time
+dsdt = @(x,t,S,Cs,mu) -((mu(S)*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LLo)*(Co-Cs))); 
 % ^^^Substrate Concentration Change wrt time, now also considers flux
 % through boundary layer of biofilm
-dxdt = @(x,t,S,Cs,mu) (mu(S)-(Qdot/V))*x+Vdet*SA*Xb; %Biomass Concentration Change wrt time
 
 %Preallocation
 t = zeros(1,N); %Time
 x = zeros(1,N); %Biomass Concentration in bulk liquid
 S = zeros(1,N); %Substrate in bulk liquid
+mu= zeros(1,N); 
 
 %Initial Conditions
 t(1)=0;
@@ -55,38 +58,41 @@ for i = 1:N-1
     % Insert loop over spacial coordinate zeta for substrate diffusion,
     % particulates, biomass growth within biofilm, etc
     
-    %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
-    [Lf,Vdet,Vg]= BiofilmThickness_Fn(S,Lf_old,mu,Kdet,mumax,dt,dz)
-    
     %Call on Biofilm Surface Substrate Concentration from 'Diffusion'
-    [Sb,bflux]=Diffusion(Lf,S(i),mumax,Xb,Yxs,De);
+    [Sb,bflux,dz]=Diffusion(Lf,LL,S(i),mumax,Xb,Yxs,De);
     Cs=Sb(end);
+    
+    %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
+    [Lf,Vdet,Vg]= BiofilmThickness_Fn(Sb,Lf_old,mu,Kdet,mumax,dt,dz);
     
     %Call on 'mu_function' for mu value
     [mu] = mu_function(mumax,Km,S(i));
+   
 
     t(i+1) = t(i) + dt;
     
-    xstar = x(i) + dt*dxdt(x(i),t(i),S(i),Cs,mu);
+    xstar = x(i) + dt*dxdt(x(i),t(i),S(i),Cs,mu,Vdet);
     Sstar = S(i) + dt*dsdt(x(i),t(i),S(i),Cs,mu);
     
-    x(i+1) = x(i) + dt/2*(dxdt(x(i),t(i),S(i),Cs,mu)+dxdt(xstar,t(i+1),Sstar,Cs,mu));
+    x(i+1) = x(i) + dt/2*(dxdt(x(i),t(i),S(i),Cs,mu,Vdet)+dxdt(xstar,t(i+1),Sstar,Cs,mu,Vdet));
     S(i+1) = S(i) + dt/2*(dsdt(x(i),t(i),S(i),Cs,mu)+dsdt(xstar,t(i+1),Sstar,Cs,mu)); 
+    
+    Lf_old=Lf;
     
 end
 
 
 %% plot
-% figure(2); clf(2)
-% plot(t,x)
-% hold on
-% plot(t,S)
-% title('Biomass and Substrate Concentrations For Filling/Draining Tank')
-% xlabel('Time')
-% ylabel('Amount of Biomass/Substrate in Tank')
-% legend('Biomass','Substrate')
+figure(2); clf(2)
+plot(t,x)
+hold on
+plot(t,S)
+title('Biomass and Substrate Concentrations For Filling/Draining Tank')
+xlabel('Time')
+ylabel('Amount of Biomass/Substrate in Tank')
+legend('Biomass','Substrate')
 
-[]=outputs(t,x,S);
+% []=outputs(t,x,S);
 
 
 

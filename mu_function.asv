@@ -1,3 +1,5 @@
-function [mu] = mu_function(mumax,Km,S)
-% This function will
-m = @(S) ((mumax*S)/(Km+S)); %Monod Growth Kinetics
+function [mu] = mu_function(mumax,Km,Sb)
+% This function will allow for m to be calculated from the Monod Growth
+% Kinetics Equation
+mu = @(Sb) ((mumax*Sb)/(Km+S)); 
+end
