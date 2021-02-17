@@ -63,11 +63,8 @@ for i = 1:N-1
     [Sb,bflux,dz]=Diffusion(Lf,LL,S(i),mumax,Xb,Yxs,De);
     Cs=Sb(end);
     
-    %Call on 'mu_function' for mu value
-    [muSb,muS] = mu_function(mumax,Km,Sb,S(i));
-    
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
-    [Lf,Vdet,Vg]= BiofilmThickness_Fn(Sb,Lf_old,muSb,Kdet,mumax,dt,dz);
+    [Lf,Vdet,Vg]= BiofilmThickness_Fn(Sb,Lf_old,muSb,Kdet,mumax,Km,dt,dz);
     
     t(i+1) = t(i) + dt;
     
