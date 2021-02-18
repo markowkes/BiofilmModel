@@ -28,8 +28,8 @@ for i = 1:N-1
     xstar = x(i) + dt*dxdt(x(i),t(i),S(i),Cs,mu(S(i),mumax,Km),Vdet);
     Sstar = S(i) + dt*dsdt(x(i),t(i),S(i),Cs,mu(S(i),mumax,Km));
     
-    x(i+1) = x(i) + dt/2*(dxdt(x(i),t(i),S(i),Cs,mu(S(i),mumax,Km),Vdet)+dxdt(xstar,t(i+1),Sstar,Cs,mu(S(i),mumax,Km),Vdet));
-    S(i+1) = S(i) + dt/2*(dsdt(x(i),t(i),S(i),Cs,mu(S(i),mumax,Km)+dsdt(xstar,t(i+1),Sstar,Cs,mu(S(i),mumax,Km)))); 
+    x(i+1) = x(i) + dt/2*(dxdt(x(i),t(i),S(i),Cs,mu(S(i),mumax,Km),Vdet)+dxdt(xstar,t(i+1),Sstar,Cs,mu(S(i+1),mumax,Km),Vdet));
+    S(i+1) = S(i) + dt/2*(dsdt(x(i),t(i),S(i),Cs,mu(S(i),mumax,Km)+dsdt(xstar,t(i+1),Sstar,Cs,mu(S(i+1),mumax,Km)))); 
     
 end
 end

@@ -63,6 +63,8 @@ for i = 1:N-1
     %Produce desired plots from outputs produced
     outputs(t,x,S,z,bflux,Sb);
     
+   
+    
     Lf_old=Lf;
     
 end
