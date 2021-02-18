@@ -1,5 +1,4 @@
-%% Heun's Method, Biomass and Substrate Concetration in Bulk Liquid 
-
+function MAINDRIVER
 clear; clc
 % Inputs
 
@@ -34,14 +33,6 @@ tFin=2; %[s]
 dt=1e-3; %Interval
 N=tFin/dt; %Number of steps
 
-%S = @(x) Sin-(V/Qdot)*x+(V^2/Qdot); %Substrate concentration wrt biomass
-%x = @(S) (Qdot*Sin/V)-(S*Qdot/V)+V; %Biomass wrt substrate concetration
-
-dxdt = @(x,t,S,Cs,mu,Vdet) (mu(S)-(Qdot/V))*x+Vdet*SA*Xb; %Biomass Concentration Change wrt time
-dsdt = @(x,t,S,Cs,mu) -((mu(S)*x)/Yxs)+((Qdot*Sin)/V)-((Qdot*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
-% ^^^Substrate Concentration Change wrt time, now also considers flux
-% through boundary layer of biofilm
-
 %Preallocation
 t = zeros(1,N); %Time
 x = zeros(1,N); %Biomass Concentration in bulk liquid
@@ -60,36 +51,22 @@ for i = 1:N-1
     % particulates, biomass growth within biofilm, etc
     
     %Call on Biofilm Surface Substrate Concentration from 'Diffusion'
-    [Sb,bflux,dz]=Diffusion(Lf,LL,S(i),mumax,Xb,Yxs,De);
+    [Sb,bflux,dz,z]=Diffusion(Lf,LL,S(i),mumax,Xb,Yxs,De);
     Cs=Sb(end);
     
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
-    [Lf,Vdet,Vg]= BiofilmThickness_Fn(Sb,Lf_old,muSb,Kdet,mumax,Km,dt,dz);
+    [Lf,Vdet,Vg]=BiofilmThickness_Fn(Sb,Lf_old,mu(Sb,mumax,Km),Kdet,mumax,Km,dt,dz);
     
-    t(i+1) = t(i) + dt;
+    %Call on tank substrate/biomass concentration from 'tankenvironment'
+    [S,x,t]=tankenvironment(xo,So,V,SA,Qdot,Sin,Vdet,mumax,Km,Yxs,Daq,LL,Cs,Co,Xb,dt,N);
     
-    xstar = x(i) + dt*dxdt(x(i),t(i),S(i),Cs,muS,Vdet);
-    Sstar = S(i) + dt*dsdt(x(i),t(i),S(i),Cs,muS);
-    
-    x(i+1) = x(i) + dt/2*(dxdt(x(i),t(i),S(i),Cs,muS,Vdet)+dxdt(xstar,t(i+1),Sstar,Cs,muS,Vdet));
-    S(i+1) = S(i) + dt/2*(dsdt(x(i),t(i),S(i),Cs,muS)+dsdt(xstar,t(i+1),Sstar,Cs,muS)); 
+    %Produce desired plots from outputs produced
+    outputs(t,x,S,z,bflux,Sb);
     
     Lf_old=Lf;
     
 end
-
-
-%% plot
-figure(2); clf(2)
-plot(t,x)
-hold on
-plot(t,S)
-title('Biomass and Substrate Concentrations For Filling/Draining Tank')
-xlabel('Time')
-ylabel('Amount of Biomass/Substrate in Tank')
-legend('Biomass','Substrate')
-
-% []=outputs(t,x,S);
+end
 
 
 

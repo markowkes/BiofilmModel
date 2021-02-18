@@ -1,4 +1,4 @@
-function [Sb,bflux,dz]=Diffusion(Lf,LL,So,mumax,Xb,Yxs,De)
+function [Sb,bflux,dz,z]=Diffusion(Lf,LL,So,mumax,Xb,Yxs,De)
 %This Function will take initial tank conditions and model the diffusion of
 % substrates into the biofilm. The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
@@ -44,9 +44,5 @@ for iter=1:1000
          Sb=Snew;
 end
 
-figure(1); clf(1)
-plot(z,Sb)
-xlabel('Depth of Biofilm [m]','fontsize',20)
-ylabel('Substrate Concentration within Biofilm [g/m^3]','fontsize',20)
 
 end
