@@ -58,7 +58,7 @@ for i = 1:N-1
     [Lf,Vdet,Vg]=BiofilmThickness_Fn(Sb,Lf_old,mu(Sb,mumax,Km),Kdet,mumax,Km,dt,dz);
     
     %Call on tank substrate/biomass concentration from 'tankenvironment'
-    [S,x,t]=tankenvironment(V,SA,Qdot,Sin,Vdet,mumax,Km,Yxs,Daq,LL,Cs,Co,Xb,dt);
+    [S(i+1),x(i+1),t(i+1)]=tankenvironment(t(i),x(i),S(i),V,SA,Qdot,Sin,Vdet,mumax,Km,Yxs,Daq,LL,Cs,Co,Xb,dt);
     
     %Produce desired plots from outputs produced
     outputs(t,x,S,z,bflux,Sb);
