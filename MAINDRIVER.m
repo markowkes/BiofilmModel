@@ -12,7 +12,7 @@ W=0.5; %[m]
 H=0.4; %[m]
 V=L*W*H; %tank volume [m^3]
 SA=(V/H)+2*((V/L)+(V/W)); %tank surface area [m^2] 
-Qdot=1; %[flow rate in/out, m^3]
+Qdot=1; %flow rate in/out [m^3]
 Sin=25; %Inflow of substrates to tank, [g/m^3]
 
 %Biofilm Parameters
@@ -24,9 +24,9 @@ Lfo=4.00E-4; %biofilm thickness [m]
 LL=Lfo/100; %thickness of boundary layer [m]
 Lf_old=Lfo;
 Co=So; %substrate concentration
-Xb=20000; %g m^-3	biomass density in biofilm
-De=5.00E-05; %m2 d^-1	effective diffusion coefficient of substrate in biofilm
-Kdet=100/3600; % [1/ms] coefficient of detachment for biofilm
+Xb=20000; %biomass density in biofilm [g/m^3]
+De=5.00E-05; %effective diffusion coefficient of substrate in biofilm [m^2/d^1]
+Kdet=100/3600; %coefficient of detachment for biofilm [1/ms]
 
 %Time Constraints
 tFin=2; %[s]
@@ -51,17 +51,16 @@ for i = 1:N-1
     % particulates, biomass growth within biofilm, etc
     
     %Call on Biofilm Surface Substrate Concentration from 'Diffusion'
-    [Sb,bflux,dz,z]=Diffusion(Lf,LL,S(i),mumax,Xb,Yxs,De);
-    Cs=Sb(end);
+    [Cs,Sb,bflux,dz,z]=Diffusion(Lf,LL,So,mumax,Xb,Yxs,De);
     
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
-    [Lf,Vdet,Vg]=BiofilmThickness_Fn(Sb,Lf_old,mu(Sb,mumax,Km),Kdet,mumax,Km,dt,dz);
+    [Lf,Vdet]=BiofilmThickness_Fn(Sb,Lf_old,mu(Sb,mumax,Km),Kdet,mumax,Km,dt,dz);
     
     %Call on tank substrate/biomass concentration from 'tankenvironment'
-    [S,x,t]=tankenvironment(xo,So,V,SA,Qdot,Sin,Vdet,mumax,Km,Yxs,Daq,LL,Cs,Co,Xb,dt,N);
+    [Snew,xnew,tnew]=tankenvironment(t,x,S,V,SA,Qdot,Sin,Vdet,mumax,Km,Yxs,Daq,LL,Cs,Co,Xb,dt,N);
     
-    %Produce desired plots from outputs produced
-    outputs(t,x,S,z,bflux,Sb);
+    %Call on desired plots from 'outputs'
+    outputs(tnew,xnew,Snew,z,bflux,Sb);
     
    
     
