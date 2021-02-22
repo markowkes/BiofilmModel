@@ -1,5 +1,6 @@
 function MAINDRIVER
 clear; clc
+
 % Inputs
 
 %Array Initial Conditions
@@ -32,6 +33,7 @@ Kdet=100/3600; %coefficient of detachment for biofilm [1/ms]
 tFin=2; %[s]
 dt=1e-3; %Interval
 N=tFin/dt; %Number of steps
+outFreq=10; %Number of steps between plot updates.
 
 %Preallocation
 t = zeros(1,N); %Time
@@ -44,6 +46,10 @@ t(1)=0;
 x(1)=xo;
 S(1)=So;
 Lf=Lfo;
+
+% Initialize plots 
+outIter=outFreq-1;
+plots=0;
 
 for i = 1:N-1
    
@@ -60,10 +66,13 @@ for i = 1:N-1
     [t(i+1),x(i+1),S(i+1)]=tankenvironment(t(i),x(i),S(i),V,SA,Qdot,Sin,Vdet,mumax,Km,Yxs,Daq,LL,Cs,Co,Xb,dt);
     
     %Call on desired plots from 'outputs'
-    outputs(tnew,xnew,Snew,z,bflux,Sb);
+    outIter=outIter+1;
+    if (outIter==outFreq)
+        [plots] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux,Sb,plots);
+        outIter=0;
+    end
     
-   
-    
+    % ????
     Lf_old=Lf;
     
 end
