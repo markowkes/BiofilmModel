@@ -73,7 +73,7 @@ for i = 1:N-1
     end
     
     % ????
-    Lf_old=Lf;
+%     Lf_old=Lf;
     
 end
 end

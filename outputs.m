@@ -17,29 +17,26 @@ if (all(plots==0) || ~ishandle(1))
     title('Substrate Concentrations For Tank')
     ylabel('Concentration [g]')
     xlabel('Time [s]')
+%     hold on
+%     subplot(2,2,3)
+%     plots(3)=plot(t,bflux);
+%     title('Flux through Boundary Layer of Biofilm')
+%     ylabel('Flux [g/m^2]')
+%     xlabel('Time [s]')
+    hold on
+    subplot(2,2,4)
+    plots(4)=plot(z,Sb);
+    title('Substrate Concentration within Biofilm')
+    ylabel('Concentration [g]')
+    xlabel('Depth of Biofilm [m]')
+    
     drawnow
 else
     % Figure exists, update data
     set(plots(1),'XData',t,'YData',x)
     set(plots(2),'XData',t,'YData',S)
+%     set(plots(3),'XData',t,'YData',bflux)
+    set(plots(4),'XData',z,'YData',Sb)
     drawnow
 end
-
-% hold on
-% subplot(2,2,3)
-% plot3=plot(t(1:i),bflux(1:i));
-% bflux=bflux(i+1);
-% set(plot3,'XData',t,'YData',bflux)
-% title('Flux through Boundary Layer of Biofilm')
-% ylabel('Flux [g/m^2]')
-% xlabel('Time [s]')
-% hold on
-% subplot(2,2,4)
-% plot4=plot(z(1:c),Sb(1:c));
-% Sb=Sb(1:c+1);
-% set(plot4,'XData',z,'YData',Sb)
-% title('Substrate Concentration within Biofilm')
-% ylabel('Concentration [g]')
-% xlabel('Depth of Biofilm [m]')
-
 end
