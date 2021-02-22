@@ -1,4 +1,4 @@
-function [Snew,xnew,tnew]=tankenvironment(t,x,S,V,SA,Qdot,Sin,Vdet,mumax,Km,Yxs,Daq,LL,Cs,Co,Xb,dt)
+function [tnew,xnew,Snew]=tankenvironment(t,x,S,V,SA,Qdot,Sin,Vdet,mumax,Km,Yxs,Daq,LL,Cs,Co,Xb,dt)
 %% This function describes the greater tank environment and assumed that it is well mixed
 % It calls all the necessary tank geometry, flow parameters, and specific
 % parameters describing the biofilm and uses the differential equations
