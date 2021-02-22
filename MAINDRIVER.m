@@ -72,9 +72,6 @@ for i = 1:N-1
         outIter=0;
     end
     
-    % ????
-%     Lf_old=Lf;
-    
 end
 end
 
