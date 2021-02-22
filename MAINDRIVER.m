@@ -54,7 +54,7 @@ for i = 1:N-1
     [Cs,Sb,bflux,dz,z]=Diffusion(Lf,LL,So,mumax,Xb,Yxs,De);
     
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
-    [Lf,Vdet]=BiofilmThickness_Fn(Sb,Lf_old,mu(Sb,mumax,Km),Kdet,mumax,Km,dt,dz);
+    [Lf,Vdet]=BiofilmThickness_Fn(Sb,Lf_old,Kdet,mumax,Km,dt,dz);
     
     %Call on tank substrate/biomass concentration from 'tankenvironment'
     [Snew,xnew,tnew]=tankenvironment(t,x,S,V,SA,Qdot,Sin,Vdet,mumax,Km,Yxs,Daq,LL,Cs,Co,Xb,dt,N);
