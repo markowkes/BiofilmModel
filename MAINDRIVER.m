@@ -29,6 +29,16 @@ Xb=20000; %biomass density in biofilm [g/m^3]
 De=5.00E-05; %effective diffusion coefficient of substrate in biofilm [m^2/d^1]
 Kdet=100/3600; %coefficient of detachment for biofilm [1/ms]
 
+Nz=100; %Linear GridPoints in Biofilm
+z=linspace(0,Lf,N); %m Grid of Biofilm Depth
+dz=z(2)-z(1); %m
+
+%Initial Boundary Conditions (in Biofilm)
+Sb=zeros(1,Nz);
+Sb(end)=So; %initially assume boundary concentration = So
+Sbnew=zeros(1,Nz); %Preallocate Snew Array
+
+
 %Time Constraints
 tFin=2; %[s]
 dt=1e-3; %Interval
@@ -57,10 +67,11 @@ for i = 1:N-1
     % particulates, biomass growth within biofilm, etc
     
     %Call on Biofilm Surface Substrate Concentration from 'Diffusion'
-    [Cs,Sb,bflux,dz,z]=Diffusion(Lf,LL,So,mumax,Xb,Yxs,De);
+    Sbold=Sb %Begin Solving with previous solution for efficiency
+    [Cs,Sb,bflux]=Diffusion(Sbold,Lf,LL,So,mumax,Xb,Yxs,De,Km);
     
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
-    [Lf,Vdet]=BiofilmThickness_Fn(Sb,Lf_old,Kdet,mumax,Km,dt,dz);
+    [Lf,Vdet]=Lf(Sb,Lf_old,Kdet,mumax,Km,dt,dz);
     
     %Call on tank substrate/biomass concentration from 'tankenvironment'
     [t(i+1),x(i+1),S(i+1)]=tankenvironment(t(i),x(i),S(i),V,SA,Qdot,Sin,Vdet,mumax,Km,Yxs,Daq,LL,Cs,Co,Xb,dt);
@@ -71,7 +82,6 @@ for i = 1:N-1
         [plots] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux,Sb,plots);
         outIter=0;
     end
-    
 end
 end
 

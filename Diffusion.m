@@ -1,49 +1,30 @@
-function [Cs,Sb,bflux,dz,z]=Diffusion(Lf,LL,So,mumax,Xb,Yxs,De)
+function [Cs,Sb,bflux]=Diffusion(Sbold,Lf,LL,So,mumax,Xb,Yxs,De,Km,Daq)
 %This Function will take initial tank conditions and model the diffusion of
 % substrates into the biofilm. The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
-
-%Setup for solution
-N=100; % *** Make this vary with biofilm thickness?  Or Not worth time??
-
-%Grid of Biofilm Depth
-z=linspace(0,Lf,N); %m
-dz=z(2)-z(1); %m
-
-%Substrate in Biofilm Boundary Conditions
-Sb=zeros(1,N);
-Sb(end)=So; %initially assume boundary concentration = So
-Snew=zeros(1,N);
-
-
-%Boundary Flux Consideration
-Daq=1e-4; % m^2/s (oxygen.. online)
-Kl=Daq/LL; %
 
 %Iterations
 tic
 for iter=1:1000
 
-        c=2:1:N-1; %array to run concentrations through
-        Snew(c)=(Sb(c+1)+Sb(c-1)-(mumax*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
+        c=2:1:Nz-1; %array to run concentrations through
+        Sbnew(c)=(Sb(c+1)+Sb(c-1)-(mu(Sb(c),mumax,Km)*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
     
         %Boundary Conditions After Iteration
-        Snew(1)=Snew(2);
-        Snew(end)=Sb(end);
+        Sbnew(1)=Sbnew(2);
+        Sbnew(end)=Sb(end);
         
         %Flux Calculations
-              bflux=(Snew(end)-Snew(end-1))/dz; %Biofilm Flux at boundary
-              flux=(Daq*(So-Snew(end)))/(LL*De); %Boundary Layer Flux to ensure bflux=flux
+              bflux=(Sbnew(end)-Sbnew(end-1))/dz; %Biofilm Flux at boundary
               
         %Flux Matching       
-        Snew(end)=So-LL*De*(bflux/Daq);
+        Sbnew(end)=So-LL*De*(bflux/Daq);
         
         %Non Zero Condition
-        Snew(Snew < 0) = 0;
+        Sbnew(Sbnew < 0) = 0;
 
-         Sb=Snew;
-         Cs=Sb(end);
+         Sb=Sbnew;
+         
 end
-
-
+Cs=Sb(end); %output Surface Concentration
 end

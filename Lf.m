@@ -1,4 +1,4 @@
-function [Lf,Vdet]= BiofilmThickness_Fn(Sb,Lf_old,Kdet,mumax,Km,dt,dz)
+function [Lf,Vdet]=Lf(Sb,Lf_old,Kdet,mumax,Km,dt,dz)
 %This Function takes the substrate concentration at a given instant in time
 %(and the corresponding equation for mu) as well as the old Biofilm
 %thickness and computes a new Biofilm Thickness (Lf)
