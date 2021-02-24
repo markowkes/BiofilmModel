@@ -21,5 +21,4 @@ for i=1:length(Sb)-1
     Vg=Vg+dz*((mu(Sb(i),mumax,Km)+mu(Sb(i+1),mumax,Km))/2); %trapezoidal integration method for
                                         %new growth velocity of biofilm
 end
-Lf_old=Lf;
 end

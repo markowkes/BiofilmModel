@@ -4,8 +4,8 @@ clear; clc
 % Inputs
 
 %Array Initial Conditions
-xo=10; %initial biomass concentration in bulk liquid
-So=25; %initial substrate concentration in bulk liquid
+xo=10; %[g/m^-3] initial biomass concentration in bulk liquid
+So=25; %[g/m^-3] initial substrate concentration in bulk liquid
 
 %Tank Parameters + Geometry
 L=0.5; %[m]
@@ -20,24 +20,22 @@ Sin=25; %Inflow of substrates to tank, [g/m^3]
 mumax=20; %max specific growth rate
 Km=3; %Monod half-saturation coefficient(growth transitions from sat. to linear)
 Yxs=0.5; %ratio of substrate consumed to biomass produced
-Daq=2e-5; %diffusion coefficient of water(assumed at boundary) [m/s^2]
-Lfo=4.00E-4; %biofilm thickness [m]
-LL=Lfo/100; %thickness of boundary layer [m]
+Daq=4.00e-5; %diffusion coefficient assumed at boundary [m/s^2]
+Lfo=5.00E-6; %biofilm thickness [m]
 Lf_old=Lfo;
+LL=1.00e-4; %thickness of biofilm boundary layer [m]
 Co=So; %substrate concentration
 Xb=20000; %biomass density in biofilm [g/m^3]
-De=5.00E-05; %effective diffusion coefficient of substrate in biofilm [m^2/d^1]
-Kdet=100/3600; %coefficient of detachment for biofilm [1/ms]
+De=1.00E-05; %effective diffusion coefficient of substrate in biofilm [m^2/d^1]
+Kdet=1900; %coefficient of detachment for biofilm [m-1*s-1]
 
 Nz=100; %Linear GridPoints in Biofilm
-z=linspace(0,Lf,N); %m Grid of Biofilm Depth
-dz=z(2)-z(1); %m
+zo=linspace(0,Lfo,Nz); %[m] Grid of Biofilm Depth
+dzo=zo(2)-zo(1); %[m]
 
 %Initial Boundary Conditions (in Biofilm)
 Sb=zeros(1,Nz);
 Sb(end)=So; %initially assume boundary concentration = So
-Sbnew=zeros(1,Nz); %Preallocate Snew Array
-
 
 %Time Constraints
 tFin=2; %[s]
@@ -49,6 +47,8 @@ outFreq=10; %Number of steps between plot updates.
 t = zeros(1,N); %Time
 x = zeros(1,N); %Biomass Concentration in bulk liquid
 S = zeros(1,N); %Substrate in bulk liquid
+
+bflux=zeros(1,N); %Boundary Layer Flux of Biofilm
 
 
 %Initial Conditions
@@ -67,8 +67,13 @@ for i = 1:N-1
     % particulates, biomass growth within biofilm, etc
     
     %Call on Biofilm Surface Substrate Concentration from 'Diffusion'
-    Sbold=Sb %Begin Solving with previous solution for efficiency
-    [Cs,Sb,bflux]=Diffusion(Sbold,Lf,LL,So,mumax,Xb,Yxs,De,Km);
+    
+    %Calculate Input Parameters
+    Sbold=Sb; %Solve Diffusion with previous solution for efficiency
+    z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
+    dz=z(2)-z(1); %[m]
+ 
+    [Cs,Sb,bflux(i)]=Diffusion(Sbold,Lf,LL,S(i),mumax,Xb,Yxs,De,Km,dz,Nz);
     
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
     [Lf,Vdet]=Lf(Sb,Lf_old,Kdet,mumax,Km,dt,dz);
