@@ -1,4 +1,4 @@
-function [Cs,Sb,bflux]=diffusion(Sbold,LL,So,mumax,Xb,Yxs,De,Km,Daq,dz,Nz)
+function [Cs,Sb,bflux]=diffusion(Sbold,LL,S(i),mumax,Xb,Yxs,De,Km,Daq,dz,Nz)
 %% This function models the diffusion of a substrate within the biofilm
 %This Function will take tank conditions (So,Xb,LL) and various growth factors (Yxs,De,Km,Daq) model the diffusion of
 % substrates into the biofilm over the grid . The results of this uptake will be used to

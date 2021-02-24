@@ -73,7 +73,7 @@ for i = 1:N-1
     z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
     dz=z(2)-z(1); %[m]
  
-    [Cs,Sb,bflux(i)]=diffusion(Sbold,Lf,LL,S(i),mumax,Xb,Yxs,De,Km,dz,Nz);
+    [Cs,Sb,bflux(i)]=diffusion(Sbold,LL,S(i),mumax,Xb,Yxs,De,Km,Daq,dz,Nz);
     
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
     Lf_old=Lf;
