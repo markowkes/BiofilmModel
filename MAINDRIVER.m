@@ -61,7 +61,7 @@ Lf=Lfo;
 outIter=outFreq-1;
 plots=0;
 
-count=1
+count=1;
 for i = 1:N-1
     % Insert loop over spacial coordinate zeta for substrate diffusion,
     % particulates, biomass growth within biofilm, etc
