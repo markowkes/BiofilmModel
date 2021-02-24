@@ -1,4 +1,4 @@
-function [Lf,Vdet]=Lf(Sb,Lf_old,Kdet,mumax,Km,dt,dz)
+function [Lf,Vdet]=lf(Sb,Lf_old,Kdet,mumax,Km,dt,dz)
 %This Function takes the substrate concentration at a given instant in time
 %(and the corresponding equation for mu) as well as the old Biofilm
 %thickness and computes a new Biofilm Thickness (Lf)
@@ -19,6 +19,6 @@ Vdet=Kdet*Lf^2; %New %Velocity of mass leaving biofilm into bulk liquid
 Vg=0; %initial condition for loop
 for i=1:length(Sb)-1
     Vg=Vg+dz*((mu(Sb(i),mumax,Km)+mu(Sb(i+1),mumax,Km))/2); %trapezoidal integration method for
-                                        %new growth velocity of biofilm
+                                                            %new growth velocity of biofilm
 end
 end

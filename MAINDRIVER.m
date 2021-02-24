@@ -61,8 +61,8 @@ Lf=Lfo;
 outIter=outFreq-1;
 plots=0;
 
+count=1
 for i = 1:N-1
-   
     % Insert loop over spacial coordinate zeta for substrate diffusion,
     % particulates, biomass growth within biofilm, etc
     
@@ -73,10 +73,11 @@ for i = 1:N-1
     z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
     dz=z(2)-z(1); %[m]
  
-    [Cs,Sb,bflux(i)]=Diffusion(Sbold,Lf,LL,S(i),mumax,Xb,Yxs,De,Km,dz,Nz);
+    [Cs,Sb,bflux(i)]=diffusion(Sbold,Lf,LL,S(i),mumax,Xb,Yxs,De,Km,dz,Nz);
     
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
-    [Lf,Vdet]=Lf(Sb,Lf_old,Kdet,mumax,Km,dt,dz);
+    Lf_old=Lf;
+    [Lf,Vdet]=lf(Sb,Lf_old,Kdet,mumax,Km,dt,dz);
     
     %Call on tank substrate/biomass concentration from 'tankenvironment'
     [t(i+1),x(i+1),S(i+1)]=tankenvironment(t(i),x(i),S(i),V,SA,Qdot,Sin,Vdet,mumax,Km,Yxs,Daq,LL,Cs,Co,Xb,dt);
@@ -87,6 +88,7 @@ for i = 1:N-1
         [plots] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux,Sb,plots);
         outIter=0;
     end
+count=count+1;
 end
 end
 
