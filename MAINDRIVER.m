@@ -22,19 +22,15 @@ Km=3; %Monod half-saturation coefficient(growth transitions from sat. to linear)
 Yxs=0.5; %ratio of substrate consumed to biomass produced
 Daq=4.00e-5; %diffusion coefficient assumed at boundary [m/s^2]
 
-Lfo=5.00E-6; %biofilm thickness [m]
-Lf_old=Lfo;
-Lf=Lfo;
-
-LL=1.00e-4; %thickness of biofilm boundary layer [m]
+Lf=5.00E-6; %biofilm thickness [m]
+LL=0;
+%LL=1.00e-4; %thickness of biofilm boundary layer [m]
 Co=So; %substrate concentration
 Xb=20000; %biomass density in biofilm [g/m^3]
 De=1.00e-5; %effective diffusion coefficient of substrate in biofilm [m^2/d^1]
 Kdet=1900; %coefficient of detachment for biofilm [m-1*s-1]
 
 Nz=50; %Linear GridPoints in Biofilm
-z=linspace(0,Lfo,Nz); %[m] Grid of Biofilm Depth
-dz=z(2)-z(1); %[m]
 
 %Initial Boundary Conditions (in Biofilm)
 Sb=zeros(1,Nz);
@@ -67,16 +63,15 @@ for i = 1:N-1
     % particulates, biomass growth within biofilm, etc
     
     %Call on Biofilm Surface Substrate Concentration from 'Diffusion'
-    
-    %Calculate Input Parameters
-    Sbold=Sb; %Solve Diffusion with previous solution for efficiency
-    [Lf,Vdet]=lf(Sbold,Lf_old,Kdet,mumax,Km,dt,dz);
+    %Modify Grid for latest biofilm thickness
     z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
     dz=z(2)-z(1); %[m]
-    [Cs,Sb,bflux(i+1)]=biofilmdiffusion(Sbold,LL,S(i),mumax,Xb,Yxs,De,Km,Daq,Lf,dz);
+    
+    Sbold=Sb; %Create old Substrate Concentration array to decrease run time of diffusion
+    [Cs,Sb,bflux(i+1)]=biofilmdiffusion(Sbold,S(i),Lf,Nz,dz,LL,mumax,Xb,Yxs,De,Km,Daq);
     
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
-    Lf_old=Lf;
+    Lf_old=Lf; %Store old biofilm thickness to compute new biofilm thickness
     [Lf,Vdet]=lf(Sb,Lf_old,Kdet,mumax,Km,dt,dz);
     
     %Call on tank substrate/biomass concentration from 'tankenvironment'
