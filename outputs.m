@@ -17,12 +17,12 @@ if (all(plots==0) || ~ishandle(1))
     title('Substrate Concentrations For Tank')
     ylabel('Concentration [g]')
     xlabel('Time [s]')
-%     hold on
-%     subplot(2,2,3)
-%     plots(3)=plot(t,bflux);
-%     title('Flux through Boundary Layer of Biofilm')
-%     ylabel('Flux [g/m^2]')
-%     xlabel('Time [s]')
+    hold on
+    subplot(2,2,3)
+    plots(3)=plot(t,bflux);
+    title('Flux through Boundary Layer of Biofilm')
+    ylabel('Flux [g/m^2]')
+    xlabel('Time [s]')
     hold on
     subplot(2,2,4)
     plots(4)=plot(z,Sb);
@@ -35,7 +35,7 @@ else
     % Figure exists, update data
     set(plots(1),'XData',t,'YData',x)
     set(plots(2),'XData',t,'YData',S)
-%     set(plots(3),'XData',t,'YData',bflux)
+    set(plots(3),'XData',t,'YData',bflux)
     set(plots(4),'XData',z,'YData',Sb)
     drawnow
 end

@@ -50,7 +50,6 @@ outFreq=10; %Number of steps between plot updates.
 t = zeros(1,N); %Time
 x = zeros(1,N); %Biomass Concentration in bulk liquid
 S = zeros(1,N); %Substrate in bulk liquid
-
 bflux=zeros(1,N); %Boundary Layer Flux of Biofilm Preallocate
 
 % Initial Conditions
@@ -74,7 +73,7 @@ for i = 1:N-1
     [Lf,Vdet]=lf(Sbold,Lf_old,Kdet,mumax,Km,dt,dz);
     z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
     dz=z(2)-z(1); %[m]
-    [Cs,Sb,bflux]=biofilmdiffusion(Sbold,LL,S(i),mumax,Xb,Yxs,De,Km,Daq,Lf,dz);
+    [Cs,Sb,bflux(i+1)]=biofilmdiffusion(Sbold,LL,S(i),mumax,Xb,Yxs,De,Km,Daq,Lf,dz);
     
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
     Lf_old=Lf;
@@ -86,7 +85,7 @@ for i = 1:N-1
     %Call on desired plots from 'outputs'
     outIter=outIter+1;
     if (outIter==outFreq)
-        [plots] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux,Sb,plots);
+        [plots] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux(1:i+1),Sb,plots);
         outIter=0;
     end
     
