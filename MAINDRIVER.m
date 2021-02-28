@@ -2,9 +2,9 @@
 clear; clc
 
 %% Rewriting inputs section to run through test cases
-TC=6; % number of test cases
+TC=6
 [inputvariables]=cases();
-for j=1:TC
+for j=1:TC %Number of Test Case
     mumax=inputvariables(1,j);
     Km   =inputvariables(2,j);
     Yxs  =inputvariables(3,j);
@@ -17,10 +17,9 @@ for j=1:TC
     Daq  =inputvariables(10,j);
     De   =inputvariables(11,j);
     Xb   =inputvariables(12,j);
-    Lfo  =inputvariables(13,j);
+    Lf  =inputvariables(13,j);
     LL   =inputvariables(14,j);
     Kdet =inputvariables(15,j);
-   
 
 % %% Inputs
 % 
@@ -44,7 +43,7 @@ for j=1:TC
 % Daq=4.00e-5; %diffusion coefficient assumed at boundary [m/s^2]
 % 
 % Lfo=5.00E-6; %biofilm thickness [m]
- Lf_old=Lfo;
+% Lf_old=Lfo;
 % Lf=Lfo;
 % 
 % LL=1.00e-4; %thickness of biofilm boundary layer [m]
@@ -53,11 +52,8 @@ for j=1:TC
 % De=1.00e-5; %effective diffusion coefficient of substrate in biofilm [m^2/d^1]
 % Kdet=1900; %coefficient of detachment for biofilm [m-1*s-1]
 
-    
-
-
 Nz=50; %Linear GridPoints in Biofilm
-z=linspace(0,Lfo,Nz); %[m] Grid of Biofilm Depth
+z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
 dz=z(2)-z(1); %[m]
 
 %Initial Boundary Conditions (in Biofilm)
@@ -75,7 +71,7 @@ t = zeros(1,N); %Time
 x = zeros(1,N); %Biomass Concentration in bulk liquid
 S = zeros(1,N); %Substrate in bulk liquid
 bflux=zeros(1,N); %Boundary Layer Flux of Biofilm Preallocate
-
+flux=zeros(1,N); %Right hand side of power point equation to ensure matching flux
 % Initial Conditions
 t(1)=0;
 x(1)=xo;
@@ -94,10 +90,9 @@ for i = 1:N-1
     
     %Calculate Input Parameters
     Sbold=Sb; %Solve Diffusion with previous solution for efficiency
-    [Lf,Vdet]=lf(Sbold,Lf_old,Kdet,mumax,Km,dt,dz);
     z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
     dz=z(2)-z(1); %[m]
-    [Cs,Sb,bflux(i+1)]=biofilmdiffusion(Sbold,LL,S(i),mumax,Xb,Yxs,De,Km,Daq,Lf,dz);
+    [Cs,Sb,bflux(i+1),flux(i+1)]=biofilmdiffusion(Sbold,S(i),Nz,dz,LL,mumax,Xb,Yxs,De,Km,Daq);
     
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
     Lf_old=Lf;
@@ -109,7 +104,7 @@ for i = 1:N-1
     %Call on desired plots from 'outputs'
     outIter=outIter+1;
     if (outIter==outFreq)
-        [plots] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux(1:i+1),Sb,plots);
+        [plots] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux(1:i+1),Sb,Lf,plots);
         outIter=0;
     end
     

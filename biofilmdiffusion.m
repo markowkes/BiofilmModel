@@ -1,4 +1,4 @@
-function [Cs,Sb,bflux]=biofilmdiffusion(Sbold,S,Lf,Nz,dz,LL,mumax,Xb,Yxs,De,Km,Daq)
+function [Cs,Sb,bflux,flux]=biofilmdiffusion(Sbold,S,Nz,dz,LL,mumax,Xb,Yxs,De,Km,Daq)
 %% This function models the diffusion of a substrate within the biofilm
 %This Function will take tank conditions (So,Xb,LL) and various growth factors (Yxs,De,Km,Daq) model the diffusion of
 % substrates into the biofilm over the grid . The results of this uptake will be used to
@@ -19,13 +19,14 @@ for iter=1:10000
         %Boundary Conditions
         Sb(1)=Sb(2); %Zero Flux at bottom Boundary
         
-        if LL<zeroLL
-            Sb(end)=S;
-        else
+%         if LL<zeroLL
+%             Sb(end)=S;
+%         else
             Sb(end)=((Daq/LL)*S+(De/dz)*Sb(end-1))/((De/dz)+(Daq/LL)); %Flux Matching At Top Border
-        end
+%         end
            %Flux Calculations
-           bflux=(Sb(end)-Sb(end-1))/dz; %Biofilm Flux at boundary
+           bflux=(Sb(end)-Sb(end-1))*(1/dz); %"Biofilm Flux" at boundary LHS of provided flux matching equation
+           flux=(S-Sb(end))*(Daq/LL); %"Boundary Layer Flux" RHS of provided flux matching equation
            Sbold=Sb;
            
         %Non Zero Condition
