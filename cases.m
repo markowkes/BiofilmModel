@@ -1,9 +1,8 @@
 function [param]=cases(num)
-%% This function inputs 'TC' different test cases of input variables and produces matrix of test inputs which can be used to call on different segments for each case
+%% This function inputs the 'num'th test case from an arbitrary number of testcases and produces a structure that produces the correct respective test parameters
 % Each input variable will have its own array of values for each case (A,B,C,D,E,F based on chronological order in the array), and
-% this function will produce an output 'inputvariables' matrix that can be
-% organized into different cases and be called upon. 
-
+% this function will produce an output 'param' structure that can allow for
+% each respective case to be called upon depending on num=?? 
 mumax=[20 20 2 20 20 20];
 Km   =[3 3 3 3 3 3000];
 Yxs  =[0.5 0.5 0.5 0.5 0.5 0.5];
