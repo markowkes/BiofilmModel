@@ -2,24 +2,25 @@
 clear; clc
 
 %% Rewriting inputs section to run through test cases
-TC=6
-[inputvariables]=cases();
-for j=1:TC %Number of Test Case
-    mumax=inputvariables(1,j);
-    Km   =inputvariables(2,j);
-    Yxs  =inputvariables(3,j);
-    V    =inputvariables(4,j);
-    Q    =inputvariables(5,j);
-    A    =inputvariables(6,j);
-    Sin  =inputvariables(7,j);
-    So   =inputvariables(8,j);
-    xo   =inputvariables(9,j);
-    Daq  =inputvariables(10,j);
-    De   =inputvariables(11,j);
-    Xb   =inputvariables(12,j);
-    Lf  =inputvariables(13,j);
-    LL   =inputvariables(14,j);
-    Kdet =inputvariables(15,j);
+% TC=6;
+num=1; %number of case, a corresponds to 1, b corresponds to 2....
+param=cases(1); %all variables under structure "param"
+% for j=1:TC %Number of Test Case
+%     mumax=inputvariables(1,j);
+%     Km   =inputvariables(2,j);
+%     Yxs  =inputvariables(3,j);
+%     V    =inputvariables(4,j);
+%     Q    =inputvariables(5,j);
+%     A    =inputvariables(6,j);
+%     Sin  =inputvariables(7,j);
+%     So   =inputvariables(8,j);
+%     xo   =inputvariables(9,j);
+%     Daq  =inputvariables(10,j);
+%     De   =inputvariables(11,j);
+%     Xb   =inputvariables(12,j);
+%     Lf  =inputvariables(13,j);
+%     LL   =inputvariables(14,j);
+%     Kdet =inputvariables(15,j);
 
 % %% Inputs
 % 
@@ -109,4 +110,4 @@ for i = 1:N-1
     end
     
 end
-end
+%end
