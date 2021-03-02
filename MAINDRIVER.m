@@ -3,8 +3,8 @@ clear; clc
 tic
 %% Rewriting inputs section to run through test cases
 % TC=6;
-num=1; %number of case, a corresponds to 1, b corresponds to 2....
-param=cases(2); %all variables under structure "param"
+num=1 ; %number of case, a corresponds to 1, b corresponds to 2....
+param=cases(num); %all variables under structure "param"
 
 % for j=1:TC %Number of Test Case
 %     mumax=inputvariables(1,j);
