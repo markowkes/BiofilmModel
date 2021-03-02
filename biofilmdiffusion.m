@@ -13,7 +13,7 @@ tol=1e-2; %tolerance for conversion
 %Iterations
 for iter=1:10000
         c=2:1:Nz-1; %array to run concentration calculations through
-        Sb(c)=(Sbold(c+1)+Sbold(c-1)-(mu(Sbold(c),param.mumax,param.Km)*param.Xb*(dz^2))/(param.Yxs*param.De))/2; %Concentration of substrate at biofilm depth
+        Sb(c)=(Sbold(c+1)+Sbold(c-1)-(mu(Sbold(c),param)*param.Xb*(dz^2))/(param.Yxs*param.De))/2; %Concentration of substrate at biofilm depth
         Sb(c)=lamda*Sb(c)+(1-lamda)*Sbold(c); %Over Relaxation Modification
         
         %Boundary Conditions

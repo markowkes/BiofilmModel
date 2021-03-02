@@ -2,55 +2,19 @@
 clear; clc
 tic
 %% Rewriting inputs section to run through test cases
-% TC=6;
+% Calling on specific test case parameters
 num=1 ; %number of case, a corresponds to 1, b corresponds to 2....
 param=cases(num); %all variables under structure "param"
 
-% for j=1:TC %Number of Test Case
-%     mumax=inputvariables(1,j);
-%     Km   =inputvariables(2,j);
-%     Yxs  =inputvariables(3,j);
-%     V    =inputvariables(4,j);
-%     Q    =inputvariables(5,j);
-%     A    =inputvariables(6,j);
-%     Sin  =inputvariables(7,j);
-%     So   =inputvariables(8,j);
-%     xo   =inputvariables(9,j);
-%     Daq  =inputvariables(10,j);
-%     De   =inputvariables(11,j);
-%     Xb   =inputvariables(12,j);
-%     Lf  =inputvariables(13,j);
-%     LL   =inputvariables(14,j);
-%     Kdet =inputvariables(15,j);
-
-% %% Inputs
-% 
-% %Array Initial Conditions
-% xo=10; %[g/m^-3] initial biomass concentration in bulk liquid
-% So=25; %[g/m^-3] initial substrate concentration in bulk liquid
-
 % Tank Parameters + Geometry
- L=0.5; %[m]
- W=0.5; %[m]
- H=0.4; %[m]
-% V=L*W*H; %tank volume [m^3]
+L=0.5; %[m]
+W=0.5; %[m]
+H=0.4; %[m]
 SA=(param.V/H)+2*((param.V/L)+(param.V/W)); %tank surface area [m^2] 
  
-% Q=1; %flow rate in/out [m^3]
-% Sin=25; %Inflow of substrates to tank, [g/m^3] 
-% % Biofilm Parameters
-% mumax=20; %max specific growth rate
-% Km=3; %Monod half-saturation coefficient(growth transitions from sat. to linear)
-% Yxs=0.5; %ratio of substrate consumed to biomass produced
-% Daq=4.00e-5; %diffusion coefficient assumed at boundary [m/s^2]
-% Xb=20000; %biomass density in biofilm [g/m^3]
-% De=1.00e-5; %effective diffusion coefficient of substrate in biofilm [m^2/d^1]
-% Kdet=1900; %coefficient of detachment for biofilm [m-1*s-1]
-% Lf=5.00E-6; %biofilm thickness [m] 
-% LL=1.00e-4; %thickness of biofilm boundary layer [m]
+Co=param.So; %substrate concentration
 
- Co=param.So; %substrate concentration
-
+%Creating grid in biofilm
 Nz=50; %Linear GridPoints in Biofilm
 z=linspace(0,param.Lf,Nz); %[m] Grid of Biofilm Depth
 dz=z(2)-z(1); %[m]

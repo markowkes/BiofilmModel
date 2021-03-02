@@ -5,8 +5,8 @@ function [tnew,xnew,Snew]=tankenvironment(t,x,S,SA,Vdet,dt,Cs,Co,param)
 % describing the substrate and biomass concentrations through time to
 % produce plots profiling these concetrations over a set period of time
 
-dxdt = @(x,t,S,Cs,Vdet) (mu(S,param.mumax,param.Km)-(param.Q/param.V))*x+Vdet*SA*param.Xb; %Biomass Concentration Change wrt time
-dsdt = @(x,t,S,Cs) -((mu(S,param.mumax,param.Km)*x)/param.Yxs)+((param.Q*param.Sin)/param.V)-((param.Q*S)/param.V)-(SA*((param.Daq/param.LL)*(Co-Cs))); 
+dxdt = @(x,t,S,Cs,Vdet) (mu(S,param)-(param.Q/param.V))*x+Vdet*SA*param.Xb; %Biomass Concentration Change wrt time
+dsdt = @(x,t,S,Cs) -((mu(S,param)*x)/param.Yxs)+((param.Q*param.Sin)/param.V)-((param.Q*S)/param.V)-(SA*((param.Daq/param.LL)*(Co-Cs))); 
 % ^^^Substrate Concentration Change wrt time, now also considers flux
 % through boundary layer of biofilm
 
