@@ -15,7 +15,7 @@ SA=(param.V/H)+2*((param.V/L)+(param.V/W)); %tank surface area [m^2]
 Co=param.So; %substrate concentration
 
 %Create initial biofilm grid
-Nz=50; %Linear GridPoints in Biofilm
+Nz=12; %Linear GridPoints in Biofilm
 z=linspace(0,param.Lf,Nz); %[m] Grid of Biofilm Depth
 dz=z(2)-z(1); %[m]
 
@@ -24,10 +24,10 @@ Sb=zeros(1,Nz);
 Sb(end)=param.So; %initially assume boundary concentration = So
 
 % Time Constraints
-tFin=2; %[s]
-dt=1e-3; %Interval
+tFin=20; %[s]
+dt=1e-2; %Interval
 N=tFin/dt; %Number of steps
-outFreq=10; %Number of steps between plot updates.
+outFreq=20; %Number of steps between plot updates.
 
 % Preallocation
 t = zeros(1,N); %Time
@@ -35,6 +35,7 @@ x = zeros(1,N); %Biomass Concentration in bulk liquid
 S = zeros(1,N); %Substrate in bulk liquid
 bflux=zeros(1,N); %Boundary Layer Flux of Biofilm Preallocate
 flux=zeros(1,N); %Right hand side of power point equation to ensure matching flux
+thickness=zeros(1,N); %Right hand side of power point equation to ensure matching flux
 
 % Initial Conditions
 t(1)=0;
@@ -63,11 +64,13 @@ for i = 1:N-1
     
     %Call on tank substrate/biomass concentration from 'tankenvironment'
     [t(i+1),x(i+1),S(i+1)]=tankenvironment(t(i),x(i),S(i),SA,Vdet,dt,Cs,Co,param);
+    
+    thickness(i+1)=param.Lf;
    
     %Call on desired plots from 'outputs'
     outIter=outIter+1;
     if (outIter==outFreq)
-        [plots] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux(1:i+1),Sb,param.Lf,plots);
+        [plots] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux(1:i+1),thickness(1:i+1),Sb,param,plots);
         outIter=0;
     end
     

@@ -1,4 +1,4 @@
-function [plots] = outputs(t,x,S,z,bflux,Sb,Lf,plots)
+function [plots] = outputs(t,x,S,z,bflux,thickness,Sb,param,plots)
 %This function organizes all the outputs into one place so that the desired
 %plots can be produced in one easy step
 
@@ -6,35 +6,44 @@ function [plots] = outputs(t,x,S,z,bflux,Sb,Lf,plots)
 if (all(plots==0) || ~ishandle(1)) 
     % Figure does not exist, create it
     figure(1); clf(1);
-    subplot(2,2,1)
+    subplot(2,3,1)
     plots(1)=plot(t,x);
     title('Biomass Concentration For Tank')
     ylabel('Concentration [g]')
     xlabel('Time [s]')
-    xlim([0,2])
-    ylim([0,25])
+    %xlim([0,2])
+    %ylim([0,25])
     hold on
-    subplot(2,2,2)
+    subplot(2,3,2)
     plots(2)=plot(t,S);
     title('Substrate Concentrations For Tank')
     ylabel('Concentration [g]')
     xlabel('Time [s]')
-    xlim([0,2])
-    ylim([0,25])
+    %xlim([0,2])
+    %ylim([0,25])
     hold on
-    subplot(2,2,3)
+    subplot(2,3,3)
     plots(3)=plot(t,bflux);
     title('Flux through Boundary Layer of Biofilm')
     ylabel('Flux [g/m^2]')
     xlabel('Time [s]')
-    xlim([0,2])
+    %xlim([0,2])
     hold on
-    subplot(2,2,4)
+    subplot(2,3,4)
     plots(4)=plot(z,Sb);
+    hold on
+    plots(6)=plot([z(end),z(end)+param.LL],[Sb(end),S(end)]);
     title('Substrate Concentration within Biofilm')
     ylabel('Concentration [g]')
     xlabel('Depth of Biofilm [m]')
-    xlim([0,Lf])
+    %xlim([0,Lf])
+    subplot(2,3,5)
+    plots(5)=plot(t,bflux);
+    title('Thickness of biofilm vs Time')
+    ylabel('Thickness [m]')
+    xlabel('Time [s]')
+    %xlim([0,2])
+    hold on
     
     drawnow
 else
@@ -43,6 +52,8 @@ else
     set(plots(2),'XData',t,'YData',S)
     set(plots(3),'XData',t,'YData',bflux)
     set(plots(4),'XData',z,'YData',Sb)
+    set(plots(5),'XData',t,'YData',thickness)
+    set(plots(6),'XData',[z(end),z(end)+param.LL],'YData',[Sb(end),S(end)]);
     drawnow
 end
 end
