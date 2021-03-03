@@ -14,7 +14,7 @@ SA=(param.V/H)+2*((param.V/L)+(param.V/W)); %tank surface area [m^2]
  
 Co=param.So; %substrate concentration
 
-%Creating grid in biofilm
+%Create initial biofilm grid
 Nz=50; %Linear GridPoints in Biofilm
 z=linspace(0,param.Lf,Nz); %[m] Grid of Biofilm Depth
 dz=z(2)-z(1); %[m]
@@ -47,15 +47,14 @@ plots=0;
 
 %% Time Loop
 for i = 1:N-1
-    % Insert loop over spacial coordinate zeta for substrate diffusion,
-    % particulates, biomass growth within biofilm, etc
     
-    %Call on Biofilm Surface Substrate Concentration from 'Diffusion'
     
-    %Calculate Input Parameters
     Sbold=Sb; %Solve Diffusion with previous solution for efficiency
+    
+    %Update biofilm grid as biofilm grows
     z=linspace(0,param.Lf,Nz); %[m] Grid of Biofilm Depth
     dz=z(2)-z(1); %[m]
+    
     [Cs,Sb,bflux(i+1),flux(i+1)]=biofilmdiffusion(Sbold,S(i),Nz,dz,param);
     
     %Call on Biofilm Thickness and Vdet/Vg from 'BiofilmThickness_Fn'
