@@ -3,4 +3,5 @@ function [mu] = mu(S,param)
 % This function calls on the Monod Growth Kinetics Equation to calculate an
 % array of growth rates mu for any array 'S'
 mu = ((param.mumax*S)./(param.Km+S));
+% !!!! Note that this is hard coded in biofilmdiffusion_fd !!!!
 end

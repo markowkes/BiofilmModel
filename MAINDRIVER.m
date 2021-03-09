@@ -54,8 +54,7 @@ for i = 1:N-1
     dz=z(2)-z(1); %[m]
     
     %Call on "biofilmdiffusion"
-    Sbold=Sb; %store old substrate concentration array
-    [Cs,Sb,bflux(i+1),flux(i+1)]=biofilmdiffusion(Sbold,S(i),Nz,dz,param);
+    [Cs,Sb,bflux(i+1),flux(i+1)]=biofilmdiffusion_fd(Sb,S(i),Nz,dz,param);
     
     %Call on "lf"
     Lf_old=param.Lf;
@@ -68,7 +67,7 @@ for i = 1:N-1
    
     %Call on desired plots from 'outputs'
     outIter=outIter+1;
-    if (outIter==outFreq)
+    if (outIter>=outFreq)
         [plots] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux(1:i+1),thickness(1:i+1),Sb,param,plots);
         outIter=0;
     end
