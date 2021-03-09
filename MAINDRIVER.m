@@ -44,7 +44,7 @@ S(1)=param.So;
 
 %Initialize plots 
 outIter=outFreq-1;
-plots=0;
+plots=0; titles=0;
 
 %% Time Loop
 for i = 1:N-1
@@ -68,7 +68,7 @@ for i = 1:N-1
     %Call on desired plots from 'outputs'
     outIter=outIter+1;
     if (outIter>=outFreq)
-        [plots] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux(1:i+1),thickness(1:i+1),Sb,param,plots);
+        [plots,titles] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux(1:i+1),thickness(1:i+1),Sb,param,plots,titles);
         outIter=0;
     end
     
