@@ -11,6 +11,8 @@ if (all(plots(:)==0) || ~ishandle(1))
     title('Biomass Concentration For Tank')
     ylabel('Concentration [g/m^3]')
     xlabel('Time [days]')
+    %xlim([0,2])
+    %ylim([0,25])
     hold on
     
     subplot(2,3,2)
@@ -18,6 +20,8 @@ if (all(plots(:)==0) || ~ishandle(1))
     title('Substrate Concentrations For Tank')
     ylabel('Concentration [g/m^3]')
     xlabel('Time [days]')
+    %xlim([0,2])
+    %ylim([0,25])
     hold on
     
     subplot(2,3,3)
@@ -25,6 +29,7 @@ if (all(plots(:)==0) || ~ishandle(1))
     title('Flux through Boundary Layer of Biofilm')
     ylabel('Flux [g/m^2]')
     xlabel('Time [days]')
+    %xlim([0,2])
     hold on
     
     subplot(2,3,4)
@@ -34,12 +39,14 @@ if (all(plots(:)==0) || ~ishandle(1))
     title('Substrate Concentration within Biofilm')
     ylabel('Concentration [g/m^3]')
     xlabel('Depth of Biofilm [m]')
+    %xlim([0,Lf])
     
     subplot(2,3,5)
     plots(5,1)=plot(t,bflux);
     title('Thickness of biofilm vs Time')
     ylabel('Thickness [m]')
     xlabel('Time [days]')
+    %xlim([0,2])
     hold on
     
     % Title

@@ -3,7 +3,7 @@ clear; clc
 tic
 %% Rewriting inputs section to run through test cases
 %Call on specific test case parameters
-num=4; %number of case, A corresponds to 1, B corresponds to 2....
+num=1 ; %number of case, A corresponds to 1, B corresponds to 2....
 param=cases(num); %structure variables are stored in
 
 %Tank Parameters + Geometry
@@ -24,7 +24,7 @@ Sb=zeros(1,Nz);
 Sb(end)=param.So; %initially assume boundary concentration = So
 
 %Time Constraints
-tFin=10; %[days]
+tFin=20; %[s]
 dt=1e-2; %Interval
 N=tFin/dt; %Number of steps
 outFreq=20; %Number of steps between plot updates.
@@ -71,5 +71,7 @@ for i = 1:N-1
         [plots,titles] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux(1:i+1),thickness(1:i+1),Sb,param,plots,titles);
         outIter=0;
     end
+    
 end
+%end
 toc
