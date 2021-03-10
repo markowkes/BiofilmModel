@@ -24,7 +24,7 @@ Sb=zeros(1,Nz);
 Sb(end)=param.So; %initially assume boundary concentration = So
 
 %Time Constraints
-tFin=20; %[s]
+tFin=20; %[days]
 dt=1e-2; %Interval
 N=tFin/dt; %Number of steps
 outFreq=20; %Number of steps between plot updates.
@@ -73,5 +73,4 @@ for i = 1:N-1
     end
     
 end
-%end
 toc
