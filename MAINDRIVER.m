@@ -24,7 +24,7 @@ Sb=zeros(1,Nz);
 Sb(end)=param.So; %initially assume boundary concentration = So
 
 %Time Constraints
-tFin=20; %[s]
+tFin=20; %[days]
 dt=1e-2; %Interval
 N=tFin/dt; %Number of steps
 outFreq=20; %Number of steps between plot updates.
@@ -38,7 +38,7 @@ flux=zeros(1,N); %Right hand side of power point equation to ensure matching flu
 thickness=zeros(1,N); %Right hand side of power point equation to ensure matching flux
 
 %Initial Conditions
-t(1)=0;
+t(1)=dt;
 x(1)=param.xo;
 S(1)=param.So;
 
