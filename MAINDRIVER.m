@@ -73,4 +73,8 @@ for i = 1:N-1
     end
     
 end
+
+% Make final figures
+[plots,titles] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux(1:i+1),thickness(1:i+1),Sb,param,plots,titles);
+
 toc
