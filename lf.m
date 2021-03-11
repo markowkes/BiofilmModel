@@ -7,6 +7,8 @@ function [Lf,Vdet]=lf(Sb,Lf_old,dt,dz,param)
 %Compute mean mu - growthrate
 %muBar=mean(mu(Sb(:),param));
 
+Kdet=param.Kdet;
+
 %Growth
 Vg=0; %initial growth velocity
 for i=1:length(Sb)-1
@@ -14,7 +16,7 @@ for i=1:length(Sb)-1
 end
 
 %Detachment
-Vdet=param.Kdet*Lf_old^2; %New %Velocity of mass leaving biofilm into bulk liquid
+Vdet=Kdet*Lf_old^2; %New %Velocity of mass leaving biofilm into bulk liquid
 
 %Biofilm Thickness
 Lf=Lf_old+dt*(Vg-Vdet); %New Biofilm thickness at instant
