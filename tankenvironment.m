@@ -27,7 +27,7 @@ xstar = x + dt*dxdt(x,t,S,Cs,Vdet);
 Sstar = S + dt*dsdt(x,t,S,Cs     );
     
 xnew = x + dt/2*(dxdt(x,t,S,Cs,Vdet)+dxdt(xstar,tnew,Sstar,Cs,Vdet));
-Snew = S + dt/2*(dsdt(x,t,S,Cs     )+dsdt(xstar,tnew,Sstar,Cs     )); 
+Snew = S + dt/2*(dsdt(x,t,S,Cs     )+dsdt(xstar,tnew,Sstar,Cs     ));
     
 
 % dxdt=(mu(S,param)-(param.Q/param.V))*x+Vdet*SA*param.Xb; %Biomass Concentration Change wrt time
