@@ -15,7 +15,7 @@ SA=(param.V/H)+2*((param.V/L)+(param.V/W)); %tank surface area [m^2]
 Co=param.So; %substrate concentration
 
 %Create initial biofilm grid
-Nz=12; %Linear GridPoints in Biofilm
+Nz=50; %Linear GridPoints in Biofilm
 z=linspace(0,param.Lf,Nz); %[m] Grid of Biofilm Depth
 dz=z(2)-z(1); %[m]
 
@@ -27,7 +27,7 @@ Sb(end)=param.So; %initially assume boundary concentration = So
 tFin=20; %[days]
 dt=1e-2; %Interval
 N=tFin/dt; %Number of steps
-outFreq=20; %Number of steps between plot updates.
+outFreq=2000; %Number of steps between plot updates.
 
 %Preallocation
 t = zeros(1,N); %Time
@@ -47,7 +47,8 @@ outIter=outFreq-1;
 plots=0; titles=0;
 
 %% Time Loop
-for i = 1:N-1
+i=1;
+while t(i)<tFin-dt
     
     %Update biofilm grid as biofilm grows
     z=linspace(0,param.Lf,Nz); %[m] Grid of Biofilm Depth
@@ -61,7 +62,7 @@ for i = 1:N-1
     [param.Lf,Vdet]=lf(Sb,Lf_old,dt,dz,param);
     
     %Call on "tankenvironment"
-    [t(i+1),x(i+1),S(i+1)]=tankenvironment(t(i),x(i),S(i),SA,Vdet,dt,Cs,Co,param);
+    [t(i+1),x(i+1),S(i+1),dt]=tankenvironment(t(i),x(i),S(i),SA,Vdet,dt,Cs,Co,param);
     
     thickness(i+1)=param.Lf;
    
@@ -72,9 +73,11 @@ for i = 1:N-1
         outIter=0;
     end
     
+    % Update iterator
+    i=i+1;
 end
 
 % Make final figures
-[plots,titles] = outputs(t(1:i+1),x(1:i+1),S(1:i+1),z,bflux(1:i+1),thickness(1:i+1),Sb,param,plots,titles);
+[plots,titles] = outputs(t(1:i),x(1:i),S(1:i),z,bflux(1:i),thickness(1:i),Sb,param,plots,titles);
 
 toc
