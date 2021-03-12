@@ -8,7 +8,7 @@ Sb=Sbold; %preallocate array
 lamda=.2; %Factor For Over Relaxation Method
 
 zeroLL=1e-10; %[m] condition to consider zero thickness boundary layer
-tol=1e-18; %tolerance for conversion
+tol=1e-8; %tolerance for conversion
 
 % Get variables out out of param
 Xb=param.Xb;
