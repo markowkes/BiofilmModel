@@ -4,9 +4,10 @@ function [Cs,Sb,bflux,flux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,param)
 % substrates into the biofilm over the grid . The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
 
+zeroLL=1e-10;
 Sb=Sbold; %preallocate array
-zeroLL=1e-10; %[m] condition to consider zero thickness boundary layer
-tol=1e-8; %tolerance for conversion
+tol=1e-12; %tolerance for conversion
+delta=1e-3;
 
 % Get variables out out of param
 mumax=param.mumax;
@@ -17,21 +18,20 @@ De=param.De;
 LL=param.LL;
 Daq=param.Daq;
 
+% Define RHS of ODE
+g=@(S) mu(S,param)*Xb/(Yxs*De);
+
 %Iterations
 for iter=1:100
     
-    % Iteratively solves the equation in this form (and multipled by dz^2)
-    %
-    % Sb_{i+1} - 2 Sb_i + Sb_{i+1}     mu_max Sb_i      Xb
-    % ----------------------------  = ------------ * -------
-    %             dz^2                 Km + Sbold     Yxs De
-    %
-    A = diag((-2-dz^2*mumax./(Km+Sbold(:))*Xb/(Yxs*De)), 0) ... % Main  diagonal
-        + diag( 1*ones(1,Nz-1),-1) ... % Lower diagonal
-        + diag( 1*ones(1,Nz-1), 1) ;   % Upper diagonal
-    B = zeros(Nz,1);
-    
-    %B(2:Nz+1)=mu(Sbold(2:Nz-1),param)*param.Xb/(param.Yxs*param.De);
+    % Interior points
+    Sb_p=Sb(2:Nz-1)+delta;
+    Sb_m=max(Sb(2:Nz-1)-delta,0);
+    dgds=[0,(g(Sb_p)-g(Sb_m))./(Sb_p-Sb_m),0];
+    A = diag(2+dz^2*dgds, 0) ... % Main  diagonal
+        + diag(-1*ones(1,Nz-1),-1) ... % Lower diagonal
+        + diag(-1*ones(1,Nz-1), 1) ;   % Upper diagonal
+    B = (dz^2*(Sb.*dgds-g(Sb)))';
     
     % First row - BC at bottom of biofilm
     A(1,1)=1; A(1,2)=-1; B(1,1)=0; % No flux condition
@@ -48,7 +48,7 @@ for iter=1:100
     end
     
     % Solve for new concentration
-    Sb=A\B;
+    Sb=(A\B)';
     
                
     %Non Zero Condition

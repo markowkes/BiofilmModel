@@ -6,5 +6,4 @@ mumax=param.mumax;
 Km=param.Km;
 
 mu = ((mumax*S)./(Km+S));
-% !!!! Note that this is hard coded in biofilmdiffusion_fd !!!!
 end
