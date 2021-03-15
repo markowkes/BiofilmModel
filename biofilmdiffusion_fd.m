@@ -4,14 +4,11 @@ function [Cs,Sb,bflux,flux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,param)
 % substrates into the biofilm over the grid . The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
 
-zeroLL=1e-10;
 Sb=Sbold; %preallocate array
 tol=1e-12; %tolerance for conversion
 delta=1e-3;
 
 % Get variables out out of param
-mumax=param.mumax;
-Km=param.Km;
 Xb=param.Xb;
 Yxs=param.Yxs;
 De=param.De;
@@ -33,25 +30,18 @@ for iter=1:100
         + diag(-1*ones(1,Nz-1), 1) ;   % Upper diagonal
     B = (dz^2*(Sb.*dgds-g(Sb)))';
     
-    % First row - BC at bottom of biofilm
-    A(1,1)=1; A(1,2)=-1; B(1,1)=0; % No flux condition
+    % First row - No flux BC at bottom of biofilm
+    A(1,1)=1; A(1,2)=-1; B(1,1)=0; 
         
-    % Last row - BC at top of biofilm
-    if LL>zeroLL
-        % Flux match condition
-        A(Nz,Nz  )= De/dz+Daq/LL;
-        A(Nz,Nz-1)=-De/dz;
-        B(Nz,1)   =Daq/LL*S;
-    else
-        % Set concentration at top to S
-        A(Nz,:)=0; A(Nz,Nz)=1; B(Nz,1)=S;
-    end
+    % Last row - Flux match BC at top of biofilm
+    A(Nz,Nz  )= De*LL+Daq*dz;
+    A(Nz,Nz-1)=-De*LL;
+    B(Nz,1)   =Daq*dz*S;
     
     % Solve for new concentration
     Sb=(A\B)';
-    
                
-    %Non Zero Condition
+    % Non Zero Condition
     Sb(Sb < 0) = 0;
     
     % Check if converged
@@ -65,6 +55,6 @@ end
 Cs=Sb(end); %output Surface Concentration
 
 %Flux Calculations
-bflux=De *(Sb(end)-Sb(end-1))/dz; %"Biofilm Flux" at boundary LHS of provided flux matching equation
-flux =Daq*(S      -Sb(end  ))/LL; %"Boundary Layer Flux" RHS of provided flux matching equation    
+bflux=De *(Sb(end)-Sb(end-1))/dz; % Biofilm Flux
+flux =Daq*(S      -Sb(end  ))/LL; % Boundary Layer Flux
 end
