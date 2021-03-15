@@ -23,10 +23,10 @@
 \section{Tank Environment}
 The environment is modeled in this function as a rectangular tank holding the bulk liquid, with the existence of an inflow and outflow which carries biomass and substrate into the bulk liquid. The concentrations rates of the biomass and substrate are modeled by the following ordinary differential equations
 \begin{equation} \label{eq: BiomassEquation}
-  \frac{dx}{dt} = {(\mu(S) - \frac{Q}{V}) x + Vdet SA Xb}
+  \frac{dx}{dt} = \left(\mu(S) - \frac{Q}{V}\right) x + V_{\mathrm{det}} S_A X_b
 \end{equation}
 \begin{equation} \label{eq: SubstrateEquation}
-  \frac{dS}{dt} = \frac{mu(S) x}{Yxs} + \frac{Q Sin}{V} - \frac{Q S}{V} - SA \frac{Daq}{LL} (Co-Cs)
+  \frac{dS}{dt} = \frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{in}}{V} - \frac{Q S}{V} - S_A \frac{D_{aq}}{L_L} (C_o-C_s)
 \end{equation}
 
 \section{Growth-rate $\mu$}
