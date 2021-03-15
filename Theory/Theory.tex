@@ -79,7 +79,7 @@ where
 \end{align*}
 and $\Delta S = S_{b,i}^+ - S_{b,i}^-$ and $\delta=1\times 10^{-3}$ is an specified constant.  The maximum on $S_{b,i}^-$ ensures the concentration remains non-negative.
 
-\subsection{Solution of System of Equations}
+\subsection{Boundary Conditions}
 Eq.~\ref{eq:diff_final} for $i=2,3,\dots,N_z-1$ provides $N_z-2$ equations for $S_{b}^{(k)}$.  The remaining equations come from the boundary conditions.  At the bottom of the biofilm ($z=0$) there is a wall and a no-flux boundary condition is appropriate, \ie,
 \begin{equation}
   \label{eq:BC1}
@@ -99,13 +99,59 @@ where a simple diffusion model through the liquid has been used.  Discretizing t
 Rearranging leads to
 \begin{equation}
   \label{eq:BC2_dis2}
-  \left(D_e L_l - D_{\mathrm{aq}} \Delta z\right) S_{b,N_z} - D_e L_l S_{b,N_z-1} = D_{\mathrm{aq}} \Delta z S
+  \left(D_e L_l + D_{\mathrm{aq}} \Delta z\right) S_{b,N_z} - D_e L_l S_{b,N_z-1} = D_{\mathrm{aq}} \Delta z S
 \end{equation}
 which is a useful form because if $L_l=0$ it simplifies to $S_{b,N_z}=S$ as expected without dividing by zero.
 
-In summary, Eq.~\ref{eq:diff_linear} for $i=2,3,\dots,N_z-1$ provides $N_z-2$ equations with Eq.~\ref{eq:BC1} and Eq.~\ref{eq:BC2_dis2} providing the two other equations for a total of $N_z$ equations for the $N_z$ unknowns $S_{b,i}$ for $i=1,\dots,N_z$.
+\subsection{Solution of System of Equations}
+The previous two section describe the equations used to solve the diffusion problem through
+the biofilm and apply appropriate boundary conditions.
+In summary, Eq.~\ref{eq:diff_linear} for $i=2,3,\dots,N_z-1$ provides $N_z-2$ equations with
+Eq.~\ref{eq:BC1} and Eq.~\ref{eq:BC2_dis2} providing the two other equations
+for a total of $N_z$ equations for the $N_z$ unknowns $S_{b,i}$ for $i=1,\dots,N_z$.
 
+The $N_z$ equations are solved by iteratively solving for $S_b$ using the matrices
+\begin{equation}
+  \label{eq:system}
+  \renewcommand*{\arraystretch}{1.5}
+  \begin{bmatrix}
+    1 &-1  &   &   &   & \\
+    L &  D & U &  &   & \\
+    ~ & L &  D & U &  & \\
+    ~ & ~ & \ddots &  \ddots & \ddots & \\
+    ~ & ~ & ~ & L &  D & U\\
+    ~ & ~ & ~ & ~ &  C_1 & C_2  
+  \end{bmatrix}
+  \begin{bmatrix}
+    S_{b,1}^{(k)}\\
+    S_{b,2}^{(k)}\\
+    S_{b,3}^{(k)}\\
+   \vdots\\
+    S_{b,N_z-1}^{(k)}\\
+    S_{b,N_z}^{(k)}
+  \end{bmatrix}
+  =
+    \begin{bmatrix}
+   0\\
+    R_{2}\\
+    R_{3}\\
+    \vdots\\
+    R_{N_z-1}\\
+    C_3
+  \end{bmatrix}
+\end{equation}
+The first row comes from Eq.~\ref{eq:BC1}.
+The second through $N_z-1$ rows are Eq.~\ref{eq:diff_final} written with $i=2,\dots,N_z-1$ and the constants are $L=U=-1$,
+\begin{align*}
+  D&=\left( 2 +\Delta z^2\left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}}\right)\text{\quad and}\\
+  R_i&=\Delta z^2\left( S_{b,i}^{(k-1)} \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} - g\left(S_{b,i}^{(k-1)}\right)\right) 
+\end{align*}
+The last row is Eq.~\ref{eq:BC2_dis2} with $C_1=D_e L_l$, $C_2=\left(D_e L_l + D_{\mathrm{aq}} \Delta z\right)$, and $C_3=D_{\mathrm{aq}} \Delta z S$.
 
-
+The right-hand-side depends $S_{b,i}^{(k-1)}$, which is the concentration at the previous iteration.  The solution process is started with a guess, e.g., $S_b=0$. Iteration continues until
+\begin{equation*}
+  \max\left| S_{b,i}^{(k)} - S_{b,i}^{(k-1)} \right| < \mathrm{tol},
+\end{equation*}
+for a specified tolerance $\mathrm{tol}$.
 
 \end{document}
