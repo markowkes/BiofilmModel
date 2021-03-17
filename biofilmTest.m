@@ -82,9 +82,6 @@ S = zeros(1,N); %Substrate in bulk liquid
 % Analyze result
 figure(1); clf(1)
 plot(x)
-title('Biomass Concentration For Tank')
-ylabel('Concentration [g/m^3]')
-xlabel('Time [days]')
 actSolution=x;
 expSolution=0;
 tol=1e-1;
@@ -111,10 +108,9 @@ t = zeros(1,N); %Time
 x = zeros(1,N); %Biomass Concentration in bulk liquid
 S = zeros(1,N); %Substrate in bulk liquid
 [~,~,S,~]=tankenvironment(t,x,S,SA,Vdet,dt,Cs,Co,param);
+%Analyze Result
+figure(1);clf(1);
 plot(S)
-title('Substrate Concentrations For Tank')
-ylabel('Concentration [g/m^3]')
-xlabel('Time [days]')
 actSolution=S;
 expSolution=0;
 tol=1e-1;
