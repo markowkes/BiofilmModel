@@ -8,7 +8,7 @@ Sb=Sbold; %preallocate array
 tol=1e-12; %tolerance for conversion
 delta=1e-3;
 
-% Get variables out out of param
+% Get variables out of param
 Xb=param.Xb;
 Yxs=param.Yxs;
 De=param.De;
