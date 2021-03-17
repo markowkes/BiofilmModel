@@ -3,7 +3,7 @@ clear; clc
 tic
 %% Rewriting inputs section to run through test cases
 %Call on specific test case parameters
-num=4 ; %number of case, A corresponds to 1, B corresponds to 2....
+num=1 ; %number of case, A corresponds to 1, B corresponds to 2....
 param=cases(num); %structure variables are stored in
 
 %Tank Parameters + Geometry
