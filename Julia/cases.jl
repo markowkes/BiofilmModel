@@ -8,7 +8,7 @@ mutable struct params
     A
     Sin
     So
-    Xo
+    xo
     Daq
     De
     Xb
@@ -38,6 +38,6 @@ function cases(n)
 
 
     param = params(mumax[n],Km[n],Yxs[n],V[n],Q[n],A[n],
-            Sin[n],So[n],So[n],Daq[n],De[n],Xb[n],Lf[n],LL[n],Kdet[n])
+            Sin[n],So[n],xo[n],Daq[n],De[n],Xb[n],Lf[n],LL[n],Kdet[n])
     return param
 end
