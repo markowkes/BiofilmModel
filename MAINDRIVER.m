@@ -55,14 +55,14 @@ while t(i)<tFin-dt
     dz=z(2)-z(1); %[m]
     
     %Call on "biofilmdiffusion"
-    [Cs,Sb,bflux(i+1),flux(i+1)]=biofilmdiffusion_fd(Sb,S(i),Nz,dz,t(i),param);
+    [Cs,Sb,bflux(i+1)]=biofilmdiffusion_fd(Sb,S(i),Nz,dz,t(i),param);
     
     %Call on "lf"
     Lf_old=param.Lf;
     [param.Lf,Vdet]=lf(Sb,Lf_old,dt,dz,param);
     
     %Call on "tankenvironment"
-    [t(i+1),x(i+1),S(i+1),dt]=tankenvironment(t(i),x(i),S(i),SA,Vdet,dt,Cs,Co,param);
+    [t(i+1),x(i+1),S(i+1),dt]=tankenvironment(t(i),x(i),S(i),SA,Vdet,dt,Cs,Co,bflux(i+1),param);
     
     thickness(i+1)=param.Lf;
    
