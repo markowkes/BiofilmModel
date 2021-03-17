@@ -1,4 +1,4 @@
-function [Cs,Sb,bflux,flux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,param)
+function [Cs,Sb,bflux,flux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param)
 %% This function models the diffusion of a substrate within the biofilm
 %This Function will take tank conditions (So,Xb,LL) and various growth factors (Yxs,De,Km,Daq) model the diffusion of
 % substrates into the biofilm over the grid . The results of this uptake will be used to
@@ -15,11 +15,14 @@ De=param.De;
 LL=param.LL;
 Daq=param.Daq;
 
+%Iterations
+iter=100; %maximum iterations
+
 % Define RHS of ODE
 g=@(S) mu(S,param)*Xb/(Yxs*De);
 
 %Iterations
-for iter=1:100
+for i=1:iter
     
     % Interior points
     Sb_p=Sb(2:Nz-1)+delta;
@@ -46,9 +49,14 @@ for iter=1:100
     
     % Check if converged
     if max(abs(Sb-Sbold))<tol
+%        fprintf('converged on iteration %4.0f\n',i)
         break
+    else
+        if i==iter
+             fprintf('Diffusion Unable to Converge at time %3.8f\n',t)
+        end
     end
-
+    
     % Transfer solution for next iteration
     Sbold=Sb;
 end
