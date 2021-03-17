@@ -1,4 +1,4 @@
-function [Cs,Sb,bflux,flux]=biofilmdiffusion(Sbold,S,Nz,dz,param)
+function [Cs,Sb,bflux,flux]=biofilmdiffusion(Sbold,S,Nz,dz,t,param)
 %% This function models the diffusion of a substrate within the biofilm
 %This Function will take tank conditions (So,Xb,LL) and various growth factors (Yxs,De,Km,Daq) model the diffusion of
 % substrates into the biofilm over the grid . The results of this uptake will be used to
@@ -17,7 +17,10 @@ LL=param.LL;
 Daq=param.Daq;
 
 %Iterations
-for iter=1:100000
+iter=10000;
+
+%Solve
+for i=1:iter
     c=2:1:Nz-1; %array to run concentration calculations through
     Sb(c)=(Sbold(c+1)+Sbold(c-1)-(mu(Sbold(c),param)*Xb*(dz^2))/(Yxs*De))/2; %Concentration of substrate at biofilm depth
     Sb(c)=lamda*Sb(c)+(1-lamda)*Sbold(c); %Over Relaxation Modification
@@ -35,6 +38,10 @@ for iter=1:100000
     % Check if converged
     if max(abs(Sb-Sbold))<tol
         break
+    else
+        if i==iter
+             fprintf('Diffusion Unable to Converge at time %3.8f\n',t)
+        end
     end
 
     % Transfer solution for next iteration
