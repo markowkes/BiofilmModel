@@ -18,9 +18,15 @@ xo   =[10 10 10 10 10 10];
 Daq  =[4.0E-5 4.0E-5 4.0E-5 4.0E-5 4.0E-5 4.0E-5];
 De   =[1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5 1.0E-5];
 Xb   =[20000 20000 20000 20000 20000 20000];
-Lf  =[5.0E-6 3.0E-4 5.0E-6 5.0E-6 5.0E-6 5.0E-6];
+Lfo  =[5.0E-6 3.0E-4 5.0E-6 5.0E-6 5.0E-6 5.0E-6];
 LL   =[1.0E-4 1.0E-4 1.0E-4 1.0E-4 1.0E-4 1.0E-4];
 Kdet =[1900 1900 1900 1900 190000 1900];
+
+%Tank Parameters + Geometry
+L=0.5; %[m]
+W=0.5; %[m]
+H=0.4; %[m]
+SA=(V/H)+2*((V/L)+(V/W)); %tank surface area [m^2] 
 
 %Index variables under structure "param"
 param.mumax=mumax(num);
@@ -35,7 +41,8 @@ param.xo   =xo(num);
 param.Daq  =Daq(num);
 param.De   =De(num);
 param.Xb   =Xb(num);
-param.Lf  =Lf(num);
+param.Lfo  =Lfo(num);
 param.LL   =LL(num);
 param.Kdet =Kdet(num);
+param.SA   =SA;
 end

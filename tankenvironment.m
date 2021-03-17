@@ -1,4 +1,4 @@
-function [tnew,xnew,Snew,dt]=tankenvironment(t,x,S,SA,Vdet,dt,Cs,Co,bflux,param)
+function [tnew,xnew,Snew,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param)
 %% This function describes the greater tank environment and assumed that it is well mixed
 % It calls all the necessary tank geometry, flow parameters, and specific
 % parameters describing the biofilm and uses the differential equations
@@ -12,15 +12,16 @@ Yxs=param.Yxs;
 Sin=param.Sin;
 Daq=param.Daq;
 LL=param.LL;
+SA=param.SA;
 
-dxdt = @(x,t,S,Cs,Vdet) (mu(S,param)-(Q/V))*x+Vdet*SA*Xb; %Biomass Concentration Change wrt time
-dsdt = @(x,t,S,Cs) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-(SA*bflux); % ^^^Substrate Concentration Change wrt time
+dxdt = @(x,t,S,Vdet) (mu(S,param)-(Q/V))*x+Vdet*SA*Xb; %Biomass Concentration Change wrt time
+dsdt = @(x,t,S) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-(SA*bflux); % ^^^Substrate Concentration Change wrt time
 
 % Packing y
 y=[x; S];
 
-f =@(t,y) [dxdt(y(1),t,y(2),Cs,Vdet)
-           dsdt(y(1),t,y(2),Cs)];
+f =@(t,y) [dxdt(y(1),t,y(2),Vdet)
+           dsdt(y(1),t,y(2))];
        
 tol=1e-8;
 while true

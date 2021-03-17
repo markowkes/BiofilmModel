@@ -1,4 +1,4 @@
-function [Cs,Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param)
+function [Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param)
 %% This function models the diffusion of a substrate within the biofilm
 %This Function will take tank conditions (So,Xb,LL) and various growth factors (Yxs,De,Km,Daq) model the diffusion of
 % substrates into the biofilm over the grid . The results of this uptake will be used to
@@ -60,7 +60,6 @@ for i=1:iter
     % Transfer solution for next iteration
     Sbold=Sb;
 end
-Cs=Sb(end); %output Surface Concentration
 
 %Flux Calculations
 bflux=De *(Sb(end)-Sb(end-1))/dz; % Biofilm Flux
