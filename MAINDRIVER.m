@@ -24,7 +24,7 @@ Sb=zeros(1,Nz);
 Sb(end)=param.So; %initially assume boundary concentration = So
 
 %Time Constraints
-tFin=20; %[days]
+tFin=30; %[days]
 dt=1e-2; %Interval
 N=tFin/dt; %Number of steps
 outFreq=2000; %Number of steps between plot updates.
@@ -55,7 +55,7 @@ while t(i)<tFin-dt
     dz=z(2)-z(1); %[m]
     
     %Call on "biofilmdiffusion"
-    [Cs,Sb,bflux(i+1),flux(i+1)]=biofilmdiffusion_fd(Sb,S(i),Nz,dz,param);
+    [Cs,Sb,bflux(i+1),flux(i+1)]=biofilmdiffusion_fd(Sb,S(i),Nz,dz,t(i),param);
     
     %Call on "lf"
     Lf_old=param.Lf;

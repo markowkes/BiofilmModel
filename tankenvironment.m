@@ -14,9 +14,7 @@ Daq=param.Daq;
 LL=param.LL;
 
 dxdt = @(x,t,S,Cs,Vdet) (mu(S,param)-(Q/V))*x+Vdet*SA*Xb; %Biomass Concentration Change wrt time
-dsdt = @(x,t,S,Cs) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-(SA*((Daq/LL)*(Co-Cs))); 
-% ^^^Substrate Concentration Change wrt time, now also considers flux
-% through boundary layer of biofilm
+dsdt = @(x,t,S,Cs) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-(SA*((Daq/LL)*(Co-Cs))); % ^^^Substrate Concentration Change wrt time
 
 % Packing y
 y=[x; S];
@@ -53,19 +51,22 @@ end
 % Unpacking y
 xnew=ynew(1);
 Snew=ynew(2);
-    
 
+% dxdt = @(x,t,S,Cs,Vdet) (mu(S,param)-(Q/V))*x+Vdet*SA*Xb; %Biomass Concentration Change wrt time
+% dsdt = @(x,t,S,Cs) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-(SA*((Daq/LL)*(Co-Cs))); %^^^Substrate Concentration Change wrt time
+% 
+% tnew = (t+dt)-0.0001*(abs(gradient(x))/max(norm(x)));
+% if tnew < (t+dt)/100
+%     %time step too small
+%     tnew=tnew*2;
+% end
+% %tnew = (t+dt)-0.0001;
+% 
 % xstar = x + dt*dxdt(x,t,S,Cs,Vdet);
 % Sstar = S + dt*dsdt(x,t,S,Cs     );
 %     
 % xnew = x + dt/2*(dxdt(x,t,S,Cs,Vdet)+dxdt(xstar,tnew,Sstar,Cs,Vdet));
 % Snew = S + dt/2*(dsdt(x,t,S,Cs     )+dsdt(xstar,tnew,Sstar,Cs     ));     
 
-% dxdt=(mu(S,param)-(param.Q/param.V))*x+Vdet*SA*param.Xb; %Biomass Concentration Change wrt time
-% dsdt=-((mu(S,param)*x)/param.Yxs)+((param.Q*param.Sin)/param.V)-((param.Q*S)/param.V)-(SA*((param.Daq/param.LL)*(Co-Cs))); 
-% % ^^^Substrate Concentration Change wrt time
-% 
-% tspan=[0,t];
-% [tnew,xnew]=ode15s(dxdt,tspan,x);
-% [tnew,Snew]=ode15s(dsdt,tspan,S);
+
 end

@@ -21,15 +21,35 @@
 \section{Overview}
 
 \section{Tank Environment}
-The environment is modeled in this function as a rectangular tank holding the bulk liquid, with the existence of an inflow and outflow which carries biomass and substrate into the bulk liquid. The concentrations rates of the biomass and substrate are modeled by the following ordinary differential equations
+The environment is modeled in this function as a rectangular tank holding the bulk liquid, with the existence of an inflow and outflow which carries biomass and substrate into the bulk liquid. The concentration rates of the biomass and substrate are modeled by the following ordinary differential equations
 \begin{equation} \label{eq: BiomassEquation}
-  \frac{dx}{dt} = \left(\mu(S) - \frac{Q}{V}\right) x + V_{\mathrm{det}} S_A X_b
+  \frac{dx}{dt} = \left(\mu(S) - \frac{Q}{V}\right) x + V_{\mathrm{det}} S_A X_b,
 \end{equation}
 \begin{equation} \label{eq: SubstrateEquation}
-  \frac{dS}{dt} = \frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{in}}{V} - \frac{Q S}{V} - S_A \frac{D_{aq}}{L_L} (C_o-C_s)
+  \frac{dS}{dt} = \frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{in}}{V} - \frac{Q S}{V} - S_A \frac{D_{aq}}{L_L} (C_o-C_s).
 \end{equation}
 
+
 \section{Growth-rate $\mu$}
+$\mu$ represents the variable growth rate of the species within the biofilm. These equations model the consumption of substrate within the biofilm and are used in a variety of different equations, including the bulk liquid concentration rates, the biofilm thickness, and the diffusion within the biofilm.
+
+Different equations are required to represent different growth profiles. The standard growth equation is the Monod Growth Rate
+\begin{equation} \label{eq: MonodGrowthRate}
+  mumax \frac{S}{Km + S}.
+\end{equation}
+
+There is also the Double Monod Growth Rate to model multiple substrates 'a' and 'b'
+\begin{equation} \label{eq: DoubleMonodGrowthRate}
+  mumax \frac{Sa}{Kma + Sa} \frac{Sb}{Kmb + Sb}.
+\end{equation}
+
+The final equation that may be used is an Inhibition Model
+\begin{equation} \label{eq: Inhibition}
+  mumax \frac{Sa}{Kma + Sa} \frac{1}{1 + \frac{Sb}{Kmb}}.
+\end{equation}
+
+The $\mu$ function 'mu' defines all these equations and allows for the desired growth rate to be called throughout the rest of the code when needed.
+  
 
 \section{Biofilm Diffusion}
 Substrates that exist within the tank will diffuse into the biofilm.  The diffusion process is described by
@@ -154,4 +174,8 @@ The right-hand-side depends $S_{b,i}^{(k-1)}$, which is the concentration at the
 \end{equation*}
 for a specified tolerance $\mathrm{tol}$.
 
+\section{Biofilm Thickness}
+The substrate concentration throughout the biofilm at a given instant in time is used to compute the growth velocity and detachment velocity. 
+
+From here the first order ordinary differential equation governing biofilm thickness is solved by discretizing with respect to a backwards difference operator.
 \end{document}
