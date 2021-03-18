@@ -26,7 +26,13 @@ The environment is modeled in this function as a rectangular tank holding the bu
   \frac{dx}{dt} = \left(\mu(S) - \frac{Q}{V}\right) x + V_{\mathrm{det}} S_A X_b,
 \end{equation}
 \begin{equation} \label{eq: SubstrateEquation}
-  \frac{dS}{dt} = \frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{in}}{V} - \frac{Q S}{V} - S_A \frac{D_{aq}}{L_L} (C_o-C_s).
+  \frac{dS}{dt} = \frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{in}}{V} - \frac{Q S}{V} - S_A Bflux.
+\end{equation}
+
+These two ordinary differential equations are packaged into a function f
+\begin{equation} \label{eq: ODEpackagef}
+  f(t,y) = [\frac{dx}{dt}(y(1), t, y(2), Vdet) , 
+	      \frac{dS}{dt}(y(1), t, y(2))]
 \end{equation}
 
 
@@ -35,17 +41,17 @@ $\mu$ represents the variable growth rate of the species within the biofilm. The
 
 Different equations are required to represent different growth profiles. The standard growth equation is the Monod Growth Rate
 \begin{equation} \label{eq: MonodGrowthRate}
-  mumax \frac{S}{Km + S}.
+  mumax \frac{S}{K_m + S}.
 \end{equation}
 
 There is also the Double Monod Growth Rate to model multiple substrates 'a' and 'b'
 \begin{equation} \label{eq: DoubleMonodGrowthRate}
-  mumax \frac{Sa}{Kma + Sa} \frac{Sb}{Kmb + Sb}.
+  mumax \frac{S_a}{K_ma + S_a} \frac{S_b}{K_mb + S_b}.
 \end{equation}
 
 The final equation that may be used is an Inhibition Model
 \begin{equation} \label{eq: Inhibition}
-  mumax \frac{Sa}{Kma + Sa} \frac{1}{1 + \frac{Sb}{Kmb}}.
+  mumax \frac{S_a}{K_ma + S_a} \frac{1}{1 + \frac{S_b}{K_mb}}.
 \end{equation}
 
 The $\mu$ function 'mu' defines all these equations and allows for the desired growth rate to be called throughout the rest of the code when needed.
