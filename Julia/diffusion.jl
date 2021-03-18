@@ -33,16 +33,17 @@ function diffusion(Sbold,S,Nz,dz,param)
     A[1,2]=-1
     B[1]  = 0
     
-    for iter=1:100
+    local iter
+    for outer iter=1:100
         
         # Interior Points
         delta=1e-3
-        Sb_p=Sb[1:Nz-1].+delta
-        Sb_m=Sb[1:Nz-1].-delta
-        dgds=(g(Sb_p)-g(Sb_m))/(Sb_p-Sb_m)
+        Sb_p=Sb[2:Nz-1].+delta
+        Sb_m=Sb[2:Nz-1].-delta
+        dgds=(g(Sb_p)-g(Sb_m))./(Sb_p-Sb_m)
         for i=2:Nz-1
             A[i,i]=2+dz^2*dgds[i-1]
-            B[i]=dz^2*(Sb[i]*dgds[i]-g(Sb[i]))
+            B[i]=dz^2*(Sb[i]*dgds[i-1]-g(Sb[i]))
         end
 
         # Solve for new concentration
@@ -66,5 +67,5 @@ function diffusion(Sbold,S,Nz,dz,param)
     bflux=De *(Sb[Nz]-Sb[Nz-1])/dz # Biofilm Flux
     flux =Daq*(S     -Sb[Nz  ])/LL # Boundary Layer Flux
             
-    return Cs,Sb,bflux,flux
+    return Cs,Sb,bflux,flux,iter
 end

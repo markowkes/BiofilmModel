@@ -1,4 +1,4 @@
-function Lf(Sb,Lf_old,dt,dz,param)
+function updateLf(Sb,Lf_old,dt,dz,param)
     #This function takes the substrate concentration at a given instant in
     #time and the old biofilm thickness to computes the growth velocity as well
     #as the detachement velocity at a given instant in time. These results are

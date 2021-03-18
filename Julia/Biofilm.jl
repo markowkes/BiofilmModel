@@ -1,13 +1,14 @@
 include("cases.jl")
 include("diffusion.jl")
 include("mu.jl")
-include("Lf.jl")
+include("updateLf.jl")
 include("tankenvironment.jl")
 include("outputs.jl")
 
 
 function MainDriver()
 
+    start = time()
     num = 1
     param = cases(num)
 
@@ -31,7 +32,7 @@ function MainDriver()
     tFin = 20; # [days]
     dt = 1e-2; # Interval
     N = floor(Int, tFin / dt) # Number of steps
-    outFreq = 20000 # Number of steps between plot updates.
+    outFreq = 2000 # Number of steps between plot updates.
 
     # Preallocation
     t = zeros(N); # Time
@@ -39,12 +40,13 @@ function MainDriver()
     S = zeros(N); # Substrate in bulk liquid
     bflux = zeros(N); # Boundary Layer Flux of Biofilm Preallocate
     flux = zeros(N); # Right hand side of power point equation to ensure matching flux
-    thickness = zeros(N); # Right hand side of power point equation to ensure matching flux
+    Lf = zeros(N); # Right hand side of power point equation to ensure matching flux
 
     # Initial Conditions
     t[1] = 0;
     x[1] = param.xo;
     S[1] = param.So;
+    Lf[1] = param.Lf
 
     # Initialize plots 
     outIter = outFreq - 1;
@@ -60,17 +62,16 @@ function MainDriver()
         dz = z[2] - z[1]; # [m]
 
         # Call on "biofilmdiffusion"
-        Cs, Sb, bflux[i + 1], flux[i + 1] = diffusion(Sb, S[i], Nz, dz, param)
+        Cs, Sb, bflux[i + 1], flux[i + 1],iter_diff = 
+                diffusion(Sb, S[i], Nz, dz, param)
         
         # Call on "lf"
-        Lf_old = param.Lf;
-        param.Lf,Vdet=Lf(Sb,Lf_old,dt,dz,param)
+        Lf[i+1],Vdet=updateLf(Sb,Lf[i],dt,dz,param)
 
         # Call on "tankenvironment"
-        t[i+1],x[i+1],S[i+1],dt=tankenvironment(t[i],x[i],S[i],SA,Vdet,dt,Cs,Co,param);
-        
-        thickness[i + 1] = param.Lf;
-        
+        t[i+1],x[i+1],S[i+1],dt,iter_tank=
+                tankenvironment(t[i],x[i],S[i],SA,Vdet,dt,Cs,Co,param);
+                
         # # Reallocate arrays if needed
         if length(t) == i + 1
             n = length(t) + 1000
@@ -79,14 +80,14 @@ function MainDriver()
             resize!(S, n)
             resize!(bflux, n)
             resize!(flux, n)
-            resize!(thickness, n)
+            resize!(Lf, n)
         end
     
         # Call on desired plots from 'outputs'
         outIter = outIter + 1;
         if outIter >= outFreq
-            print("i=", i, "\n")
-            outputs(t[1:i+1],x[1:i+1],S[1:i+1],z,bflux[1:i+1],thickness[1:i+1],Sb,param)
+            print("i=", i, " t=",t[i+1]," Diff Iter=",iter_diff," Tank Iter=",iter_tank,"\n")
+            outputs(t[1:i+1],x[1:i+1],S[1:i+1],z,bflux[1:i+1],Lf[1:i+1],Sb,param)
             outIter = 0;
         end 
 
@@ -96,9 +97,10 @@ function MainDriver()
     end
 
     # Make final figures
-    print("Making final plots")
-    outputs(t[1:i+1],x[1:i+1],S[1:i+1],z,bflux[1:i+1],thickness[1:i+1],Sb,param)
+    print("Making final plots \n")
+    outputs(t[1:i],x[1:i],S[1:i],z,bflux[1:i],Lf[1:i],Sb,param)
 
+    display(time()-start)
 end
 
 # Call main function

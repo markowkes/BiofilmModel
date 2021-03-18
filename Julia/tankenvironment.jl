@@ -33,7 +33,8 @@ function tankenvironment(t,x,S,SA,Vdet,dt,Cs,Co,param)
     tol=1e-8
     tnew=0
     ynew=zeros(size(y))
-    while true
+    local iter
+    for outer iter=1:10
         s1 = f(t     ,y            )
         s2 = f(t+  dt/2,y+  dt/2*s1)
         s3 = f(t+3*dt/4,y+3*dt/4*s2)
@@ -62,5 +63,5 @@ function tankenvironment(t,x,S,SA,Vdet,dt,Cs,Co,param)
     xnew=ynew[1]
     Snew=ynew[2]
         
-    return tnew,xnew,Snew,dt
+    return tnew,xnew,Snew,dt,iter
 end

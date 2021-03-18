@@ -1,12 +1,14 @@
 using Plots
-pyplot()
+# pyplot()
+#gr()
+plotlyjs()
 
 include("diffusion.jl")
 include("cases.jl")
 include("mu.jl")
 param=cases(1)
 #param.LL=0
-Nz=50
+Nz=5
 Sbold=LinRange(0,5,Nz)
 S=10
 dz=1e-7

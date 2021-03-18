@@ -1,5 +1,5 @@
 
-mutable struct params
+struct params
     mumax
     Km
     Yxs
