@@ -11,8 +11,9 @@ function updateLf(Sb,Lf_old,dt,dz,param)
     
     #Growth
     Vg=0 #initial growth velocity
+    mus=mu(Sb,param)
     for i=1:length(Sb)-1
-        Vg=Vg+dz*(mu(Sb[i],param)+mu(Sb[i+1],param))/2 #trapezoidal integration method for new growth velocity of biofilm
+        Vg=Vg+dz*(mus[i]+mus[i+1])/2 #trapezoidal integration method for new growth velocity of biofilm
     end
     
     #Detachment

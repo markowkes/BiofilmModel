@@ -29,21 +29,22 @@ function diffusion(Sbold,S,Nz,dz,param)
     B[Nz]     = Daq*dz*S
     
     # BC at bottom of biofilm 
-    A[1,1]= 1
-    A[1,2]=-1
-    B[1]  = 0
+    A[1,1]= 1.0
+    A[1,2]=-1.0
+    B[1]  = 0.0
     
     local iter
     for outer iter=1:100
         
         # Interior Points
         delta=1e-3
-        Sb_p=Sb[2:Nz-1].+delta
-        Sb_m=Sb[2:Nz-1].-delta
+        Sb_p=Sb.+delta
+        Sb_m=Sb.-delta
         dgds=(g(Sb_p)-g(Sb_m))./(Sb_p-Sb_m)
-        for i=2:Nz-1
-            A[i,i]=2+dz^2*dgds[i-1]
-            B[i]=dz^2*(Sb[i]*dgds[i-1]-g(Sb[i]))
+        gSb=g(Sb)
+        for i=2:Nz-1    
+            A[i,i]=2.0+dz^2*dgds[i]
+            B[i]=dz^2*(Sb[i]*dgds[i]-gSb[i])
         end
 
         # Solve for new concentration
