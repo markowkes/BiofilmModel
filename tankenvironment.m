@@ -36,6 +36,8 @@ while true
     
     error = dt/72*(-5*s1 + 6*s2 + 8*s3 - 9*s4);
     
+    
+    
     % Update timestep
     if abs(error) < tol/100 
         % dt is getting very small

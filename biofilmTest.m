@@ -64,12 +64,12 @@ function test_tankenvironment_biomasssolution(testCase)
 % Run Test
 param=cases(1);
 param.Q=0;
-tFin=20; %[days]
-dt=1e-2; %Interval
-N=tFin/dt; %Number of steps
+tFin=20; 
+dt=1e-2; 
+N=tFin/dt; 
 Vdet=2.7244e-5;
 xo=param.xo;
-t = 0; %Time
+t = 0; 
 x = param.xo;
 S = param.So;
 bflux=0;
@@ -83,17 +83,17 @@ tol=1e-1;
 verifyLessThan(testCase,abs(actSolution-expSolution),tol)
 end
 
-%% Test tank substrate concentration when no inflow Sin
+%% Test tank substrate concentration when no inflow Q
 function test_tankenvironment_substratesolution(testCase)
 %Run Test
 param=cases(1);
-param.Sin=0;
-tFin=20; %[days]
-dt=1e-2; %Interval
-N=tFin/dt; %Number of steps
+param.Q=0;
+tFin=20; 
+dt=1e-2; 
+N=tFin/dt; 
 Vdet=2.7244e-5;
 So=param.So;
-t = 0; %Time
+t = 0; 
 x = param.xo;
 S = param.So;
 bflux=0;

@@ -35,6 +35,58 @@ These two ordinary differential equations are packaged into a function f
 	      \frac{dS}{dt}(y(1), t, y(2))]
 \end{equation}
 
+A 4th Order Runge-Kutta Method is used to discretize and solve the packed differential equations in this function. The Runge-Kutta Numerical Method calculates the slope of function at four points between each step of the iteration process in order to boost the accuracy of the next-point estimation. The first of these four slope calculations is the most simple, and occurs at the beginning of the interval,
+\begin{equation} \label{eq: S_1}
+  S_1 = f(t_n,y_n).
+\end{equation}
+
+The next slope estimation occurs at the midpoint of the iterative step, using the slope calculated at the beginning of the interval to increase its accuracy,
+\begin{equation} \label{eq: S_2}
+  S_2 = f(t + \frac{1}{2} dt,y + \frac{1}{2} dt S_1)
+\end{equation}
+
+The third calculation occurs at the 3/4  point of the step,
+\begin{equation} \label{eq: S_3}
+  S_3 = f(t + \frac{3}{4} dt,y+\frac{3}{4} dt S_2)
+\end{equation}
+
+The final calculation of the slope at the next step uses the previous three calculations to produce the most accurate estimation of the slope possible. 
+\begin{equation} \label{eq: t_{new}}
+  t_{new} = t + dt
+\end{equation}
+
+\begin{equation} \label{eq: y_{new}}
+  y_{new} = y + \frac{1}{9} dt (2 S_1 + 3 S_2 + 4 S_3)
+\end{equation}
+
+\begin{equation} \label{eq: S_4}
+  S_4 = f(t_{new},y_{new})
+\end{equation}
+
+The final portion of each iterative step is to calculate the error of the step by comparing it to the Butcher Tableau coefficients produced by an Adaptive Runge-Kutta Method,
+\begin{equation} \label{eq: errorfunction}
+  error = \frac{1}{72} dt (-5 S_1 + 6 S_2 + 8 S_3 - 9 S_4).
+\end{equation}
+
+This error term allows for each variable time step to be analyzed and adjusted according to its deviation from the standard timestep. This occurs by establishing thresholds for error which keep it from getting too big or too small as given for an arbitrary tolerance 'tol'.
+
+For instance, when the timestep becomes too small,  if abs(error) $ \leq\ $ tol/100
+\begin{equation}
+  dt = 2 dt.
+\end{equation}
+
+When the timestep becomes too big, if abs(error) $ \geq\ $ tol
+\begin{equation}
+  dt = \frac{1}{2} dt.
+\end{equation}
+
+This error term maintains the variable timestep within a reasonable range during the iteration process.
+
+
+
+
+
+
 
 \section{Growth-rate $\mu$}
 $\mu$ represents the variable growth rate of the species within the biofilm. These equations model the consumption of substrate within the biofilm and are used in a variety of different equations, including the bulk liquid concentration rates, the biofilm thickness, and the diffusion within the biofilm.
@@ -46,12 +98,12 @@ Different equations are required to represent different growth profiles. The sta
 
 There is also the Double Monod Growth Rate to model multiple substrates 'a' and 'b'
 \begin{equation} \label{eq: DoubleMonodGrowthRate}
-  mumax \frac{S_a}{K_ma + S_a} \frac{S_b}{K_mb + S_b}.
+  mumax \frac{S_a}{K_{ma} + S_a} \frac{S_b}{K_{mb} + S_b}.
 \end{equation}
 
 The final equation that may be used is an Inhibition Model
 \begin{equation} \label{eq: Inhibition}
-  mumax \frac{S_a}{K_ma + S_a} \frac{1}{1 + \frac{S_b}{K_mb}}.
+  mumax \frac{S_a}{K_{ma} + S_a} \frac{1}{1 + \frac{S_b}{K_{mb}}}.
 \end{equation}
 
 The $\mu$ function 'mu' defines all these equations and allows for the desired growth rate to be called throughout the rest of the code when needed.
@@ -185,7 +237,7 @@ With the current timestep's substrate concentrations throughout the thickness of
 
 \begin{equation}
   \label{eq:dLfdt_1}
-  \frac{d L_f}{dt} = {\bar\mu L_f}-{K_{\mathrm{det}}}L_f^2},
+  \frac{d L_f}{dt} = {\bar\mu L_f}-{K_{\mathrm{det}}L_f^2},
 \end{equation}
 
 in which the first term of the right hand side is equal to the growth velocity and the second term is equal to the detachment velocity of the biofilm's biomass.
@@ -193,8 +245,8 @@ in which the first term of the right hand side is equal to the growth velocity a
 Eq.~\ref{eq:vg_int} is discretized and solved for a future time step using Euler's method and the information known at the current time step as follows.
 
 \begin{equation}
-  \label{dLfdt_2}
-
+  \label{eq:dLfdt_2}
+  \frac{d L_f}{dt} = place holder
 \end{equation}
 
 Since the growth rate is specified as an average value within the biofilm, and the specifics of the growth rate at each point within the biofilm depends on mu and Sb a result for the growth velocity within the biofilm is obtained by numerically evaluating the integral 
