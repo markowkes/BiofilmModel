@@ -233,40 +233,52 @@ The right-hand-side depends $S_{b,i}^{(k-1)}$, which is the concentration at the
 for a specified tolerance $\mathrm{tol}$.
 
 \section{Biofilm Thickness}
-With the current timestep's substrate concentrations throughout the thickness of the biofilm compued, the new thickness of the biofilm may now be computed by solving the first order differential equation
+With the current time-step's substrate concentrations throughout the thickness of the biofilm computed, the new thickness of the biofilm may now be computed by solving the first order differential equation
 
 \begin{equation}
   \label{eq:dLfdt_1}
-  \frac{d L_f}{dt} = {\bar\mu L_f}-{K_{\mathrm{det}}L_f^2},
+  \frac{d L_f}{dt} = {\bar\mu L_f}-{k_{\mathrm{det}}L_f^2},
 \end{equation}
 
-in which the first term of the right hand side is equal to the growth velocity and the second term is equal to the detachment velocity of the biofilm's biomass.
+in which the first term of the right hand side is equal to the growth velocity and the second term is equal to the detachment velocity of the biofilm's biomass. 
 
-Eq.~\ref{eq:vg_int} is discretized and solved for a future time step using Euler's method and the information known at the current time step as follows.
+\begin{equation}
+  \label{eq:vg}
+  v_g={\bar\mu L_f}
+\end{equation}
+
+\begin{equation}
+  \label{eq:vdet}
+  v_{det}={k_{\mathrm{det}}L_f^2}
+\end{equation}
+
+Eq.~\ref{eq:dLfdt_1} is discretized and a future time step's solution is obtained using Euler's method and the information known at the current time step. The resulting expression is as follows, where the superscript $\ie L_f^{t}$ denotes the biofilms state at the respective time-step.
 
 \begin{equation}
   \label{eq:dLfdt_2}
-  \frac{d L_f}{dt} = place holder
+  {L_f^{t+1}}={L_f^{t}} + {\Delta t}({v_g^{t}+v_{det}^{t}})
 \end{equation}
 
-Since the growth rate is specified as an average value within the biofilm, and the specifics of the growth rate at each point within the biofilm depends on mu and Sb a result for the growth velocity within the biofilm is obtained by numerically evaluating the integral 
+\subsection{Growth Velocity}
+Since the growth rate $\mu$ is specified as an average value within the biofilm in Eq.~\ref{eq:vg}, and the specifics of the growth rate at each point within the biofilm depends on $\mu$ and $S_b$ a result for the growth velocity within the biofilm is obtained by numerically evaluating the integral 
 
 \begin{equation}
   \label{eq:vg_int}
-  {v_g}={\int_{0}^{Lf}\mu(S_b(z))dz}.
+  {v_g^{t}}={\int_{0}^{L_f^{t}}\mu(S_b(z)^{t})dz}.
 \end{equation}
 
-transforming Eq.~\ref{eq:vg_int} into the expression
+Using trapezoidal integration, Eq.~\ref{eq:vg_int} becomes
 
 \begin{equation}
   \label{eq:vg_sum}
-  {v_g}={\sum_{i=1}^{N_{z-1}}  {\frac{\Delta z}{2}}  ( {\mu({S_{b,i}})+\mu({S_{b,i+1}})}}).
+  {v_g^{t}}={\sum_{i=1}^{N_{z-1}}  {\frac{\Delta {z^{t}}}{2}}  ( {\mu({S_{b,i}^{t}})+\mu({S_{b,i+1}^{t}})}}).
 \end{equation}
 
-The corresponding detachment velocity is computed as follows.
+\subsection{Detachement Velocity}
+The detachment velocity of biomass from the biofilm is computed as follows
 \begin{equation}
   \label{eq:vdet}
-  {v_{\mathrm{det}}}={K_{\mathrm{det}}L^2_f}
+  {v_{det}^{t}}={k_{\mathrm{det}}{L^t_f}^2}.
 \end{equation}
 
 \end{document}
