@@ -1,4 +1,4 @@
-using SparseArrays
+using LinearAlgebra
 
 function diffusion(Sbold,S,Nz,dz,param)
     
@@ -17,28 +17,29 @@ function diffusion(Sbold,S,Nz,dz,param)
     # Initial guess
     Sb=Sbold
     
-    # Preallocate matrices
+    # Diagonals
+    Dm=zeros(Nz)   # Main
+    Dl=zeros(Nz-1) # Lower  - starts on second row!
+    Du=zeros(Nz-1) # Upper
+
+    # RHS
     B=zeros(Nz)
 
-    # Create sparse matrix A 
-    # Lower diagonals
-    IL=2:Nz-1
-    JL=1:Nz-2
-    VL=-1.0*ones(Nz-2);
-    # Upper diagonals
-    IU=2:Nz-1
-    JU=3:Nz
-    VU=-1.0*ones(Nz-2);
+    # Lower/Upper diagonals for interior points
+    for i=2:Nz-1
+        Dl[i-1]=-1.0  # Dl starts on second row!
+        Du[i  ]=-1.0
+    end
+    
     # Top BC
-    IBt=[Nz          ,Nz    ]
-    JBt=[Nz          ,Nz-1  ]
-    VBt=[De*LL+Daq*dz,-De*LL]
-    B[Nz]     = Daq*dz*S
+    Dm[Nz  ]=De*LL+Daq*dz
+    Dl[Nz-1]=-De*LL
+    B[Nz] = Daq*dz*S
+
     # Bottom BC
-    IBb=[1  ,   1]
-    JBb=[1  ,   2]
-    VBb=[1.0,-1.0]
-    B[1]  = 0.0
+    Dm[1]= 1.0
+    Du[1]=-1.0
+    B[1] = 0.0
 
     local iter
     for outer iter=1:100
@@ -55,12 +56,12 @@ function diffusion(Sbold,S,Nz,dz,param)
         VD=zeros(Nz-2)
         for i=2:Nz-1 
             dgds=(gSb_p[i]-gSb_m[i])/(Sb_p[i]-Sb_m[i])   
-            VD[i-1]=2.0 + dz^2*dgds
+            Dm[i]=2.0 + dz^2*dgds
             B[i]=dz^2*(Sb[i]*dgds-gSb[i])
         end
 
-        # Concatenate A matrix 
-        A=sparse(vcat(IL,IU,IBt,IBb,ID),vcat(JL,JU,JBt,JBb,JD),vcat(VL,VU,VBt,VBb,VD))
+        # Create tridiagonal array
+        A=Tridiagonal(Dl,Dm,Du)
 
         # Solve for new concentration
         Sb = A\B
