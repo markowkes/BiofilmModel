@@ -26,8 +26,66 @@ The environment is modeled in this function as a rectangular tank holding the bu
   \frac{dx}{dt} = \left(\mu(S) - \frac{Q}{V}\right) x + V_{\mathrm{det}} S_A X_b,
 \end{equation}
 \begin{equation} \label{eq: SubstrateEquation}
-  \frac{dS}{dt} = \frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{in}}{V} - \frac{Q S}{V} - S_A \frac{D_{aq}}{L_L} (C_o-C_s).
+  \frac{dS}{dt} = \frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{in}}{V} - \frac{Q S}{V} - S_A Bflux.
 \end{equation}
+
+These two ordinary differential equations are packaged into a function f
+\begin{equation} \label{eq: ODEpackagef}
+  f(t,y) = [\frac{dx}{dt}(y(1), t, y(2), Vdet) , 
+	      \frac{dS}{dt}(y(1), t, y(2))]
+\end{equation}
+
+A 4th Order Runge-Kutta Method is used to discretize and solve the packed differential equations in this function. The Runge-Kutta Numerical Method calculates the slope of function at four points between each step of the iteration process in order to boost the accuracy of the next-point estimation. The first of these four slope calculations is the most simple, and occurs at the beginning of the interval,
+\begin{equation} \label{eq: S_1}
+  S_1 = f(t_n,y_n).
+\end{equation}
+
+The next slope estimation occurs at the midpoint of the iterative step, using the slope calculated at the beginning of the interval to increase its accuracy,
+\begin{equation} \label{eq: S_2}
+  S_2 = f(t + \frac{1}{2} dt,y + \frac{1}{2} dt S_1)
+\end{equation}
+
+The third calculation occurs at the 3/4  point of the step,
+\begin{equation} \label{eq: S_3}
+  S_3 = f(t + \frac{3}{4} dt,y+\frac{3}{4} dt S_2)
+\end{equation}
+
+The final calculation of the slope at the next step uses the previous three calculations to produce the most accurate estimation of the slope possible. 
+\begin{equation} \label{eq: t_{new}}
+  t_{new} = t + dt
+\end{equation}
+
+\begin{equation} \label{eq: y_{new}}
+  y_{new} = y + \frac{1}{9} dt (2 S_1 + 3 S_2 + 4 S_3)
+\end{equation}
+
+\begin{equation} \label{eq: S_4}
+  S_4 = f(t_{new},y_{new})
+\end{equation}
+
+The final portion of each iterative step is to calculate the error of the step by comparing it to the Butcher Tableau coefficients produced by an Adaptive Runge-Kutta Method,
+\begin{equation} \label{eq: errorfunction}
+  error = \frac{1}{72} dt (-5 S_1 + 6 S_2 + 8 S_3 - 9 S_4).
+\end{equation}
+
+This error term allows for each variable time step to be analyzed and adjusted according to its deviation from the standard timestep. This occurs by establishing thresholds for error which keep it from getting too big or too small as given for an arbitrary tolerance 'tol'.
+
+For instance, when the timestep becomes too small,  if abs(error) $ \leq\ $ tol/100
+\begin{equation}
+  dt = 2 dt.
+\end{equation}
+
+When the timestep becomes too big, if abs(error) $ \geq\ $ tol
+\begin{equation}
+  dt = \frac{1}{2} dt.
+\end{equation}
+
+This error term maintains the variable timestep within a reasonable range during the iteration process.
+
+
+
+
+
 
 
 \section{Growth-rate $\mu$}
@@ -35,17 +93,17 @@ $\mu$ represents the variable growth rate of the species within the biofilm. The
 
 Different equations are required to represent different growth profiles. The standard growth equation is the Monod Growth Rate
 \begin{equation} \label{eq: MonodGrowthRate}
-  mumax \frac{S}{Km + S}.
+  mumax \frac{S}{K_m + S}.
 \end{equation}
 
 There is also the Double Monod Growth Rate to model multiple substrates 'a' and 'b'
 \begin{equation} \label{eq: DoubleMonodGrowthRate}
-  mumax \frac{Sa}{Kma + Sa} \frac{Sb}{Kmb + Sb}.
+  mumax \frac{S_a}{K_{ma} + S_a} \frac{S_b}{K_{mb} + S_b}.
 \end{equation}
 
 The final equation that may be used is an Inhibition Model
 \begin{equation} \label{eq: Inhibition}
-  mumax \frac{Sa}{Kma + Sa} \frac{1}{1 + \frac{Sb}{Kmb}}.
+  mumax \frac{S_a}{K_{ma} + S_a} \frac{1}{1 + \frac{S_b}{K_{mb}}}.
 \end{equation}
 
 The $\mu$ function 'mu' defines all these equations and allows for the desired growth rate to be called throughout the rest of the code when needed.
@@ -175,7 +233,52 @@ The right-hand-side depends $S_{b,i}^{(k-1)}$, which is the concentration at the
 for a specified tolerance $\mathrm{tol}$.
 
 \section{Biofilm Thickness}
-The substrate concentration throughout the biofilm at a given instant in time is used to compute the growth velocity and detachment velocity. 
+With the current time-step's substrate concentrations throughout the thickness of the biofilm computed, the new thickness of the biofilm may now be computed by solving the first order differential equation
 
-From here the first order ordinary differential equation governing biofilm thickness is solved by discretizing with respect to a backwards difference operator.
+\begin{equation}
+  \label{eq:dLfdt_1}
+  \frac{d L_f}{dt} = {\bar\mu L_f}-{k_{\mathrm{det}}L_f^2},
+\end{equation}
+
+in which the first term of the right hand side is equal to the growth velocity and the second term is equal to the detachment velocity of the biofilm's biomass. 
+
+\begin{equation}
+  \label{eq:vg}
+  v_g={\bar\mu L_f}
+\end{equation}
+
+\begin{equation}
+  \label{eq:vdet}
+  v_{det}={k_{\mathrm{det}}L_f^2}
+\end{equation}
+
+Eq.~\ref{eq:dLfdt_1} is discretized and a future time step's solution is obtained using Euler's method and the information known at the current time step. The resulting expression is as follows, where the superscript $\ie L_f^{t}$ denotes the biofilms state at the respective time-step.
+
+\begin{equation}
+  \label{eq:dLfdt_2}
+  {L_f^{t+1}}={L_f^{t}} + {\Delta t}({v_g^{t}+v_{det}^{t}})
+\end{equation}
+
+\subsection{Growth Velocity}
+Since the growth rate $\mu$ is specified as an average value within the biofilm in Eq.~\ref{eq:vg}, and the specifics of the growth rate at each point within the biofilm depends on $\mu$ and $S_b$ a result for the growth velocity within the biofilm is obtained by numerically evaluating the integral 
+
+\begin{equation}
+  \label{eq:vg_int}
+  {v_g^{t}}={\int_{0}^{L_f^{t}}\mu(S_b(z)^{t})dz}.
+\end{equation}
+
+Using trapezoidal integration, Eq.~\ref{eq:vg_int} becomes
+
+\begin{equation}
+  \label{eq:vg_sum}
+  {v_g^{t}}={\sum_{i=1}^{N_{z-1}}  {\frac{\Delta {z^{t}}}{2}}  ( {\mu({S_{b,i}^{t}})+\mu({S_{b,i+1}^{t}})}}).
+\end{equation}
+
+\subsection{Detachement Velocity}
+The detachment velocity of biomass from the biofilm is computed as follows
+\begin{equation}
+  \label{eq:vdet}
+  {v_{det}^{t}}={k_{\mathrm{det}}{L^t_f}^2}.
+\end{equation}
+
 \end{document}

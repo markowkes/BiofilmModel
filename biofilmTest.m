@@ -64,55 +64,45 @@ function test_tankenvironment_biomasssolution(testCase)
 % Run Test
 param=cases(1);
 param.Q=0;
-L=0.5; %[m]
-W=0.5; %[m]
-H=0.4; %[m]
-SA=(param.V/H)+2*((param.V/L)+(param.V/W)); %tank surface area [m^2] 
-tFin=20; %[days]
-dt=1e-2; %Interval
-N=tFin/dt; %Number of steps
+tFin=20; 
+dt=1e-2; 
+N=tFin/dt; 
 Vdet=2.7244e-5;
-Cs=0.7079;
-Co=25;
 xo=param.xo;
-t = zeros(1,N); %Time
-x = zeros(1,N); %Biomass Concentration in bulk liquid
-S = zeros(1,N); %Substrate in bulk liquid
-[~,x,~,~]=tankenvironment(t,x,S,SA,Vdet,dt,Cs,Co,param);
+t = 0; 
+x = param.xo;
+S = param.So;
+bflux=0;
+[~,x,~,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
 % Analyze result
 figure(1); clf(1)
 plot(x)
 actSolution=x;
-expSolution=0;
+expSolution=xo;
 tol=1e-1;
 verifyLessThan(testCase,abs(actSolution-expSolution),tol)
 end
 
-%% Test tank substrate concentration when no inflow Sin
+%% Test tank substrate concentration when no inflow Q
 function test_tankenvironment_substratesolution(testCase)
 %Run Test
 param=cases(1);
-param.Sin=0;
-L=0.5; %[m]
-W=0.5; %[m]
-H=0.4; %[m]
-SA=(param.V/H)+2*((param.V/L)+(param.V/W)); %tank surface area [m^2] 
-tFin=20; %[days]
-dt=1e-2; %Interval
-N=tFin/dt; %Number of steps
+param.Q=0;
+tFin=20; 
+dt=1e-2; 
+N=tFin/dt; 
 Vdet=2.7244e-5;
-Cs=0.7079;
-Co=25;
 So=param.So;
-t = zeros(1,N); %Time
-x = zeros(1,N); %Biomass Concentration in bulk liquid
-S = zeros(1,N); %Substrate in bulk liquid
-[~,~,S,~]=tankenvironment(t,x,S,SA,Vdet,dt,Cs,Co,param);
+t = 0; 
+x = param.xo;
+S = param.So;
+bflux=0;
+[~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
 %Analyze Result
 figure(1);clf(1);
 plot(S)
 actSolution=S;
-expSolution=0;
+expSolution=So;
 tol=1e-1;
 verifyLessThan(testCase,abs(actSolution-expSolution),tol)
 end
