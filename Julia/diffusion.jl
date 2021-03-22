@@ -1,3 +1,5 @@
+using SparseArrays
+
 function diffusion(Sbold,S,Nz,dz,param)
     
     tol=1e-12
@@ -16,23 +18,28 @@ function diffusion(Sbold,S,Nz,dz,param)
     Sb=Sbold
     
     # Preallocate matrices
-    A=zeros(Nz,Nz)
-    for i=2:Nz-1
-        A[i,i-1]=-1 # Lower diagonal
-        A[i,i+1]=-1 # Upper diagonal
-    end
     B=zeros(Nz)
 
-    # BC at top of biofilm
-    A[Nz,Nz  ]= De*LL+Daq*dz
-    A[Nz,Nz-1]=-De*LL
+    # Create sparse matrix A 
+    # Lower diagonals
+    IL=2:Nz-1
+    JL=1:Nz-2
+    VL=-1.0*ones(Nz-2);
+    # Upper diagonals
+    IU=2:Nz-1
+    JU=3:Nz
+    VU=-1.0*ones(Nz-2);
+    # Top BC
+    IBt=[Nz          ,Nz    ]
+    JBt=[Nz          ,Nz-1  ]
+    VBt=[De*LL+Daq*dz,-De*LL]
     B[Nz]     = Daq*dz*S
-    
-    # BC at bottom of biofilm 
-    A[1,1]= 1.0
-    A[1,2]=-1.0
+    # Bottom BC
+    IBb=[1  ,   1]
+    JBb=[1  ,   2]
+    VBb=[1.0,-1.0]
     B[1]  = 0.0
-    
+
     local iter
     for outer iter=1:100
         
@@ -40,12 +47,20 @@ function diffusion(Sbold,S,Nz,dz,param)
         delta=1e-3
         Sb_p=Sb.+delta
         Sb_m=Sb.-delta
-        dgds=(g(Sb_p)-g(Sb_m))./(Sb_p-Sb_m)
+        gSb_p=g(Sb_p)
+        gSb_m=g(Sb_m)
         gSb=g(Sb)
-        for i=2:Nz-1    
-            A[i,i]=2.0+dz^2*dgds[i]
-            B[i]=dz^2*(Sb[i]*dgds[i]-gSb[i])
+        ID=2:Nz-1
+        JD=2:Nz-1
+        VD=zeros(Nz-2)
+        for i=2:Nz-1 
+            dgds=(gSb_p[i]-gSb_m[i])/(Sb_p[i]-Sb_m[i])   
+            VD[i-1]=2.0 + dz^2*dgds
+            B[i]=dz^2*(Sb[i]*dgds-gSb[i])
         end
+
+        # Concatenate A matrix 
+        A=sparse(vcat(IL,IU,IBt,IBb,ID),vcat(JL,JU,JBt,JBb,JD),vcat(VL,VU,VBt,VBb,VD))
 
         # Solve for new concentration
         Sb = A\B
