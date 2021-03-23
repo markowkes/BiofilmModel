@@ -48,10 +48,10 @@ function tankenvironment(t,x,S,Vdet,dt,bflux,param)
         error = dt/72*(-5*s1 + 6*s2 + 8*s3 - 9*s4)
         
         # Update timestep
-        if all(abs.(error) .< tol/100)
+        if maximum(abs.(error)) < tol/100.0
             # dt is getting very small
             dt=dt*2
-        elseif any(abs.(error) .> tol)
+        elseif minimum(abs.(error)) > tol
             # dt is too big
             dt=dt/2
         else
