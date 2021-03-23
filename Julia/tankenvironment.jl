@@ -1,4 +1,4 @@
-function tankenvironment(t,x,S,SA,Vdet,dt,Cs,Co,param)
+function tankenvironment(t,x,S,Vdet,dt,bflux,param)
     ## This function describes the greater tank environment and assumed that it is well mixed
     # It calls all the necessary tank geometry, flow parameters, and specific
     # parameters describing the biofilm and uses the differential equations
@@ -11,6 +11,7 @@ function tankenvironment(t,x,S,SA,Vdet,dt,Cs,Co,param)
     Sin=param.Sin
     Daq=param.Daq
     LL=param.LL
+    SA=param.SA
     
     #dxdt = x,S -> (mu(S,param)-(Q/V))*x+Vdet*SA*Xb
     #dsdt = x,S -> -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-(SA*((Daq/LL)*(Co-Cs)))
@@ -26,7 +27,7 @@ function tankenvironment(t,x,S,SA,Vdet,dt,Cs,Co,param)
         S=y[2]
         rhs=zeros(2)
         rhs[1]=(mu(S,param)-(Q/V))*x+Vdet*SA*Xb
-        rhs[2]=-((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-(SA*((Daq/LL)*(Co-Cs)))
+        rhs[2]=-((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-(SA*bflux)
         return rhs
     end
            

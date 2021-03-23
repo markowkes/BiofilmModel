@@ -58,7 +58,7 @@ function MainDriver()
     while t[i] < tFin - dt
             
         # Update biofilm grid as biofilm grows
-        z = LinRange(0, param.Lf, Nz); # [m] Grid of Biofilm Depth
+        z = LinRange(0, Lf[i], Nz); # [m] Grid of Biofilm Depth
         dz = z[2] - z[1]; # [m]
 
         # Call on "biofilmdiffusion"
@@ -70,7 +70,7 @@ function MainDriver()
 
         # Call on "tankenvironment"
         t[i+1],x[i+1],S[i+1],dt,iter_tank=
-                tankenvironment(t[i],x[i],S[i],SA,Vdet,dt,Cs,Co,param);
+                tankenvironment(t[i],x[i],S[i],Vdet,dt,bflux[i+1],param);
                 
         # # Reallocate arrays if needed
         if length(t) == i + 1
