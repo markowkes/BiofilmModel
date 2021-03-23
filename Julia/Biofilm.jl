@@ -9,7 +9,7 @@ include("outputs.jl")
 function MainDriver()
 
     start = time()
-    num = 1
+    num = 7
     param = cases(num)
 
     # Tank Parameters + Geometry
@@ -29,7 +29,7 @@ function MainDriver()
     Sb[Nz] = param.So; # initially assume boundary concentration = So
 
     # Time Constraints
-    tFin = 20; # [days]
+    tFin = 30; # [days]
     dt = 1e-2; # Interval
     N = floor(Int, tFin / dt) # Number of steps
     outFreq = 2000 # Number of steps between plot updates.
