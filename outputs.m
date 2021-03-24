@@ -37,9 +37,9 @@ if (all(plots(:)==0) || ~ishandle(1))
    
     
     subplot(2,3,5)
-    plots(5,1)=plot(t,bflux);
+    plots(5,1)=plot(t,1E6*thickness);
     title('Thickness of biofilm vs Time')
-    ylabel('Thickness [m]')
+    ylabel('Thickness [micrometers]')
     xlabel('Time [days]')
    
     hold on
@@ -55,7 +55,7 @@ else
     set(plots(3,1),'XData',t,'YData',bflux)
     set(plots(4,1),'XData',z,'YData',Sb)
     set(plots(4,2),'XData',[z(end),z(end)+param.LL],'YData',[Sb(end),S(end)]);
-    set(plots(5,1),'XData',t,'YData',thickness)
+    set(plots(5,1),'XData',t,'YData',1E6*thickness)
     str=sprintf('Time = %5.2f days',t(end));
     set(titles,'String',str)
     drawnow
