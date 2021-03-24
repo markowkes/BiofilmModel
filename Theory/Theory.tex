@@ -19,6 +19,10 @@
 \abstract{Summary of theory used in biofilm model.}
 
 \section{Overview}
+A set of input parameters is called upon. From here a one dimensional grid $z$ is created that models the thickness of the biofilm on the tank walls with a specified number of grid points. The initial conditions for the substrate and biomass concentrations within the tank as well as biofilm thickness are specified from these input parameters. An initial time-step is specified in order to begin looping over the following process.
+
+
+Within the time loop, the biofilm grid is updated to align $\Delta z$ to the current biofilm thickness $L_f^{t}$. The Biofilm Diffusion function is then called upon, from which a boundary flux term and substrate concentration array $S_b$ is produced. The Biofilm Thickness function then computes the new biofilm thickness $L_f^{t+1}$ and current detachment velocity $v_g^{t}$. The Tank Environment function then computes the new substrate and biomass concentrations within the tank as well as the new time-step to be used in the next iteration of the loop.
 
 \section{Tank Environment}
 The environment is modeled in this function as a rectangular tank holding the bulk liquid, with the existence of an inflow and outflow which carries biomass and substrate into the bulk liquid. The concentration rates of the biomass and substrate are modeled by the following ordinary differential equations
@@ -264,7 +268,7 @@ Since the growth rate $\mu$ is specified as an average value within the biofilm 
 
 \begin{equation}
   \label{eq:vg_int}
-  {v_g^{t}}={\int_{0}^{L_f^{t}}\mu(S_b(z)^{t})dz}.
+  {v_g^{t}}={\int_{0}^{L_f^{t}}\mu(S^{t}_b(z))dz}.
 \end{equation}
 
 Using trapezoidal integration, Eq.~\ref{eq:vg_int} becomes
