@@ -26,8 +26,8 @@ function tankenvironment(t,x,S,Vdet,dt,bflux,param)
         x=y[1]
         S=y[2]
         rhs=zeros(2)
-        rhs[1]=(mu(S,param)-(Q/V))*x+Vdet*SA*Xb
-        rhs[2]=-((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-(SA*bflux)
+        rhs[1]=(mu(S,param)-(Q/V))*x+Vdet*SA*Xb/V
+        rhs[2]=-((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-(SA*bflux/V)
         return rhs
     end
            
