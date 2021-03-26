@@ -26,7 +26,7 @@ Kdet =[1900 1900 1900 1900 190000 1900 1900 1900];
 L=0.5; %[m]
 W=0.5; %[m]
 H=0.4; %[m]
-SA=(V/H)+2*((V/L)+(V/W)); %tank surface area [m^2] 
+SA=(V(num)/H)+2*((V(num)/L)+(V(num)/W)); %tank surface area [m^2] 
 
 %Index variables under structure "param"
 param.mumax=mumax(num);
