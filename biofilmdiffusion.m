@@ -1,13 +1,13 @@
-function [Cs,Sb,bflux,flux]=biofilmdiffusion(Sbold,S,Nz,dz,t,param)
+function [Sb,bflux]=biofilmdiffusion(Sbold,S,Nz,dz,t,param)
 %% This function models the diffusion of a substrate within the biofilm
 %This Function will take tank conditions (So,Xb,LL) and various growth factors (Yxs,De,Km,Daq) model the diffusion of
 % substrates into the biofilm over the grid . The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
 
 Sb=Sbold; %preallocate array
-lamda=.2; %Factor For Over Relaxation Method
+lamda=.5; %Factor For Over Relaxation Method
 
-tol=1e-8; %tolerance for conversion
+tol=1e-5; %tolerance for conversion
 
 % Get variables out out of param
 Xb=param.Xb;
@@ -40,7 +40,7 @@ for i=1:iter
         break
     else
         if i==iter
-             fprintf('Diffusion Unable to Converge at time %3.8f\n',t)
+             fprintf('Diffusion Unable to Converge at time %3.8f with error %5.5e \n',t,max(abs(Sb-Sbold)))
         end
     end
 
