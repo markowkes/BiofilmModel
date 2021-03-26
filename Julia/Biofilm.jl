@@ -32,7 +32,7 @@ function MainDriver()
     tFin = 30; # [days]
     dt = 1e-2; # Interval
     N = floor(Int, tFin / dt) # Number of steps
-    outFreq = 2000 # Number of steps between plot updates.
+    outFreq = 10 # Number of days between plot updates.
 
     # Preallocation
     t = zeros(N); # Time
@@ -49,7 +49,7 @@ function MainDriver()
     Lf[1] = param.Lf
 
     # Initialize plots 
-    outIter = outFreq - 1;
+    outTime = 0;
     plots = 0; titles = 0;
 
     ## Time Loop
@@ -84,11 +84,11 @@ function MainDriver()
         end
     
         # Call on desired plots from 'outputs'
-        outIter = outIter + 1;
-        if outIter >= outFreq
+        
+        if t[i]-outTime >= outFreq
             print("i=", i, " t=",t[i+1]," Diff Iter=",iter_diff," Tank Iter=",iter_tank,"\n")
             outputs(t[1:i+1],x[1:i+1],S[1:i+1],z,bflux[1:i+1],Lf[1:i+1],Sb,param)
-            outIter = 0;
+            outTime=t[i];
         end 
 
         # Update iterator
