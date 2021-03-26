@@ -41,10 +41,10 @@
 \section{Tank Environment}
 The environment is modeled in this function as a rectangular tank holding the bulk liquid, with the existence of an inflow and outflow which carries biomass and substrate into the bulk liquid. The concentration rates of the biomass and substrate are modeled by the following ordinary differential equations
 \begin{equation} \label{eq: BiomassEquation}
-  \frac{dx}{dt} = \left(\mu(S) - \frac{Q}{V}\right) x + V_{\mathrm{det}} S_A X_b,
+  \frac{dx}{dt} = \left(\mu(S) - \frac{Q}{V}\right) x +\frac{ V_{\mathrm{det}} S_A X_b}{V},
 \end{equation}
 \begin{equation} \label{eq: SubstrateEquation}
-  \frac{dS}{dt} = -\frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} - S_A B_{\mathrm{flux}}.
+  \frac{dS}{dt} = -\frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} - \frac{S_A B_{\mathrm{flux}}}{V}.
 \end{equation}
 with initial condition $x(t=0)=x_o$ and $S(t=0)=S_o$.
 

@@ -106,3 +106,58 @@ expSolution=So;
 tol=1e-1;
 verifyLessThan(testCase,abs(actSolution-expSolution),tol)
 end
+
+%% Test diffusion
+% Note that the analytic solution assumes mu=mumax*S/Km
+% Method shows first order convergence
+function test_diffusion(testCase)
+% Run Test
+param.mumax=2000;
+param.Km=2500;
+param.Yxs=0.5;
+S=25;
+param.Daq=4e-5;
+param.De =1e-5;
+Lf=5e-6;
+param.LL=0; %1e-7;
+param.Xb=20000;
+
+figure(1); clf(1); hold on
+Nzs=[10,50,100,1000,2000];
+error=zeros(1,length(Nzs));
+for i=1:length(Nzs)
+    Nz=Nzs(i);
+    z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
+    dz=z(2)-z(1); %[m]
+    Sbold=linspace(0,S,Nz);
+    t=0;
+    [Sb,~]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
+    plot(z,Sb)
+    
+    % Analyze Result
+    phi = sqrt(param.mumax*param.Xb*Lf*Lf/...
+        (param.De*param.Km*param.Yxs));
+    Sb_ana = S*cosh(phi*z/Lf)/cosh(phi);
+    
+    % Error
+    error(i)=mean(abs(Sb-Sb_ana));
+end
+plot(z,Sb_ana,'--')
+xlabel('z')
+ylabel('Sb(z)')
+legend('Numerical','Analytic','Location','Northwest')
+set(gca,'Fontsize',20)
+
+figure(2); clf(2)
+loglog(Nzs,error,'-o')
+hold on
+loglog(Nzs,Nzs.^-1,'--')
+
+xlabel('Number of grid points')
+ylabel('Error')
+set(gca,'Fontsize',20)
+
+% Pass/fail
+tol=1e-2;
+verifyLessThan(testCase,min(error),tol)
+end

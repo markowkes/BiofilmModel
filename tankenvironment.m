@@ -14,8 +14,8 @@ Daq=param.Daq;
 LL=param.LL;
 SA=param.SA;
 
-dxdt = @(x,t,S,Vdet) (mu(S,param)-(Q/V))*x+Vdet*SA*Xb; %Biomass Concentration Change wrt time
-dsdt = @(x,t,S) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-(SA*bflux); % ^^^Substrate Concentration Change wrt time
+dxdt = @(x,t,S,Vdet) (mu(S,param)-(Q/V))*x+(Vdet*SA*Xb)/V; %Biomass Concentration Change wrt time
+dsdt = @(x,t,S) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-((SA*bflux)/V); % ^^^Substrate Concentration Change wrt time
 
 % Packing y
 y=[x; S];
