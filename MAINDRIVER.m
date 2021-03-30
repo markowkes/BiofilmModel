@@ -1,9 +1,7 @@
- %MAINDRIVER
-clear; clc
+function [t,x,S]=MAINDRIVER(num)
 tic
 %% Rewriting inputs section to run through test cases
 %Call on specific test case parameters
-num=8 ; %number of case, A corresponds to 1, B corresponds to 2....
 param=cases(num); %structure variables are stored in
 
 %Create initial biofilm grid
@@ -71,3 +69,4 @@ end
 [plots,titles] = outputs(t(1:i),x(1:i),S(1:i),z,bflux(1:i),Lf(1:i),Sb,param,plots,titles);
 
 toc
+end
