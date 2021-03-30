@@ -6,8 +6,6 @@ param=cases(num); %structure variables are stored in
 
 %Create initial biofilm grid
 Nz=50; %Linear GridPoints in Biofilm
-z=linspace(0,param.Lfo,Nz); %[m] Grid of Biofilm Depth
-dz=z(2)-z(1); %[m]
 
 %Initial Boundary Conditions (in Biofilm)
 Sb=zeros(1,Nz);
@@ -24,7 +22,6 @@ t       =zeros(1,N); %Time
 x       =zeros(1,N); %Biomass Concentration in bulk liquid
 S       =zeros(1,N); %Substrate in bulk liquid
 bflux   =zeros(1,N); %Boundary Layer Flux of Biofilm Preallocate
-flux    =zeros(1,N); %Right hand side of power point equation to ensure matching flux
 Lf      =zeros(1,N); %Right hand side of power point equation to ensure matching flux
 
 %Initial Conditions
