@@ -4,6 +4,8 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage{xcolor}
+\numberwithin{equation}{section}
 
 % Text
 \newcommand{\etc}{etc.}
@@ -102,7 +104,53 @@ When the timestep becomes too big, if abs(error) $ \geq\ $ tol
 This error term maintains the variable timestep within a reasonable range during the iteration process.
 
 
+\section{Tank Environment - v2}
+Assuming steady-state with full penetration of substrate into biofilm, \ie, substrate concentration is a constant within the tank and biofilm.
+\subsection{Biofilm Thickness}
+The thickness of the biofilm is described by
+\begin{equation}
+  \frac{d L_f}{dt} = {\bar\mu L_f}-{k_{\mathrm{det}}L_f^2},
+\end{equation}
+which at steady state leads to
+\begin{equation}\label{eq:Lfsteady}
+{\color{red}
+  {\bar\mu L_f}={k_{\mathrm{det}}L_f^2}.
+}
+\end{equation}
 
+\subsection{Biomass Concentration in Tank}
+Biomass in the tank is described by
+\begin{equation}
+  \frac{dx V}{dt} = \mu xV - Q x +V_{\mathrm{det}} S_A x_b
+\end{equation}
+At steady state, this equation simplifies to
+\begin{align} 
+  Qx = \mu xV +V_{\mathrm{det}} S_A x_b\\
+   {\color{red}
+  Qx = \mu xV +\mu L_f S_A x_b
+  }
+\end{align}
+where we used $V_{\mathrm{det}}= K_\mathrm{det} L_f^2 = \mu L_f$ from Eq.~\ref{eq:Lfsteady}.
+
+\subsection{Substrate Concentration}
+The substrate concentration in the tank is described by
+\begin{equation}\label{eq:sub1}
+  \frac{dS V}{dt} = -\frac{\mu x V}{Y_{xs}} + Q S_{\mathrm{in}} - Q S - S_A B_{\mathrm{flux}}.
+\end{equation}
+The flux term $B_\mathrm{flux}$ can be computed using the growth of biomass in the biofilm, \ie,
+\begin{equation}
+  B_\mathrm{flux} = \int_0^{L_f} \frac{\mu(S) x_b}{Y_{xs}} \, dz = \frac{ x_b}{Y_{xs}}\int_0^{L_f} \mu(S) \, dz = \frac{ x_b}{Y_{xs}} L_f \bar{\mu}.
+\end{equation}
+ Using this definition of the flux, Eq.~\ref{eq:sub1} can be written as
+\begin{equation}
+  \frac{dS V}{dt} = -\frac{\mu x V}{Y_{xs}} + Q S_{\mathrm{in}} - Q S -\frac{\bar{\mu} x_b V_b}{Y_{xs}}
+\end{equation}
+where $V_b=S_A L_f$ is the volume of the biofilm.   At steady-state this simplifies to 
+\begin{equation}
+ {\color{red}
+   x = \frac{Y_{xs}}{\mu V}\left(Q S_{\mathrm{in}} - Q S\right) -\frac{\bar{\mu} V_b}{\mu V}x_b
+ }
+\end{equation}
 
 
 

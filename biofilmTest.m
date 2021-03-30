@@ -161,3 +161,50 @@ set(gca,'Fontsize',20)
 tol=1e-2;
 verifyLessThan(testCase,min(error),tol)
 end
+
+%% Test steady-state with large diffusivities such that substrate
+%% concentration is relatively constant
+function test_steadystate(testCase)
+num=7 ; %number of case, A corresponds to 1, B corresponds to 2....
+param=cases(num); %structure variables are stored in
+
+% Run simulation
+[~,xsim,Ssim]=MAINDRIVER(num);
+
+% Analytic solution
+Yxs=param.Yxs;
+Sin=param.Sin;
+Kdet=param.Kdet;
+V=param.V;
+SA=param.SA;
+Q=param.Q;
+Xb=param.Xb;
+S=1; % Initial guess
+
+tol=1e-12;
+error=1;
+while abs(error)>tol
+
+    Lf=mu(S,param)/Kdet;
+    Vdet=mu(S,param)*Lf;
+    Vb=SA*Lf;
+    Vt=V-Vb;
+    x=Yxs/(mu(S,param)*Vt)*Q*(Sin-S)-Vb/Vt*Xb;
+    
+    LHS=Q*x;
+    RHS=Vdet*SA*Xb+mu(S,param)*x*Vt;
+    
+    error=LHS-RHS;
+    
+    S=S+0.001*error;
+
+end
+
+% Compare solution
+fprintf('S      =%16.12f, %16.12f \n',S,Ssim(end))
+fprintf('x      =%16.12f, %16.12f \n',x,xsim(end))
+
+% Pass/fail
+tol=1; 
+verifyLessThan(testCase,max((S-Ssim(end))/S,(x-xsim(end)))/x,tol)
+end
