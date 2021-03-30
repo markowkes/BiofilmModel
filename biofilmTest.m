@@ -52,18 +52,19 @@ param.Q=0;
 tFin=20; 
 dt=1e-2; 
 N=tFin/dt; 
-Vdet=2.7244e-5;
-xo=param.xo;
+%Vdet=2.7244e-5;
 t = 0; 
+xo= param.xo;
 x = param.xo;
 S = param.So;
 bflux=0;
+Vdet=0;
 [~,x,~,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
 % Analyze result
 figure(1); clf(1)
 plot(x)
-actSolution=x;
-expSolution=xo;
+actSolution=x
+expSolution=xo
 tol=1e-1;
 verifyLessThan(testCase,abs(actSolution-expSolution),tol)
 end
@@ -76,12 +77,13 @@ param.Q=0;
 tFin=20; 
 dt=1e-2; 
 N=tFin/dt; 
-Vdet=2.7244e-5;
+%Vdet=2.7244e-5;
 So=param.So;
 t = 0; 
 x = param.xo;
 S = param.So;
 bflux=0;
+Vdet=0;
 [~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
 %Analyze Result
 figure(1);clf(1);

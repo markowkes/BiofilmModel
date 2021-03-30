@@ -26,7 +26,7 @@ while i<=length(Sb)-2
 end
 
 %% Detachment
-Vdet=Kdet*Lf_old^2; %New %Velocity of mass leaving biofilm into bulk liquid
+Vdet=Kdet*Lf_old^2; %New Velocity of mass leaving biofilm into bulk liquid
 
 %% Biofilm Thickness
 Lf=Lf_old+dt*(Vg-Vdet); %New Biofilm thickness at instant
