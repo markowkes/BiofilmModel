@@ -5,6 +5,11 @@ function [param]=cases(num)
 % This function will produce an output 'param' structure that can allow for
 % each respective case to be called upon depending on the input num 
 
+%Test Case G,7: elevated diffusion coefficients, so Sb profile approaches
+%constat/linear profile
+%Test Case H,8: maximize growth rate, eliminate liquid layer LL to reach
+%constant concentration throughout biofilm Sb=S
+
 %Constants
 mumax=[20 20 2 20 20 20 20 2000];
 Km   =[3 3 3 3 3 3000 3 2500];
