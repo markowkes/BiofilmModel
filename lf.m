@@ -36,7 +36,7 @@ Vg=(dz/3)*(mu(Sb(1),param) + mu(Sb(end),param) ...
 
 
 %% Detachment
-Vdet=Kdet*Lf_old^2; %New %Velocity of mass leaving biofilm into bulk liquid
+Vdet=Kdet*Lf_old^2; %New Velocity of mass leaving biofilm into bulk liquid
 
 %% Biofilm Thickness
 Lf=Lf_old+dt*(Vg-Vdet); %New Biofilm thickness at instant
