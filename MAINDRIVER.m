@@ -63,7 +63,7 @@ while t(i)<tFin-dt
 end
 
 % Make final figures
-[plots,titles] = outputs(t(1:i),x(1:i),S(1:i),z,bflux(1:i),Lf(1:i),Sb,param,plots,titles);
+[~,~] = outputs(t(1:i),x(1:i),S(1:i),z,bflux(1:i),Lf(1:i),Sb,param,plots,titles);
 
 toc
 end
