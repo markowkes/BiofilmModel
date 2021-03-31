@@ -5,6 +5,7 @@ function [mu] = mu(S,param)
 mumax=param.mumax;
 Km=param.Km;
 
+% mu = ((mumax*S)./(Km));                      % Linear Growth Rate Equation
 mu = ((mumax*S)./(Km+S));                      % Monod Growth Rate Equation
 % mu2 = ((mumax*Sa)./(Kma+Sa))*(Sb./(Kmb+Sb));    % Double Monod Growth Rate Equation
 % mu3 = ((mumax*Sa)./(Kma+Sa))*(1./(1+(Sb/Kmb))); % Inhibition Growth Rate Equation
