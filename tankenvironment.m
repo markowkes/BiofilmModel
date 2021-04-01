@@ -1,4 +1,4 @@
-function [tnew,xnew,Snew,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param)
+function [s4,tnew,xnew,Snew,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param)
 %% This function describes the greater tank environment and assumed that it is well mixed
 % It calls all the necessary tank geometry, flow parameters, and specific
 % parameters describing the biofilm and uses the differential equations
@@ -36,19 +36,28 @@ while true
     
     error = dt/72*(-5*s1 + 6*s2 + 8*s3 - 9*s4);
     
+%     dt=1/(0.05*norm(s4));
+%     if norm(s4)==0
+%         dt=1;
+%     else
+%         dt=dt;
+%     end
+    
+    
     
     
     % Update timestep
     if abs(error) < tol/100 
-        % dt is getting very small
+        %dt is getting very small
         dt=dt*2;
     elseif abs(error) > tol
-        % dt is too big
+        %dt is too big
         dt=dt/2;
     else
-        % Step completed with good dt
+        %Step completed with good dt
         break
     end
+        
 end
 
 % Unpacking y

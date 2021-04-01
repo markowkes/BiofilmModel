@@ -52,11 +52,10 @@ param.Q=0;
 tFin=20; 
 dt=1e-2; 
 N=tFin/dt; 
-%Vdet=2.7244e-5;
-t = 0; 
-xo= param.xo;
-x = param.xo;
-S = param.So;
+t=0; 
+xo=param.xo;
+x=param.xo;
+S=param.So;
 bflux=0;
 Vdet=0;
 [~,x,~,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
@@ -77,11 +76,10 @@ param.Q=0;
 tFin=20; 
 dt=1e-2; 
 N=tFin/dt; 
-%Vdet=2.7244e-5;
 So=param.So;
-t = 0; 
-x = param.xo;
-S = param.So;
+t=0; 
+x=param.xo;
+S=param.So;
 bflux=0;
 Vdet=0;
 [~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
@@ -188,4 +186,28 @@ fprintf('x      =%16.12f, %16.12f \n',x,xsim(end))
 % Pass/fail
 tol=1; 
 verifyLessThan(testCase,max((S-Ssim(end))/S,(x-xsim(end)))/x,tol)
+end
+
+%% Test time dynamic of tank environment calculations for dt
+function test_timedynamicsdt(testcase)
+% run test
+param=cases(1);
+t=0;
+tFin=20; 
+dt=1e-2; 
+N=tFin/dt;
+So=param.So; 
+x=param.xo;
+S=param.So;
+Lf=param.Lfo;
+Nz=50;
+z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
+dz=z(2)-z(1); %[m]
+Sbold=linspace(0,S,Nz);
+[Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
+[~,Vdet]=lf(Sb,Lf,dt,dz,param);
+[s4,~,~,~,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+%Analyze Result
+figure(1);clf(1);
+plot(norm(s4),dt)
 end
