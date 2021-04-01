@@ -150,7 +150,7 @@ verifyLessThan(testCase,min(error),tol)
 end
 
 %% Test steady-state with large diffusivities such that substrate
-%% concentration is relatively constant
+%  concentration is relatively constant
 function test_steadystate(testCase)
 num=7 ; %number of case, A corresponds to 1, B corresponds to 2....
 param=cases(num); %structure variables are stored in
@@ -171,20 +171,14 @@ S=1; % Initial guess
 tol=1e-12;
 error=1;
 while abs(error)>tol
-
     Lf=mu(S,param)/Kdet;
     Vdet=mu(S,param)*Lf;
-    Vb=SA*Lf;
-    Vt=V-Vb;
-    x=Yxs/(mu(S,param)*Vt)*Q*(Sin-S)-Vb/Vt*Xb;
-    
+    x=Yxs*(Sin-S);
     LHS=Q*x;
-    RHS=Vdet*SA*Xb+mu(S,param)*x*Vt;
+    RHS=Vdet*SA*Xb+mu(S,param)*x*V;
     
     error=LHS-RHS;
-    
     S=S+0.001*error;
-
 end
 
 % Compare solution
