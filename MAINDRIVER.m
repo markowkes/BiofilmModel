@@ -1,4 +1,4 @@
-function [t,x,S]=MAINDRIVER(num)
+function [t,x,S,Lf]=MAINDRIVER(num)
 tic
 %% Rewriting inputs section to run through test cases
 %Call on specific test case parameters

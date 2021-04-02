@@ -154,7 +154,7 @@ num=7 ; %number of case, A corresponds to 1, B corresponds to 2....
 param=cases(num); %structure variables are stored in
 
 % Run simulation
-[~,xsim,Ssim]=MAINDRIVER(num);
+[~,xsim,Ssim,Lfsim]=MAINDRIVER(num);
 
 % Analytic solution
 Yxs=param.Yxs;
@@ -178,10 +178,10 @@ while abs(error)>tol
     error=LHS-RHS;
     S=S+0.001*error;
 end
-
 % Compare solution
-fprintf('S      =%16.12f, %16.12f \n',S,Ssim(end))
-fprintf('x      =%16.12f, %16.12f \n',x,xsim(end))
+fprintf('S      =%16.12f, %16.12f g/m^3 \n',S,Ssim(end))
+fprintf('x      =%16.12f, %16.12f g/m^3 \n',x,xsim(end))
+fprintf('Lf     =%16.12f, %16.12f mu m \n',Lf*1e6,Lfsim(end)*1e6)
 
 % Pass/fail
 tol=1; 
