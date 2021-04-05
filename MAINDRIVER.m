@@ -1,6 +1,7 @@
 function [t,x,S,Lf]=MAINDRIVER
 %% Inputs from cases function
-param=cases;
+tc=1; %test case to call on
+param=cases(tc);
 
 Nz      =param.Nz;
 So      =param.So;

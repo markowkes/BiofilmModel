@@ -1,4 +1,4 @@
-function [param]=cases
+function [param]=cases(tc)
 %% This function outputs a set of constant parameters
 % Each constant will have its own array of values for each case
 % (A,B,C,D,E,F based on chronological order in the array).
@@ -33,8 +33,8 @@ function [param]=cases
 %Test Case H,8: maximize growth rate, eliminate liquid layer LL to reach
 %               constant concentration throughout biofilm Sb=S
 
-%% Test Case
-tc=7;
+% %% Test Case
+% tc=7;
 
 %% Time Constraints
 tFin=30;   %[days]
@@ -49,7 +49,7 @@ Nz=50; %Linear grid points to describe biofilm
 %% Tank Geometry
 L=0.5; %[m]
 W=0.5; %[m]
-H=0.4; %[m]
+H=0.5; %[m]
 
 %% Constants
 mumax=[20 20 2 20 20 20 20 2000];
