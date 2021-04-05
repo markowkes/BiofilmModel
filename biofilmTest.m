@@ -206,8 +206,8 @@ dz=z(2)-z(1); %[m]
 Sbold=linspace(0,S,Nz);
 [Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
 [~,Vdet]=lf(Sb,Lf,dt,dz,param);
-[s4,~,~,~,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+[s4,~,~,~,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param,dt);
 %Analyze Result
-figure(1);clf(1);
-plot(norm(s4),dt)
+figure(2);clf(2);
+plot(norm(s4),dt(s4))
 end
