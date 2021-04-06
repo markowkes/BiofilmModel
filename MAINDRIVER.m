@@ -54,7 +54,7 @@ while t(i)<tFin-dt
     [Lf(i+1),Vdet]=lf(Sb,Lf(i),dt,dz,param);
     
     %Call on "tankenvironment"
-    [s4,t(i+1),x(i+1),S(i+1),dt(i+1)]=tankenvironment(t(i),x(i),S(i),Vdet,dt,bflux(i+1),param,dt(i));
+    [s4,t(i+1),x(i+1),S(i+1),dt(i+1)]=tankenvironment(t(i),x(i),S(i),Vdet,dt,bflux(i+1),param);
     
     %Call on desired plots from 'outputs'
     outIter=outIter+1;

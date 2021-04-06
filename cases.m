@@ -90,4 +90,4 @@ param.Xb     =Xb(tc);
 param.Lfo    =Lfo(tc);
 param.LL     =LL(tc);
 param.Kdet   =Kdet(tc);
-end
+end 

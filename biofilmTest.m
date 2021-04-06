@@ -189,7 +189,7 @@ verifyLessThan(testCase,max((S-Ssim(end))/S,(x-xsim(end)))/x,tol)
 end
 
 %% Test time dynamic of tank environment calculations for dt
-function test_timedynamicsdt(testcase)
+function test_timedynamicsdt(testCase)
 % run test
 param=cases(1);
 t=0;
@@ -197,17 +197,33 @@ tFin=20;
 dt=1e-2; 
 N=tFin/dt;
 So=param.So; 
-x=param.xo;
 S=param.So;
 Lf=param.Lfo;
-Nz=50;
+Q=param.Q;
+V=param.V;
+Sin=param.Sin;
+Yxs=param.Yxs;
+SA=param.SA;
+x=param.xo;
+Nz=param.Nz;
+Vdet=0;
 z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
 dz=z(2)-z(1); %[m]
 Sbold=linspace(0,S,Nz);
 [Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
-[~,Vdet]=lf(Sb,Lf,dt,dz,param);
-[s4,~,~,~,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param,dt);
+for i=1:tFin/dt
+    %Numerical Method
+    [~,t,~,S,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+
+    
+    %Analytical Method
+    %S_anal=-exp(-((Q/V)*t))*((Q*Sin)/V-(mu(S,param)*x)/Yxs-(SA*bflux)/V)*(V/(Q*exp(((Q/V)*t))))+38.41925;
+     S_anal=-mu(S,param)*x*V/(Q*Yxs)+Sin-SA*bflux/Q;
+end
+
 %Analyze Result
-figure(2);clf(2);
-plot(norm(s4),dt(s4))
+actSolution=S;
+expSolution=S_anal;
+tol=1e-2;
+verifyLessThan(testCase,abs(actSolution-expSolution),tol)
 end
