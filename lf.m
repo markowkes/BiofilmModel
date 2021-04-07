@@ -4,14 +4,11 @@ function [Lf,Vdet]=lf(Sb,Lf_old,dt,dz,param)
 %as the detachement velocity at a given instant in time. These results are
 %used to compute a new biofilm thickness Lf
 
-%Compute mean mu - growthrate
-%muBar=mean(mu(Sb(:),param));
-
 Kdet=param.Kdet;
 
 %% Growth
 
-% %Trapzoidal Integration Method
+%Trapzoidal Integration Method
 Vg=0; %initial growth velocity
 for i=1:length(Sb)-1
     Vg=Vg+dz*((mu(Sb(i),param)+mu(Sb(i+1),param))/2);

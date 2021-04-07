@@ -1,6 +1,5 @@
-function [t,x,S,Lf]=MAINDRIVER
+function [t,x,S,Lf]=MAINDRIVER(tc)
 %% Inputs from cases function
-tc=1; %test case to call on
 param=cases(tc);
 
 Nz      =param.Nz;
@@ -25,12 +24,13 @@ Lf      =zeros(1,N); %Right hand side of power point equation to ensure matching
 %Biofilm
 Sb=zeros(1,Nz);
 Sb(end)=So; %initially assume boundary concentration = So
+Lf(1)=param.Lfo;
 
 %Tank
 t(1)=0;
 x(1)=param.xo;
 S(1)=param.So;
-Lf(1)=param.Lfo;
+
 
 %% Initialize plots 
 outIter=outFreq-1;

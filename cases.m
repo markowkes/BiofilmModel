@@ -39,12 +39,14 @@ function [param]=cases(tc)
 %% Time Constraints
 tFin=30;   %[days]
 dt  =1e-2; %time interval between calculations
+ttol=1e-8; %tolerance for timestep conversion
 
 %% Frequency of Plots
 outFreq=2000; %Number of steps between plot updates.
 
-%% Biofilm Grid
+%% Biofilm
 Nz=50; %Linear grid points to describe biofilm
+dtol=1e-12; %tolerance for substrate diffusion conversion
 
 %% Tank Geometry
 L=0.5; %[m]
@@ -71,9 +73,12 @@ Kdet =[1900 1900 1900 1900 190000 1900 1900 1900];
 %% Index variables under structure "param"
 param.tFin   =tFin;
 param.dt     =dt;
+param.ttol   =ttol;
+
 param.outFreq=outFreq;
 
 param.Nz     =Nz;
+param.dtol   =dtol;
 
 param.mumax  =mumax(tc);
 param.Km     =Km(tc);

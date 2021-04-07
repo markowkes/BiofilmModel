@@ -13,6 +13,7 @@ Sin=param.Sin;
 Daq=param.Daq;
 LL=param.LL;
 SA=param.SA;
+tol=param.ttol;
 
 dxdt = @(x,t,S,Vdet) (mu(S,param)-(Q/V))*x+(Vdet*SA*Xb)/V; %Biomass Concentration Change wrt time
 dsdt = @(x,t,S) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-((SA*bflux)/V); % ^^^Substrate Concentration Change wrt time
@@ -22,8 +23,7 @@ y=[x; S];
 
 f =@(t,y) [dxdt(y(1),t,y(2),Vdet)
            dsdt(y(1),t,y(2))];
-       
-tol=1e-8;
+
 while true
     s1 = f(t     ,y            );
     s2 = f(t+  dt/2,y+  dt/2*s1);
@@ -45,7 +45,7 @@ while true
     
     
     
-    
+  
     % Update timestep
     if abs(error) < tol/100 
         %dt is getting very small

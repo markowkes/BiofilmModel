@@ -58,7 +58,7 @@ x=param.xo;
 S=param.So;
 bflux=0;
 Vdet=0;
-[~,x,~,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+[~,~,x,~,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
 % Analyze result
 figure(1); clf(1)
 plot(x)
@@ -82,7 +82,7 @@ x=param.xo;
 S=param.So;
 bflux=0;
 Vdet=0;
-[~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+[~,~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
 %Analyze Result
 figure(1);clf(1);
 plot(S)
@@ -150,11 +150,11 @@ end
 %% Test steady-state with large diffusivities such that substrate
 %  concentration is relatively constant
 function test_steadystate(testCase)
-num=7 ; %number of case, A corresponds to 1, B corresponds to 2....
-param=cases(num); %structure variables are stored in
+tc=7 ; %number of case, A corresponds to 1, B corresponds to 2....
+param=cases(tc); %structure variables are stored in
 
 % Run simulation
-[~,xsim,Ssim,Lfsim]=MAINDRIVER(num);
+[~,xsim,Ssim,Lfsim]=MAINDRIVER(tc);
 
 % Analytic solution
 Yxs=param.Yxs;
@@ -189,7 +189,7 @@ verifyLessThan(testCase,max((S-Ssim(end))/S,(x-xsim(end)))/x,tol)
 end
 
 %% Test time dynamic of tank environment calculations for dt
-function test_timedynamicsdt(testcase)
+function test_timedynamicsdt(testCase)
 % run test
 param=cases(1);
 t=0;
