@@ -41,8 +41,13 @@ tFin=30;   %[days]
 dt  =1e-2; %time interval between calculations
 ttol=1e-8; %tolerance for timestep conversion
 
-%% Frequency of Plots
-outFreq=2000; %Number of steps between plot updates.
+%% Growth Rate Models
+%Options
+% model=1; %('Linear Growth Rate Equation')
+model=2; %('Monod Growth Rate Equation')
+% model=3; %('Double Monod Growth Rate Equation')
+% model=4; %('Inhibition Growth Rate Equation')
+% model=5; %('None')
 
 %% Biofilm
 Nz=50; %Linear grid points to describe biofilm
@@ -52,6 +57,9 @@ dtol=1e-12; %tolerance for substrate diffusion conversion
 L=0.5; %[m]
 W=0.5; %[m]
 H=0.5; %[m]
+
+%% Frequency of Plots
+outFreq=2000; %Number of steps between plot updates.
 
 %% Constants
 mumax=[20 20 2 20 20 20 20 2000];
@@ -75,10 +83,12 @@ param.tFin   =tFin;
 param.dt     =dt;
 param.ttol   =ttol;
 
-param.outFreq=outFreq;
+param.model  =model;
 
 param.Nz     =Nz;
 param.dtol   =dtol;
+
+param.outFreq=outFreq;
 
 param.mumax  =mumax(tc);
 param.Km     =Km(tc);
