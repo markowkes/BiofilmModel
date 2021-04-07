@@ -193,37 +193,26 @@ end
 %% Test time dynamic of tank environment calculations for dt
 function test_timedynamicsdt(testCase)
 % run test
-param=cases(1);
-t=0;
-tFin=20; 
-dt=1e-2;  
-S=param.So;
-Lf=param.Lfo;
+
+% Simulation with no biomass (mu=0)
+[t,~,S,~]=MAINDRIVER(9);
+
+% Analytic Solution
+param=cases(9);
 Q=param.Q;
 V=param.V;
 Sin=param.Sin;
-Yxs=param.Yxs;
-SA=param.SA;
-x=param.xo;
-Nz=param.Nz;
-Vdet=0;
-z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
-dz=z(2)-z(1); %[m]
-Sbold=linspace(0,S,Nz);
-[~,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
-for i=1:tFin/dt
-    %Numerical Method
-    [~,t,~,S,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+S_anal=Sin*(1-exp(-Q/V*t));
 
-    
-    %Analytical Method
-    %S_anal=-exp(-((Q/V)*t))*((Q*Sin)/V-(mu(S,param)*x)/Yxs-(SA*bflux)/V)*(V/(Q*exp(((Q/V)*t))))+38.41925;
-     S_anal=-mu(S,param)*x*V/(Q*Yxs)+Sin-SA*bflux/Q;
-end
+% Compare Simulation and Analytic
+figure(1); clf(1)
+plot(t,S)
+hold on
+plot(t,S_anal,'--')
+legend('Simulation','Analytic')
 
 %Analyze Result
-actSolution=S;
-expSolution=S_anal;
-tol=1e-2;
-verifyLessThan(testCase,abs(actSolution-expSolution),tol)
+maxError=max(abs(S-S_anal));  % Maximum Error
+expTol=param.ttol;            % Expected Maximum Error
+verifyLessThan(testCase,maxError,expTol)
 end
