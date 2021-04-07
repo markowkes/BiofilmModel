@@ -70,4 +70,10 @@ end
 % Make final figures
 [~,~] = outputs(t(1:i),x(1:i),S(1:i),z,bflux(1:i),Lf(1:i),Sb,param,plots,titles);
 
+% Remove extra zeros if they exisit
+t=t(1:i);
+x=x(1:i);
+S=S(1:i);
+Lf=Lf(1:i);
+
 end
