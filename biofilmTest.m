@@ -62,8 +62,8 @@ Vdet=0;
 % Analyze result
 figure(1); clf(1)
 plot(x)
-actSolution=x
-expSolution=xo
+actSolution=x;
+expSolution=xo;
 tol=1e-1;
 verifyLessThan(testCase,abs(actSolution-expSolution),tol)
 end
@@ -104,8 +104,10 @@ S=25;
 param.Daq=4e-5;
 param.De =1e-5;
 Lf=5e-6;
-param.LL=0; %1e-7;
+param.LL=0;
 param.Xb=20000;
+param.dtol=1e-12;
+param.model=2;
 
 figure(1); clf(1); hold on
 Nzs=[10,50,100,1000,2000];
@@ -194,9 +196,7 @@ function test_timedynamicsdt(testCase)
 param=cases(1);
 t=0;
 tFin=20; 
-dt=1e-2; 
-N=tFin/dt;
-So=param.So; 
+dt=1e-2;  
 S=param.So;
 Lf=param.Lfo;
 Q=param.Q;
@@ -210,7 +210,7 @@ Vdet=0;
 z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
 dz=z(2)-z(1); %[m]
 Sbold=linspace(0,S,Nz);
-[Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
+[~,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
 for i=1:tFin/dt
     %Numerical Method
     [~,t,~,S,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param);

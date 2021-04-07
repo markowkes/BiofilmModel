@@ -51,10 +51,10 @@ while t(i)<tFin-dt
     [Sb,bflux(i+1)]=biofilmdiffusion_fd(Sb,S(i),Nz,dz,t(i),param);
     
     %Call on "lf"
-    [Lf(i+1),Vdet]=lf(Sb,Lf(i),dt,dz,param);
+    [Lf(i+1),Vdet]=lf(Sb,Lf(i),dt(i),dz,param);
     
     %Call on "tankenvironment"
-    [s4,t(i+1),x(i+1),S(i+1),dt(i+1)]=tankenvironment(t(i),x(i),S(i),Vdet,dt,bflux(i+1),param);
+    [s4,t(i+1),x(i+1),S(i+1),dt(i+1)]=tankenvironment(t(i),x(i),S(i),Vdet,dt(i),bflux(i+1),param);
     
     %Call on desired plots from 'outputs'
     outIter=outIter+1;

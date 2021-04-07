@@ -10,8 +10,6 @@ V=param.V;
 Xb=param.Xb;
 Yxs=param.Yxs;
 Sin=param.Sin;
-Daq=param.Daq;
-LL=param.LL;
 SA=param.SA;
 tol=param.ttol;
 
@@ -43,8 +41,6 @@ while true
 %         dt=dt;
 %     end
     
-    
-    
   
     % Update timestep
     if abs(error) < tol/100 
@@ -63,22 +59,5 @@ end
 % Unpacking y
 xnew=ynew(1);
 Snew=ynew(2);
-
-% dxdt = @(x,t,S,Cs,Vdet) (mu(S,param)-(Q/V))*x+Vdet*SA*Xb; %Biomass Concentration Change wrt time
-% dsdt = @(x,t,S,Cs) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-(SA*((Daq/LL)*(Co-Cs))); %^^^Substrate Concentration Change wrt time
-% 
-% tnew = (t+dt)-0.0001*(abs(gradient(x))/max(norm(x)));
-% if tnew < (t+dt)/100
-%     %time step too small
-%     tnew=tnew*2;
-% end
-% %tnew = (t+dt)-0.0001;
-% 
-% xstar = x + dt*dxdt(x,t,S,Cs,Vdet);
-% Sstar = S + dt*dsdt(x,t,S,Cs     );
-%     
-% xnew = x + dt/2*(dxdt(x,t,S,Cs,Vdet)+dxdt(xstar,tnew,Sstar,Cs,Vdet));
-% Snew = S + dt/2*(dsdt(x,t,S,Cs     )+dsdt(xstar,tnew,Sstar,Cs     ));     
-
 
 end
