@@ -18,7 +18,7 @@ x       =zeros(1,N); %Biomass Concentration in bulk liquid
 S       =zeros(1,N); %Substrate in bulk liquid
 bflux   =zeros(1,N); %Boundary Layer Flux of Biofilm Preallocate
 Lf      =zeros(1,N); %Right hand side of power point equation to ensure matching flux
-
+dt      =zeros(1,N); %size of each time step
 
 %% Initial Conditions
 %Biofilm
@@ -31,6 +31,9 @@ t(1)=0;
 x(1)=param.xo;
 S(1)=param.So;
 
+
+%Time
+dt(1)=param.dt;
 
 %% Initialize plots 
 outIter=outFreq-1;
@@ -51,7 +54,7 @@ while t(i)<tFin-dt
     [Lf(i+1),Vdet]=lf(Sb,Lf(i),dt,dz,param);
     
     %Call on "tankenvironment"
-    [s4,t(i+1),x(i+1),S(i+1),dt]=tankenvironment(t(i),x(i),S(i),Vdet,dt,bflux(i+1),param);
+    [s4,t(i+1),x(i+1),S(i+1),dt(i+1)]=tankenvironment(t(i),x(i),S(i),Vdet,dt,bflux(i+1),param);
     
     %Call on desired plots from 'outputs'
     outIter=outIter+1;
