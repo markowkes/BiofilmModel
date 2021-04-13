@@ -355,8 +355,35 @@ In order to determine the accuracy of the methods and equations used in this mod
 \subsection{Test for Solution of Diffusion Problem}
 
 \subsection{Test for Tank Biomass Concentration when no Inflow Q}
+This is the first of three tests created to establish the validity of the 4th Order Runge-Kutta Method used to solve for the tank biomass and substrate concentrations. This test focuses on the biomass concentration. It takes the equation,
+\begin{equation}
+  \frac{dx V}{dt} = \mu xV - Q x +V_{\mathrm{det}} S_A x_b
+\end{equation}
+and sets Q=0, establishing no inflow of biomass or substrate and eliminating said term from the differential equation. 
+This test also sets bflux=0 in order to eliminate the diffusion of biomass into the biofilm. 
+When there is no inflow and no diffusion into the biofilm, the biomass within the tank is expected to remain at its initial state, xo. This wis verified by the following lines of code,
+\begin{align*}
+[~,~,x,~,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param) \\
+actSolution=x \\
+expSolution=xo \\
+tol=1e-1 \\
+verifyLessThan(testCase,abs(actSolution-expSolution),tol) \\
+\end{align*}
+
+These lines of code verify that the result which the code produces matches the expected analytic result to a specified tolerance.
 
 \subsection{Test for Tank Substrate Concentration when no Inflow Q}
+This test aims to replicate the previous test for the substrate concentration within the tank. When there is no inflow Q of substrate, nor any substrate diffusing into the biofilm, it is expected to remain at its initial value, So. This test is verified by the following lines of code, which look very similar to the previous test.
+
+\begin{align*}
+[~,~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param) \\
+actSolution=S \\
+expSolution=So \\
+tol=1e-1 \\
+verifyLessThan(testCase,abs(actSolution-expSolution),tol) \\
+\end{align*}
+
+Again, when the code is producing results which match the expected analytic solution to a tolerance, it can be verified that the 4th Order Runge-Kutta Method is implemented correctly.
 
 \subsection{Test Diffusion}
 
