@@ -351,6 +351,9 @@ The detachment velocity of biomass from the biofilm is computed as follows
 In order to determine the accuracy of the methods and equations used in this model, test cases were created to monitor each respective method and its corresponding results.
 
 \subsection{Test for when LL=0}
+In the implementation of flux matching boundary conditions within the biofilm diffusion function as well as in the setup of the substrate concentration within the tank environment function there were issues with LL in the denominator. This lead to errors in further computations as substrate concentration values became NaN.
+
+The purpose of this test is to show that no error occurs in the code as the boundary layer thickness goes to zero, as well as to ensure that the physics of the problem act as expected. When the boundary layer thickness goes to zero the substrate concentration at the top of the biofilm should match the substrate concentration in the tank at the given time-step.
 
 \subsection{Test for Solution of Diffusion Problem}
 
