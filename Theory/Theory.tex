@@ -389,6 +389,11 @@ verifyLessThan(testCase,abs(actSolution-expSolution),tol) \\
 Again, when the code is producing results which match the expected analytic solution to a tolerance, it can be verified that the 4th Order Runge-Kutta Method is implemented correctly.
 
 \subsection{Test Diffusion}
+A test was setup in which the analytical solution for substrate concentrations throughout the biofilm would be compared to those computed numerically in the biofilm diffusion function. An analytical solution was able to be created for the substrate concentrations within the biofilm by enlarging parameters mu and Km so that external mass transfer can be eliminated and therefore the tank concentration S  remains at a fixed value. From here the analytical solution for substrate concentrations within the biofilm was computed by...
+
+
+This test was completed for 5 different grid sizes of biofilm. Convergence of the substrate concentrations for the analytical and numerical methods can be seen as the grid size grows. 
+
 
 \subsection{Test Steady-State with Large Diffusivities such that Substrate Concentration is Relatively Constant}
 
