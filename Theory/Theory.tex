@@ -41,7 +41,7 @@
 \end{tabular}
 
 \section{Tank Environment}
-The environment is modeled in this function as a rectangular tank holding the bulk liquid, with the existence of an inflow and outflow which carries biomass and substrate into the bulk liquid. The concentration rates of the biomass and substrate are modeled by the following ordinary differential equations
+The environment is modeled in this function as a continuous stirred tank reactor (CSTR), with the existence of an inflow and outflow which carries biomass and substrate into the bulk liquid. The concentration rates of the biomass and substrate are modeled by the following ordinary differential equations
 \begin{equation} \label{eq: BiomassEquation}
   \frac{dx}{dt} = \left(\mu(S) - \frac{Q}{V}\right) x +\frac{ V_{\mathrm{det}} S_A X_b}{V},
 \end{equation}
@@ -393,7 +393,23 @@ Again, when the code is producing results which match the expected analytic solu
 \subsection{Test Steady-State with Large Diffusivities such that Substrate Concentration is Relatively Constant}
 
 \subsection{Test Variable Time Dynamic of Tank Environment Calculations}
+The 4th Order Runge-Kutta Method used in the 'tankenvironment' function utilizes an additional 'error' step which compares the coefficients calculated to the coefficients of the Butcher Tableau. This is done to ensure that the numerical method never varies from the analytic solution beyond a certain tolerance. This error term is coupled to the step size term dt so that maximum accuracy is obtained. 
 
+This coupling establishes the boundaries of the allowable step size, so that that when the error is too large, the step size can shrink and reduce the inaccuracy. When the error is small, the step size can be increased to expedite the solving and improve efficiency. 
+
+This test analyzes this operation by comparing a simplified model of the substrate environment to its corresponding analytic solution. This simulated model eliminates the biomass within the tank as well as any initial substrate concentration and profiles the development of the substrate until it reaches steady state. The analytic solution used is,
+\begin{equation} \label{eq: S_anal}
+  S_{anal}=Sin 1{(-e^{\frac{-Q}{V}t})}
+\end{equation}
+
+If the simulated and analytic methods converge, it can be determined that the time step is properly adjusting to the magnitude of the error calculated at each point. This convergence is determined by the following lines.
+\begin{align*}
+maxError=max(abs(S-S_{anal})) \\
+expTol=param.ttol \\
+verifyLessThan(testCase,maxError,expTol) \\
+\end{align*}
+
+If the simulated and analytic methods produce results which match according to an established tolerance, the test will pass. 
 
 
 \end{document}
