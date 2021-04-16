@@ -348,14 +348,12 @@ The detachment velocity of biomass from the biofilm is computed as follows
 \end{equation}
 
 \section{Test Cases for Validity}
-In order to determine the accuracy of the methods and equations used in this model, test cases were created to monitor each respective method and its corresponding results.
+In order to determine the accuracy of the methods and equations used in this model, test cases were created to verify results produced by this model. This almost always involved solving a portion of the problem with a certain set of parameters so that an analytical solution could be obtained for the same problem. The following is a collection of the tests created.
 
 \subsection{Test for when LL=0}
-In the implementation of flux matching boundary conditions within the biofilm diffusion function as well as in the setup of the substrate concentration within the tank environment function there were issues with LL in the denominator. This lead to errors in further computations as substrate concentration values became NaN.
+In the implementation of flux matching boundary conditions within the biofilm diffusion function as well as in the setup of the substrate concentration within the tank environment function there were issues with LL in the denominator. This lead to errors in further computations as substrate concentration values became NaN within the program and subsequent operations could not be completed.
 
 The purpose of this test is to show that no error occurs in the code as the boundary layer thickness goes to zero, as well as to ensure that the physics of the problem act as expected. When the boundary layer thickness goes to zero the substrate concentration at the top of the biofilm should match the substrate concentration in the tank at the given time-step.
-
-\subsection{Test for Solution of Diffusion Problem}
 
 \subsection{Test for Tank Biomass Concentration when no Inflow Q}
 This is the first of three tests created to establish the validity of the 4th Order Runge-Kutta Method used to solve for the tank biomass and substrate concentrations. This test focuses on the biomass concentration. It takes the equation,
@@ -389,10 +387,16 @@ verifyLessThan(testCase,abs(actSolution-expSolution),tol) \\
 Again, when the code is producing results which match the expected analytic solution to a tolerance, it can be verified that the 4th Order Runge-Kutta Method is implemented correctly.
 
 \subsection{Test Diffusion}
-A test was setup in which the analytical solution for substrate concentrations throughout the biofilm would be compared to those computed numerically in the biofilm diffusion function. An analytical solution was able to be created for the substrate concentrations within the biofilm by enlarging parameters mu and Km so that external mass transfer can be eliminated and therefore the tank concentration S  remains at a fixed value. From here the analytical solution for substrate concentrations within the biofilm was computed by...
+A test was setup in which the analytical solution for substrate concentrations throughout the biofilm would be compared to those computed numerically in the biofilm diffusion function. An analytical solution was able to be created for the substrate concentrations within the biofilm by enlarging parameters mu and Km so that external mass transfer can be eliminated and therefore the tank concentration S  remains at a fixed value. From here the analytical solution for substrate concentrations within the biofilm was computed at each location z within the biofilm.
+
+\begin{align}
+{Sb_{ana}}=\frac{S*{cosh(\frac{{\phi}{z}}{Lf})}}{cosh(\phi)}\\
+\text{where}{\quad} {\phi}=\frac{\mu_{max}{X_b}{L_f^{2}}}{{D_e}{K_m}{Y_{xs}}}
+\end{align}
 
 
-This test was completed for 5 different grid sizes of biofilm. Convergence of the substrate concentrations for the analytical and numerical methods can be seen as the grid size grows. 
+This test was completed for 5 different grid sizes of biofilm. Convergence of the substrate concentrations for the analytical and numerical methods can be seen as the grid size grows. The results are displayed in the figure below
+
 
 
 \subsection{Test Steady-State with Large Diffusivities such that Substrate Concentration is Relatively Constant}
