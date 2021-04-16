@@ -25,25 +25,6 @@ tol=1e-15;
 verifyLessThan(testCase,abs(actSolution-expSolution),tol)
 end
 
-%% Test solution of diffusion problem
-function test_diffusion_solution(testCase)
-% Run test
-param=cases(1);
-Nz=50;
-Sbold=linspace(0,5,Nz);
-S=10;
-dz=1e-7;
-t=0;
-[Sb,~]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
-% Analyze result
-figure(1); clf(1)
-plot(Sb)
-actSolution = Sb(1);
-expSolution = 3.921;
-tol=1e-3;
-verifyLessThan(testCase,abs(actSolution-expSolution),tol)
-end
-
 %% Test tank biomass concentration when no inflow Q
 function test_tankenvironment_biomasssolution(testCase)
 % Run Test
@@ -110,8 +91,9 @@ param.dtol=1e-12;
 param.model=2;
 
 figure(1); clf(1); hold on
-Nzs=[10,50,100,1000,2000];
-error=zeros(1,length(Nzs));
+Nzs=[10,50,100,1000,2000]; %Grid sizes to test
+error=zeros(1,length(Nzs)); %Preallocate
+
 for i=1:length(Nzs)
     Nz=Nzs(i);
     z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
@@ -132,7 +114,13 @@ end
 plot(z,Sb_ana,'--')
 xlabel('z')
 ylabel('Sb(z)')
-legend('Numerical','Analytic','Location','Northwest')
+title('Substrate Profiles within Biofilm')
+legend(sprintf('Gridsize:%5.0f',Nzs(1)),...
+       sprintf('Gridsize:%5.0f',Nzs(2)),...
+       sprintf('Gridsize:%5.0f',Nzs(3)),...
+       sprintf('Gridsize:%5.0f',Nzs(4)),...
+       sprintf('Gridsize:%5.0f',Nzs(5)),...
+       'Analytic','Location','Northwest')
 set(gca,'Fontsize',20)
 
 figure(2); clf(2)
