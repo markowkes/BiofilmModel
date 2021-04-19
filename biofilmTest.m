@@ -18,7 +18,19 @@ t=0;
 [Sb,~]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
 % Analyze result
 figure(1); clf(1)
-plot(Sb)
+z=linspace(0,param.Lfo,Nz); %specify for plot
+plot(z(end),Sb(end),'r*','Markersize',16)
+hold on
+plot(z,Sb,'black')
+xl=xline(z(end),'--b','Biofilm Thickness','Fontsize',16);
+xl.LabelVerticalAlignment = 'middle';
+xl.LabelHorizontalAlignment = 'center';
+title('Substrate Concentration Profile')
+xlabel('z')
+ylabel('Sb(z)')
+legend(sprintf('Sb = %3.3f [g/m^3]',Sb(end)),'Concentration Profile','location','Northwest','Fontsize',16)
+set(gca,'Fontsize',20)
+
 actSolution = Sb(end);
 expSolution = S;
 tol=1e-15;

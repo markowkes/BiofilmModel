@@ -5,6 +5,7 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{xcolor}
+\usepackage{float}
 \numberwithin{equation}{section}
 
 % Text
@@ -152,9 +153,6 @@ where $V_b=S_A L_f$ is the volume of the biofilm.   At steady-state this simplif
  }
 \end{equation}
 
-
-
-
 \section{Growth-rate $\mu$}\label{sec:mu}
 $\mu$ represents the variable growth rate of the species within the biofilm. These equations model the consumption of substrate within the biofilm and are used in a variety of different equations, including the bulk liquid concentration rates, the biofilm thickness, and the diffusion within the biofilm.
 
@@ -224,7 +222,7 @@ where
 \end{align*}
 and $\Delta S = S_{b,i}^+ - S_{b,i}^-$ and $\delta=1\times 10^{-3}$ is an specified constant.  The maximum on $S_{b,i}^-$ ensures the concentration remains non-negative.
 
-\subsection{Boundary Conditions}
+\subsection{Boundary Conditions} \label{Boundary Conditions}
 Eq.~\ref{eq:diff_final} for $i=2,3,\dots,N_z-1$ provides $N_z-2$ equations for $S_{b}^{(k)}$.  The remaining equations come from the boundary conditions.  At the bottom of the biofilm ($z=0$) there is a wall and a no-flux boundary condition is appropriate, \ie,
 \begin{equation}
   \label{eq:BC1}
@@ -351,9 +349,16 @@ The detachment velocity of biomass from the biofilm is computed as follows
 In order to determine the accuracy of the methods and equations used in this model, test cases were created to verify results produced by this model. This almost always involved solving a portion of the problem with a certain set of parameters so that an analytical solution could be obtained for the same problem. The following is a collection of the tests created.
 
 \subsection{Test for when LL=0}
-In the implementation of flux matching boundary conditions within the biofilm diffusion function as well as in the setup of the substrate concentration within the tank environment function there were issues with LL in the denominator. This lead to errors in further computations as substrate concentration values became NaN within the program and subsequent operations could not be completed.
+The purpose of this test is to show that no error occurs in the code as the boundary layer thickness goes to zero ($L_L=0$), as well as to ensure that the physics of the problem perform as expected in this case scenario.
 
-The purpose of this test is to show that no error occurs in the code as the boundary layer thickness goes to zero, as well as to ensure that the physics of the problem act as expected. When the boundary layer thickness goes to zero the substrate concentration at the top of the biofilm should match the substrate concentration in the tank at the given time-step.
+When the boundary layer thickness goes to zero the substrate concentration at the top of the biofilm should match the substrate concentration in the tank at the given time-step. This is because without a concentration boundary layer at the top of the biofilm ($L_L=0$) diffusion of substrate into the biofilm occurs directly from the bulk fluid. In which case the flux matching boundary conditions at the top of the biofilm dealt with in section \ref{Boundary Conditions} simplify so that $S_{b,N_z}=S$ as can be seen by plugging in values to Eq.~\ref{eq:BC2_dis2}.
+
+Parameters from case 1 are utilized to create a set of variables sufficient to run the biofilm diffusion portion of the code with two exceptions, the bulk fluid concentration $S=10$ $g/m^3$ and $L_L=0$. A grid size $N_z=50$ is applied and a linear profile of substrate concentration. It is confirmed that $S_{b,N_z}=S$ in this test within an allowable tolerance of $1E-15$. Results are visualized in the figure below.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=3in]{BoundaryLayer_Figure1.eps}
+\end{figure}
 
 \subsection{Test for Tank Biomass Concentration when no Inflow Q}
 This is the first of three tests created to establish the validity of the 4th Order Runge-Kutta Method used to solve for the tank biomass and substrate concentrations. This test focuses on the biomass concentration. It takes the equation,
@@ -387,17 +392,18 @@ verifyLessThan(testCase,abs(actSolution-expSolution),tol) \\
 Again, when the code is producing results which match the expected analytic solution to a tolerance, it can be verified that the 4th Order Runge-Kutta Method is implemented correctly.
 
 \subsection{Test Diffusion}
-A test was setup in which the analytical solution for substrate concentrations throughout the biofilm would be compared to those computed numerically in the biofilm diffusion function. An analytical solution was able to be created for the substrate concentrations within the biofilm by enlarging parameters mu and Km so that external mass transfer can be eliminated and therefore the tank concentration S  remains at a fixed value. From here the analytical solution for substrate concentrations within the biofilm was computed at each location z within the biofilm.
+To ensure the biofilm diffusion function was operating properly with respect to the the physical situation at hand, a test was setup in which the analytical solution for substrate concentrations throughout the biofilm would be compared to those computed numerically in the biofilm diffusion function.
+
+An analytical solution was able to be created for the substrate concentration gradient within the biofilm by enlarging parameters $\mu$ and $Km$ so that external mass transfer can be eliminated and therefore the tank concentration S can be considered to be a fixed value. The analytical solution for substrate concentrations within the biofilm was computed at each location z within the biofilm with the following expression.
 
 \begin{align}
 {Sb_{ana}}=\frac{S*{cosh(\frac{{\phi}{z}}{Lf})}}{cosh(\phi)}\\
 \text{where}{\quad} {\phi}=\frac{\mu_{max}{X_b}{L_f^{2}}}{{D_e}{K_m}{Y_{xs}}}
 \end{align}
 
-
 This test was completed for 5 different grid sizes of biofilm. Convergence of the substrate concentrations for the analytical and numerical methods can be seen as the grid size grows. The results are displayed in the figure below
 
-\begin{figure}[!ht]
+\begin{figure}[H]
   \centering
   \includegraphics[read=eps, width=3in]{BiofilmDiffusion_Figure1.eps}
 \end{figure}
