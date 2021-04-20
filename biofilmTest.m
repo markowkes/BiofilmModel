@@ -210,6 +210,9 @@ plot(t,S)
 hold on
 plot(t,S_anal,'--')
 legend('Simulation','Analytic')
+title('Convergence of Simulated vs Analytical Methods')
+ylabel('Output')
+xlabel('Time Iteration')
 
 %Analyze Result
 maxError=max(abs(S-S_anal));  % Maximum Error

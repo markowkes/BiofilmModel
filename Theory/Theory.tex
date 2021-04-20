@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{float}
+\usepackage{listings}
 \numberwithin{equation}{section}
 
 % Text
@@ -40,6 +41,9 @@
   $L_L$ & Concentration boundary layer thickness & m \\
   $k_\mathrm{det}$ &	Detachment rate coefficient & 1/(m$\cdot$days)
 \end{tabular}
+
+\section{Background}
+Multispecies biofilm research has implications in a wide range of fields, from dental plaque growth to gastrointestinal lining in stomachs to structuring the aquatic food chain on the surfaces of rocky riverbeds. Biofilms are the result of respective species of bacteria competing for the substrate within a bulk liquid environment. Bacteria consume nutrients, or substrate, and create biomass, which floats within the liquid until it attaches to a surface. As this biomass attaches to surfaces, they develop an external biofilm which provides protection from the surrounding environment. Following biofilm formation, the detachment phase can begin, and biomass is released to find new surfaces to inhabit.
 
 \section{Tank Environment}
 The environment is modeled in this function as a continuous stirred tank reactor (CSTR), with the existence of an inflow and outflow which carries biomass and substrate into the bulk liquid. The concentration rates of the biomass and substrate are modeled by the following ordinary differential equations
@@ -345,6 +349,33 @@ The detachment velocity of biomass from the biofilm is computed as follows
   {v_{det}^{t}}={k_{\mathrm{det}}{L^t_f}^2}.
 \end{equation}
 
+\section{Results}
+This model produces data for every aspect of the biofilm environment. from the respective concentrations within the CSTR environment to the internal workings of the biofilm itself. Below are the plots produced by various test cases run by the model.
+
+Test Case 1: Standard Conditions
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=4in]{Testcase1_figure.eps}
+\end{figure}
+
+Test Case 4: Elevated Inflow Q into CSTR
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=4in]{Testcase4_figure.eps}
+\end{figure}
+
+Test Case 7: Elevated Diffusion Coefficents, Sb Profile nearly Linear
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=4in]{Testcase7_figure.eps}
+\end{figure}
+
+Test Case 8: Maximum Growth Rate, LL Eliminated, Constant Substrate Concentration in Biofilm
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=4in]{Testcase8_figure.eps}
+\end{figure}
+
 \section{Test Cases for Validity}
 In order to determine the accuracy of the methods and equations used in this model, test cases were created to verify results produced by this model. This almost always involved solving a portion of the problem with a certain set of parameters so that an analytical solution could be obtained for the same problem. The following is a collection of the tests created.
 
@@ -381,13 +412,13 @@ These lines of code verify that the result which the code produces matches the e
 \subsection{Test for Tank Substrate Concentration when no Inflow Q}
 This test aims to replicate the previous test for the substrate concentration within the tank. When there is no inflow Q of substrate, nor any substrate diffusing into the biofilm, it is expected to remain at its initial value, So. This test is verified by the following lines of code, which look very similar to the previous test.
 
-\begin{align*}
-[~,~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param) \\
-actSolution=S \\
-expSolution=So \\
-tol=1e-1 \\
-verifyLessThan(testCase,abs(actSolution-expSolution),tol) \\
-\end{align*}
+\begin{lstlisting}
+[~,~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+actSolution=S; 
+expSolution=So;
+tol=1e-1;
+verifyLessThan(testCase,abs(actSolution-expSolution),tol); 
+\end{lstlisting}
 
 Again, when the code is producing results which match the expected analytic solution to a tolerance, it can be verified that the 4th Order Runge-Kutta Method is implemented correctly.
 
@@ -421,13 +452,21 @@ This test analyzes this operation by comparing a simplified model of the substra
 \end{equation}
 
 If the simulated and analytic methods converge, it can be determined that the time step is properly adjusting to the magnitude of the error calculated at each point. This convergence is determined by the following lines.
-\begin{align*}
-maxError=max(abs(S-S_{anal})) \\
-expTol=param.ttol \\
-verifyLessThan(testCase,maxError,expTol) \\
-\end{align*}
 
-If the simulated and analytic methods produce results which match according to an established tolerance, the test will pass. 
+\begin{lstlisting}
+maxError=max(abs(S-S_{anal}));
+expTol=param.ttol;
+verifyLessThan(testCase,maxError,expTol);
+\end{lstlisting}
+
+\section*{Matlab Code}
+
+If the simulated and analytic methods produce results which match according to an established tolerance, the test will pass. Below is the plot produced which shows the convergence of simulation to analytic.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=3in]{TimeDynamics_Figure.eps}
+\end{figure}
 
 
 \end{document}
