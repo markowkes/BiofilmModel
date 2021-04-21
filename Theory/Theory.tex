@@ -56,7 +56,7 @@ The environment is modeled in this function as a continuous stirred tank reactor
 
 The concentration rates of the biomass and substrate are modeled by the following ordinary differential equations
 \begin{equation} \label{eq: BiomassEquation}
-  \frac{dx}{dt} = \left(\mu(S) - \frac{Q}{V}\right) x +\frac{ V_{\mathrm{det}} S_A X_b}{V},
+  \frac{dx}{dt} = \left(\mu(S) - \frac{Q}{V}\right) x +\frac{ v_{\mathrm{det}} S_A X_b}{V},
 \end{equation}
 \begin{equation} \label{eq: SubstrateEquation}
   \frac{dS}{dt} = -\frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} - \frac{S_A B_{\mathrm{flux}}}{V}.
@@ -433,32 +433,34 @@ If the simulated and analytic methods produce results which match according to a
 
 \section{Appendix A: Steady State Behavior Test Case}\label{Steady State}
 
-If the Assuming steady-state with full penetration of substrate into biofilm, \ie, substrate concentration is a constant within the tank and biofilm.
+If the diffusion coefficients $D_e$ and $D_{aq}$ are considered to be very large, a steady state solution to the biofilm model can be created since full penetration of substrate into the biofilm can be assumed due to the rapid diffusion that would be occurring. In this case scenario the substrate concentration is a constant within the tank and biofilm.
+
+The governing expressions for the biofilm may now be modified and solved for steady state for each portion of the problem as follows.
+
 \subsection{Biofilm Thickness}
-The thickness of the biofilm is described by
-\begin{equation}
-  \frac{d L_f}{dt} = {\bar\mu L_f}-{k_{\mathrm{det}}L_f^2},
-\end{equation}
-which at steady state leads to
-\begin{equation}\label{eq:Lfsteady}
-{\color{red}
-  {\bar\mu L_f}={k_{\mathrm{det}}L_f^2}.
-}
+The thickness of the biofilm described by equation~\ref{eq:dLfdt_1} at steady state reduces to 
+
+\begin{equation*}
+   {\bar\mu L_f}={k_{\mathrm{det}}L_f^2}.
+\end{equation*}
+ 
+ or by simplifying further
+ 
+ \begin{equation}
+  \label{eq:Lfsteady}
+  {L_f}=\frac{\bar\mu}{k_{\mathrm{det}}}
 \end{equation}
 
 \subsection{Biomass Concentration in Tank}
-Biomass in the tank is described by
+Biomass in the tank described by equation~\ref{eq: BiomassEquation} at steady state simplifies to 
+
+\begin{equation*} 
+  Qx = \mu xV +v_{\mathrm{det}} S_A x_b
+\end{equation*}
+and by plugging in $v_{\mathrm{det}}= K_\mathrm{det} L_f^2 = \mu L_f$ from equation~\ref{eq:vg} the following is obtained
 \begin{equation}
-  \frac{dx V}{dt} = \mu xV - Q x +V_{\mathrm{det}} S_A x_b
-\end{equation}
-At steady state, this equation simplifies to
-\begin{align} 
-  Qx = \mu xV +V_{\mathrm{det}} S_A x_b\\
-   {\color{red}
   Qx = \mu xV +\mu L_f S_A x_b
-  }
-\end{align}
-where we used $V_{\mathrm{det}}= K_\mathrm{det} L_f^2 = \mu L_f$ from Eq.~\ref{eq:Lfsteady}.
+\end{equation}
 
 \subsection{Substrate Concentration}
 The substrate concentration in the tank is described by
@@ -476,8 +478,7 @@ The flux term $B_\mathrm{flux}$ can be computed using the growth of biomass in t
 where $V_b=S_A L_f$ is the volume of the biofilm.   At steady-state this simplifies to 
 \begin{equation}
  {\color{red}
-   x = \frac{Y_{xs}}{\mu V}\left(Q S_{\mathrm{in}} - Q S\right) -\frac{\bar{\mu} V_b}{\mu V}x_b
- }
+   x = \frac{Y_{xs}}{\mu V}\left(Q S_{\mathrm{in}} - Q S\right) -\frac{\bar{\mu} V_b}{\mu V}x_b}
 \end{equation}
 
 \section{Matlab}
