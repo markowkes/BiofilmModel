@@ -154,7 +154,6 @@ end
 function test_steadystate(testCase)
 tc=7 ; %number of case, A corresponds to 1, B corresponds to 2....
 param=cases(tc); %structure variables are stored in
-
 % Run simulation
 [~,xsim,Ssim,Lfsim]=MAINDRIVER(tc);
 
@@ -186,7 +185,7 @@ fprintf('x      =%16.12f, %16.12f g/m^3 \n',x,xsim(end))
 fprintf('Lf     =%16.12f, %16.12f mu m \n',Lf*1e6,Lfsim(end)*1e6)
 
 % Pass/fail
-tol=1; 
+tol=.01; 
 verifyLessThan(testCase,max((S-Ssim(end))/S,(x-xsim(end)))/x,tol)
 end
 
