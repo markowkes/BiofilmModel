@@ -201,7 +201,8 @@ param=cases(9);
 Q=param.Q;
 V=param.V;
 Sin=param.Sin;
-S_anal=Sin*(1-exp(-Q/V*t));
+So=param.So;
+S_anal=Sin*(1-exp(-Q/V*t))+So;
 
 % Compare Simulation and Analytic
 figure(1); clf(1)

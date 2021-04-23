@@ -5,16 +5,16 @@ function [s4,tnew,xnew,Snew,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param)
 % describing the substrate and biomass concentrations through time to
 % produce plots profiling these concetrations over a set period of time
 
-Q=param.Q;
-V=param.V;
-Xb=param.Xb;
+Q  =param.Q;
+V  =param.V;
+Xb =param.Xb;
 Yxs=param.Yxs;
 Sin=param.Sin;
-SA=param.SA;
+A  =param.A;
 tol=param.ttol;
 
-dxdt = @(x,t,S,Vdet) (mu(S,param)-(Q/V))*x+(Vdet*SA*Xb)/V; %Biomass Concentration Change wrt time
-dsdt = @(x,t,S) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-((SA*bflux)/V); % ^^^Substrate Concentration Change wrt time
+dxdt = @(x,t,S,Vdet) (mu(S,param)-(Q/V))*x+(Vdet*A*Xb)/V; %Biomass Concentration Change wrt time
+dsdt = @(x,t,S) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-((A*bflux)/V); % ^^^Substrate Concentration Change wrt time
 
 % Packing y
 y=[x; S];
