@@ -5,7 +5,6 @@ function [Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param)
 % model the manner in which tank conditions reach equilibrium
 
 Sb=Sbold; %preallocate array
-tol=1e-12; %tolerance for conversion
 delta=1e-3;
 
 % Get variables out of param
@@ -14,6 +13,7 @@ Yxs=param.Yxs;
 De=param.De;
 LL=param.LL;
 Daq=param.Daq;
+tol=param.dtol;
 
 %Iterations
 iter=100; %maximum iterations
@@ -49,7 +49,6 @@ for i=1:iter
     
     % Check if converged
     if max(abs(Sb-Sbold))<tol
-%        fprintf('converged on iteration %4.0f\n',i)
         break
     else
         if i==iter
@@ -61,7 +60,12 @@ for i=1:iter
     Sbold=Sb;
 end
 
-%Flux Calculations
-bflux=De *(Sb(end)-Sb(end-1))/dz; % Biofilm Flux
-%flux =Daq*(S      -Sb(end  ))/LL; % Boundary Layer Flux
+
+% Flux = \int_0^Lf mu(S) * xB / Yxs dz = xB/Yxs * int_0^Lf mu dz
+bflux = 0;
+for i=1:length(Sb)-1
+    bflux=bflux+dz*((mu(Sb(i),param)+mu(Sb(i+1),param))/2); %trapezoidal 
+end
+bflux=Xb/Yxs*bflux;
+
 end

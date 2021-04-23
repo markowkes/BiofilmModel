@@ -4,6 +4,10 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{listings}
+\numberwithin{equation}{section}
 
 % Text
 \newcommand{\etc}{etc.}
@@ -26,7 +30,7 @@
   $Y_\mathrm{xs}$ & Biomass yield coefficient on substrate & g$\cdot$g/s\\
   $V$ & Volume &m$^3$ \\
   $Q$	& Flowrate & m$^3$/day\\
-  $S_A$	& Wetted surface area & m$^2$\\
+  $A$	& Wetted surface area & m$^2$\\
   $S_{\mathrm{in}}$ & Influent substrate concentration &  g/m$^3$ \\
   $S_o$ & Initial bulk fluid substrate concentration in tank &  g/m$^3$ \\
   $X_o$ & Initial biomass concentration in tank &  g/m$^3$ \\
@@ -38,10 +42,44 @@
   $k_\mathrm{det}$ &	Detachment rate coefficient & 1/(m$\cdot$days)
 \end{tabular}
 
-\section{Tank Environment}
-The environment is modeled in this function as a rectangular tank holding the bulk liquid, with the existence of an inflow and outflow which carries biomass and substrate into the bulk liquid. The concentration rates of the biomass and substrate are modeled by the following ordinary differential equations
+\section{Background}
+Multispecies biofilm research has implications in a wide range of fields, from dental plaque growth to gastrointestinal lining in stomachs to structuring the aquatic food chain on the surfaces of rocky riverbeds. Biofilms are the result of respective species of bacteria competing for the substrate within a bulk liquid environment. Bacteria consume nutrients, or substrate, and create biomass, which floats within the liquid until it attaches to a surface. As this biomass attaches to surfaces, they develop an external biofilm which provides protection from the surrounding environment. Following biofilm formation, the detachment phase can begin, and biomass is released to find new surfaces to inhabit.
+
+To simulate biofilm activity and dynamics, a model is sought that incorporates these phenomena: 1) microbial growth 2) substrate consumption/production associated with microbial growth 3) diffusion of dissolved substrates and products into/out of the biofilm 4) activity of both planktonic and biofilm cells, detachment, and 5) system concentrations and flows.
+
+The model constructed here recapitulates the Biofilm Accumulation Model (BAM), developed at the Center for Biofilm Engineering. BAM was itself a version of a model termed BIOSIM that was based on a construct from Oskar Wanner and Willi Gujer.
+
+\section{Matlab}
+This model was created using Matlab, a multi-paradigm programming language utilized across most engineering fields to model and analyze data. This model could be rewritten in a different language such as C, Python, etc. to allow the code to be more accesible in an open source editor format for future changes. 
+
+\subsection{Matlab Infrastructure}
+\begin{tabular}{c l c}
+  File Name & Description \\ \hline
+  biofilmdiffusion\_fd.m & Computes diffusion into biofilm \\
+  biofilmTest.m & Runs all tests for code validation \\
+  cases.m & Creates "param" structure, hosts all other variables \\
+  lf.m & Computes biofilm thickness \\
+  MAINDRIVER.m & Organizes and calls all other functions to produce solution \\
+  mu.m & Stores all growth rate formulas and calculates growth rate $\mu$ \\
+  outputs.m & Inputs all computed data and produces plots for results \\
+  tankenvironment.m & Computes concentrations within tank environment \\
+\end{tabular}
+
+\subsection{Code Execution}
+In order to run this model, open the MAINDRIVER.m file in Matlab and type "MAINDRIVER(number)" in the command window. The number within the parentheses will correspond to the desired testcase to be run, which can be inputted in the cases.m file. 
+  
+  \section{Tank Environment}
+The environment is modeled in this function as a continuous stirred tank reactor (CSTR), with the existence of an inflow and outflow which carries substrate into the bulk liquid, where some initial concentration of biomass already exists.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=2in]{CSTR_model.jpg}
+\caption{Continuous Stirred Tank Reactor}
+\end{figure}
+
+The rates of the biomass and substrate are modeled by the following ordinary differential equations
 \begin{equation} \label{eq: BiomassEquation}
-  \frac{dx}{dt} = \left(\mu(S) - \frac{Q}{V}\right) x +\frac{ V_{\mathrm{det}} S_A X_b}{V},
+  \frac{dx}{dt} = \mu(S) x - \frac{Q x}{V} + \frac{ v_{\mathrm{det}} S_A X_b}{V},
 \end{equation}
 \begin{equation} \label{eq: SubstrateEquation}
   \frac{dS}{dt} = -\frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} - \frac{S_A B_{\mathrm{flux}}}{V}.
@@ -101,14 +139,8 @@ When the timestep becomes too big, if abs(error) $ \geq\ $ tol
 
 This error term maintains the variable timestep within a reasonable range during the iteration process.
 
-
-
-
-
-
-
 \section{Growth-rate $\mu$}\label{sec:mu}
-$\mu$ represents the variable growth rate of the species within the biofilm. These equations model the consumption of substrate within the biofilm and are used in a variety of different equations, including the bulk liquid concentration rates, the biofilm thickness, and the diffusion within the biofilm.
+$\mu$ represents the variable growth rate of the species within the biofilm. These equations are dependent on the substrate concentration and model their consumption within the biofilm. They are used in a variety of different equations, including the bulk liquid concentration rates, the biofilm thickness, and the diffusion within the biofilm.
 
 Different equations are required to represent different growth profiles. The standard growth equation is the Monod Growth Rate
 \begin{equation} \label{eq: MonodGrowthRate}
@@ -122,7 +154,7 @@ There is also the Double Monod Growth Rate to model multiple substrates `a' and 
 
 The final equation that may be used is an Inhibition Model
 \begin{equation} \label{eq: Inhibition}
-  \mu=\mu_\mathrm{max} \frac{S_a}{K_{ma} + S_a} \frac{1}{1 + \frac{S_b}{K_{mb}}}.
+  \mu=\mu_\mathrm{max} \frac{S_a}{K_{ma} + S_a} \frac{1}{1 + \frac{S_b}{K_{ib}}}.
 \end{equation}
 
 The $\mu$ function `mu' defines all these equations and allows for the desired growth rate to be called throughout the rest of the code when needed.
@@ -176,7 +208,7 @@ where
 \end{align*}
 and $\Delta S = S_{b,i}^+ - S_{b,i}^-$ and $\delta=1\times 10^{-3}$ is an specified constant.  The maximum on $S_{b,i}^-$ ensures the concentration remains non-negative.
 
-\subsection{Boundary Conditions}
+\subsection{Boundary Conditions} \label{Boundary Conditions}
 Eq.~\ref{eq:diff_final} for $i=2,3,\dots,N_z-1$ provides $N_z-2$ equations for $S_{b}^{(k)}$.  The remaining equations come from the boundary conditions.  At the bottom of the biofilm ($z=0$) there is a wall and a no-flux boundary condition is appropriate, \ie,
 \begin{equation}
   \label{eq:BC1}
@@ -298,5 +330,182 @@ The detachment velocity of biomass from the biofilm is computed as follows
   \label{eq:vdet2}
   {v_{det}^{t}}={k_{\mathrm{det}}{L^t_f}^2}.
 \end{equation}
+
+\section{Results}
+This model produces data that provides an understanding of the entire biofilm environment, from the respective concentrations within the CSTR environment to the internal workings of the biofilm itself. Below are the plots produced by various test cases run by the model.
+
+This model produces five separate plots. The first two plots show the concentration profiles of both the biomass and substrate concentrations within the tank as they approach and reach steady states. The third plot shows the profile of flux into the biofilm from the greater tank environment as it also approaches and reaches its eventual steady state. The fourth plot shows the substrate concentration within the biofilm as a function of its depth. This concentration profile is distinguished into two distinct connected lines of which the blue segment shows the concentration within the biofilm and the red segment shows the concetration within the liquid layer. The fifth and final plot shows the growth profile of the biofilm thickness over time until it reaches an eventual steady state.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=4in]{Testcase1_figure.eps}
+  \caption{Test Case 1: Standard Conditions}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=4in]{Testcase3_figure.eps}
+  \caption{Test Case 3: Minimum Growth Rate Mumax}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=4in]{Testcase4_figure.eps}
+  \caption{Test Case 4: Elevated Inflow Q into CSTR}
+\end{figure}
+
+\section{Unit Tests for Validity}
+In order to determine the accuracy of the methods and equations used in this model, unit tests were created to verify results produced by this model. This almost always involved solving a portion of the problem with a certain set of parameters so that an analytical solution could be obtained for the same problem. The following is a collection of the tests created.
+
+\subsection{Test for when LL=0}
+The purpose of this test is to show that no error occurs in the code as the boundary layer thickness goes to zero ($L_L=0$), as well as to ensure that the physics of the problem perform as expected in this case scenario.
+
+When the boundary layer thickness goes to zero the substrate concentration at the top of the biofilm should match the substrate concentration in the tank at the given time-step. This is because without a concentration boundary layer at the top of the biofilm ($L_L=0$) diffusion of substrate into the biofilm occurs directly from the bulk fluid. In which case the flux matching boundary conditions at the top of the biofilm dealt with in section \ref{Boundary Conditions} simplify so that $S_{b,N_z}=S$ as can be seen by plugging in values to Eq.~\ref{eq:BC2_dis2}.
+
+Parameters from case 1 are utilized to create a set of variables sufficient to run the biofilm diffusion portion of the code with two exceptions, the bulk fluid concentration $S=10$ $g/m^3$ and $L_L=0$. A grid size $N_z=50$ is applied and a linear profile of substrate concentration. It is confirmed that $S_{b,N_z}=S$ in this test within an allowable tolerance of $1E-15$. Results are visualized in the figure below.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=3in]{BoundaryLayer_Figure1.eps}
+\end{figure}
+
+\subsection{Test for Tank Biomass Concentration when no Inflow Q}
+This is the first of three tests created to establish the validity of the 4th Order Runge-Kutta Method used to solve for the tank biomass and substrate concentrations. This test focuses on the biomass concentration. It takes the equation,
+\begin{equation}
+  \frac{dx V}{dt} = \mu xV - Q x +V_{\mathrm{det}} S_A x_b
+\end{equation}
+and sets Q=0, establishing no inflow of biomass or substrate and eliminating said term from the differential equation. 
+This test also sets bflux=0 in order to eliminate the diffusion of biomass into the biofilm. 
+When there is no inflow and no diffusion into the biofilm, the biomass within the tank is expected to remain at its initial state, xo. This is verified by the following lines of code,
+
+\begin{lstlisting}
+[~,~,x,~,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+actSolution=x;
+expSolution=xo;
+tol=1e-1;
+verifyLessThan(testCase,abs(actSolution-expSolution),tol);
+\end{lstlisting}
+
+These lines of code verify that the result which the code produces matches the expected analytic result to a specified tolerance.
+
+\subsection{Test for Tank Substrate Concentration when no Inflow Q}
+This test aims to replicate the previous test for the substrate concentration within the tank. When there is no inflow Q of substrate, nor any substrate diffusing into the biofilm, it is expected to remain at its initial value, So. This test is verified by the following lines of code, which look very similar to the previous test.
+
+\begin{lstlisting}
+[~,~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+actSolution=S; 
+expSolution=So;
+tol=1e-1;
+verifyLessThan(testCase,abs(actSolution-expSolution),tol); 
+\end{lstlisting}
+
+Again, when the code is producing results which match the expected analytic solution to a tolerance, it can be verified that the 4th Order Runge-Kutta Method is implemented correctly.
+
+\subsection{Test Diffusion}
+To ensure the biofilm diffusion function was operating properly with respect to the the physical situation at hand, a test was setup in which the analytical solution for substrate concentrations throughout the biofilm would be compared to those computed numerically in the biofilm diffusion function.
+
+An analytical solution was able to be created for the substrate concentration gradient within the biofilm by enlarging parameters $\mu$ and $Km$ so that external mass transfer can be eliminated and therefore the tank concentration S can be considered to be a fixed value. The analytical solution for substrate concentrations within the biofilm was computed at each location z within the biofilm with the following expression.
+
+\begin{align}
+{Sb_{ana}}=\frac{S*{cosh(\frac{{\phi}{z}}{Lf})}}{cosh(\phi)}\\
+\text{where}{\quad} {\phi}=\frac{\mu_{max}{X_b}{L_f^{2}}}{{D_e}{K_m}{Y_{xs}}}
+\end{align}
+
+This test was completed for 5 different grid sizes of biofilm. Convergence of the substrate concentrations for the analytical and numerical methods can be seen as the grid size grows. The results are displayed in the figure below
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=3in]{BiofilmDiffusion_Figure1.eps}
+\end{figure}
+
+\subsection{Test Steady-State with Large Diffusivities such that Substrate Concentration is Relatively Constant}
+
+Due to the complexity of the overall biofilm problem, it is impossible to come up with an analytical solution of many parameters to check the accuracy of the code. However, by altering certain parameters within the governing equations, a hypothetical situation can be created that can be solved analytically for.
+
+This was done by increasing the diffusion coefficients $D_e$ and $D_{aq}$ to unrealistically high levels. This in turn causes the readily available substrate present to diffuse rapidly into the biofilm, leading to a nearly uniform substrate concentration through the thickness of the biofilm at each points in time. An extremely small gradient is produced by the code in this situation as can be seen in the figure below.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=3in]{SteadyState_Figure1.eps}
+\end{figure}
+
+The equations used to solve for the steady state solutions of this problem are described in \ref{Steady State}. These equations were solved iteratively. The solutions produced by the code were compared to the iterative solutions found by analyzing the steady state problem.
+
+
+\subsection{Test Variable Time Dynamic of Tank Environment Calculations}
+The 4th Order Runge-Kutta Method used in the 'tankenvironment' function utilizes an additional 'error' step which compares the coefficients calculated to the coefficients of the Butcher Tableau. This is done to ensure that the numerical method never varies from the analytic solution beyond a certain tolerance. This error term is coupled to the step size term dt so that maximum accuracy is obtained. 
+
+This coupling establishes the boundaries of the allowable step size, so that that when the error is too large, the step size can shrink and reduce the inaccuracy. When the error is small, the step size can be increased to expedite the solving and improve efficiency. 
+
+This test analyzes this operation by comparing a simplified model of the substrate environment to its corresponding analytic solution. This simulated model eliminates the biomass within the tank as well as any initial substrate concentration and profiles the development of the substrate until it reaches steady state. The analytic solution used is,
+\begin{equation} \label{eq: S_ana}
+  S_\mathrm{ana}=S_\mathrm{in}{(1-e^{\frac{-Q}{V}t})} + So
+\end{equation}
+
+If the simulated and analytic methods converge, it can be determined that the time step is properly adjusting to the magnitude of the error calculated at each point. This convergence is determined by the following lines.
+
+\begin{lstlisting}
+maxError=max(abs(S-S_anal));
+expTol=param.ttol;
+verifyLessThan(testCase,maxError,expTol);
+\end{lstlisting}
+
+If the simulated and analytic methods produce results which match according to an established tolerance, the test will pass. Below is the plot produced which shows the convergence of simulation to analytic.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=3in]{TimeDynamics_Figure.eps}
+\end{figure}
+
+\section{Appendix A: Steady State Behavior Test Case}\label{Steady State}
+
+If the diffusion coefficients $D_e$ and $D_{aq}$ are considered to be very large, a steady state solution to the biofilm model can be created since full penetration of substrate into the biofilm can be assumed due to the rapid diffusion that would be occurring. In this case scenario the substrate concentration is a constant within the tank and biofilm.
+
+The governing expressions for the biofilm may now be modified and solved for steady state for each portion of the problem as follows.
+
+\subsection{Biofilm Thickness}
+The thickness of the biofilm described by equation~\ref{eq:dLfdt_1} at steady state reduces to 
+
+\begin{equation*}
+   {\bar\mu L_f}={k_{\mathrm{det}}L_f^2}.
+\end{equation*}
+ 
+ or by simplifying further
+ 
+ \begin{equation}
+  \label{eq:Lfsteady}
+  {L_f}=\frac{\bar\mu}{k_{\mathrm{det}}}
+\end{equation}
+
+\subsection{Biomass Concentration in Tank}
+Biomass in the tank described by equation~\ref{eq: BiomassEquation} at steady state simplifies to 
+
+\begin{equation*} 
+  Qx = \mu xV +v_{\mathrm{det}} S_A x_b
+\end{equation*}
+and by plugging in $v_{\mathrm{det}}= K_\mathrm{det} L_f^2 = \mu L_f$ from equation~\ref{eq:vg} the following is obtained
+\begin{equation}
+  Qx = \mu xV +\mu L_f S_A x_b
+\end{equation}
+
+\subsection{Substrate Concentration}
+The substrate concentration in the tank is described by
+\begin{equation}\label{eq:sub1}
+  \frac{dS V}{dt} = -\frac{\mu x V}{Y_{xs}} + Q S_{\mathrm{in}} - Q S - S_A B_{\mathrm{flux}}.
+\end{equation}
+The flux term $B_\mathrm{flux}$ can be computed using the growth of biomass in the biofilm, \ie,
+\begin{equation}
+  B_\mathrm{flux} = \int_0^{L_f} \frac{\mu(S) x_b}{Y_{xs}} \, dz = \frac{ x_b}{Y_{xs}}\int_0^{L_f} \mu(S) \, dz = \frac{ x_b}{Y_{xs}} L_f \bar{\mu}.
+\end{equation}
+ Using this definition of the flux, Eq.~\ref{eq:sub1} can be written as
+\begin{equation}
+  \frac{dS V}{dt} = -\frac{\mu x V}{Y_{xs}} + Q S_{\mathrm{in}} - Q S -\frac{\bar{\mu} x_b V_b}{Y_{xs}}
+\end{equation}
+where $V_b=S_A L_f$ is the volume of the biofilm.   At steady-state this simplifies to 
+\begin{equation}
+ {\color{red}
+   x = \frac{Y_{xs}}{\mu V}\left(Q S_{\mathrm{in}} - Q S\right) -\frac{\bar{\mu} V_b}{\mu V}x_b}
+\end{equation}
+
 
 \end{document}

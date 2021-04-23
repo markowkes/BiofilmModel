@@ -1,41 +1,41 @@
- %MAINDRIVER
-clear; clc
-tic
-%% Rewriting inputs section to run through test cases
-%Call on specific test case parameters
-num=8 ; %number of case, A corresponds to 1, B corresponds to 2....
-param=cases(num); %structure variables are stored in
+function [t,x,S,Lf]=MAINDRIVER(tc)
+%% Inputs from cases function
+param=cases(tc);
 
-%Create initial biofilm grid
-Nz=50; %Linear GridPoints in Biofilm
-z=linspace(0,param.Lfo,Nz); %[m] Grid of Biofilm Depth
-dz=z(2)-z(1); %[m]
+Nz      =param.Nz;
+So      =param.So;
+tFin    =param.tFin;
+dt      =param.dt;
+outFreq =param.outFreq;
 
-%Initial Boundary Conditions (in Biofilm)
-Sb=zeros(1,Nz);
-Sb(end)=param.So; %initially assume boundary concentration = So
+%% Preallocation
+%Compute number of time-steps to solve for
+N=tFin/dt; 
 
-%Time Constraints
-tFin=30; %[days]
-dt=1e-2; %Interval
-N=tFin/dt; %Number of steps
-outFreq=2000; %Number of steps between plot updates.
-
-%Preallocation
+%Corresponding arrays
 t       =zeros(1,N); %Time
 x       =zeros(1,N); %Biomass Concentration in bulk liquid
 S       =zeros(1,N); %Substrate in bulk liquid
 bflux   =zeros(1,N); %Boundary Layer Flux of Biofilm Preallocate
-flux    =zeros(1,N); %Right hand side of power point equation to ensure matching flux
 Lf      =zeros(1,N); %Right hand side of power point equation to ensure matching flux
+dt      =zeros(1,N); %size of each time step
 
-%Initial Conditions
+%% Initial Conditions
+%Biofilm
+Sb=zeros(1,Nz);
+Sb(end)=So; %initially assume boundary concentration = So
+Lf(1)=param.Lfo;
+
+%Tank
 t(1)=0;
 x(1)=param.xo;
 S(1)=param.So;
-Lf(1)=param.Lfo;
 
-%Initialize plots 
+
+%Time
+dt(1)=param.dt;
+
+%% Initialize plots 
 outIter=outFreq-1;
 plots=0; titles=0;
 
@@ -51,10 +51,10 @@ while t(i)<tFin-dt
     [Sb,bflux(i+1)]=biofilmdiffusion_fd(Sb,S(i),Nz,dz,t(i),param);
     
     %Call on "lf"
-    [Lf(i+1),Vdet]=lf(Sb,Lf(i),dt,dz,param);
+    [Lf(i+1),Vdet]=lf(Sb,Lf(i),dt(i),dz,param);
     
     %Call on "tankenvironment"
-    [t(i+1),x(i+1),S(i+1),dt]=tankenvironment(t(i),x(i),S(i),Vdet,dt,bflux(i+1),param);
+    [s4,t(i+1),x(i+1),S(i+1),dt(i+1)]=tankenvironment(t(i),x(i),S(i),Vdet,dt(i),bflux(i+1),param);
     
     %Call on desired plots from 'outputs'
     outIter=outIter+1;
@@ -68,6 +68,12 @@ while t(i)<tFin-dt
 end
 
 % Make final figures
-[plots,titles] = outputs(t(1:i),x(1:i),S(1:i),z,bflux(1:i),Lf(1:i),Sb,param,plots,titles);
+[~,~] = outputs(t(1:i),x(1:i),S(1:i),z,bflux(1:i),Lf(1:i),Sb,param,plots,titles);
 
-toc
+% Remove extra zeros if they exisit
+t=t(1:i);
+x=x(1:i);
+S=S(1:i);
+Lf=Lf(1:i);
+
+end
