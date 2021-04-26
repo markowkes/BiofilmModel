@@ -25,21 +25,29 @@
 \section{Nomenclature}
 \begin{tabular}{c l c}
   Variable & Description & Units\\ \hline
+  $\mu$ & Growth Rate & 1/days\\
   $\mu_\mathrm{max}$  & Maximum specific growth rate & 1/days\\
+  $\mu_\mathrm{bar}$ & Average growth rate & 1/days\\
   $K_m$ & Monod half saturation coefficient & g/m$^3$\\
+  $K_i$ & Inhibition Coefficient & g/m$^3$\\
   $Y_\mathrm{xs}$ & Biomass yield coefficient on substrate & g$\cdot$g/s\\
+  $V_g$ & Biofilm Growth Velocity & m/s\\
+  $V_\mathrm{det}$ & Detachment Velocity & m/s\\
   $V$ & Volume &m$^3$ \\
   $Q$	& Flowrate & m$^3$/day\\
   $A$	& Wetted surface area & m$^2$\\
+  $S$ & Substration Concentration in tank & g/m$^3$\\
   $S_{\mathrm{in}}$ & Influent substrate concentration &  g/m$^3$ \\
   $S_o$ & Initial bulk fluid substrate concentration in tank &  g/m$^3$ \\
-  $X_o$ & Initial biomass concentration in tank &  g/m$^3$ \\
+  $x$ & Biomass Concentration in tank & g/m$^3$\\
+  $x_o$ & Initial biomass concentration in tank &  g/m$^3$ \\
   $D_\mathrm{aq}$ & Diffusion coefficient of substrate in water & m$^2$/day \\
   $D_e$ & Effective diffusion coefficient of substrate in biofilm & m$^2$/day \\
   $X_b$ & Biomass density in biofilm &  g/m$^3$ \\
   $L_{f}$ & Biofilm thickness & m\\
   $L_L$ & Concentration boundary layer thickness & m \\
-  $k_\mathrm{det}$ &	Detachment rate coefficient & 1/(m$\cdot$days)
+  $k_\mathrm{det}$ &	Detachment rate coefficient & 1/(m$\cdot$days)\\
+  $z$ & Biofilm Gride Size & m
 \end{tabular}
 
 \section{Background}
@@ -77,22 +85,34 @@ The environment is modeled in this function as a continuous stirred tank reactor
 \caption{Continuous Stirred Tank Reactor}
 \end{figure}
 
-The rates of the biomass and substrate are modeled by the following ordinary differential equations
+The rates of the biomass and substrate are modeled by the following ordinary differential equations with initial condition $x(t=0)=x_o$ and $S(t=0)=S_o$.
 \begin{equation} \label{eq: BiomassEquation}
-  \frac{dx}{dt} = \mu(S) x - \frac{Q x}{V} + \frac{ v_{\mathrm{det}} S_A X_b}{V},
+  \frac{dx}{dt}(x,t,S,V_\mathrm{det}) = \mu(S) x - \frac{Q x}{V} + \frac{ V_{\mathrm{det}} S_A X_b}{V},
 \end{equation}
 \begin{equation} \label{eq: SubstrateEquation}
-  \frac{dS}{dt} = -\frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} - \frac{S_A B_{\mathrm{flux}}}{V}.
+  \frac{dS}{dt}(x,t,S) = -\frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} - \frac{S_A B_{\mathrm{flux}}}{V}.
 \end{equation}
-with initial condition $x(t=0)=x_o$ and $S(t=0)=S_o$.
 
-These two ordinary differential equations are packaged into a function f
+In order for these two differential equations to be solved by the following numerical methods, they must first be vectorized and packaged properly. This happens by first defining \textbf{y},
+\begin{equation}
+  \textbf{y} = [x;  S]
+\end{equation}
+
+By defining \textbf{y} in this way, it will eventually allow both ODE's to be packaged under a single function \textbf{f}. Intermediately, however, this allows for both ODE's to be rewritten as the following,
+\begin{equation} \label{eq: BiomassEquationVectorized}
+  \frac{dx}{dt}(\textbf{y}(1),t,\textbf{y}(2)) = \mu(S) x - \frac{Q x}{V} + \frac{ v_{\mathrm{det}} S_A X_b}{V},
+\end{equation}
+\begin{equation} \label{eq: SubstrateEquationVectorized}
+  \frac{dS}{dt}(\textbf{y}(1),t,\textbf{y}(2)) = -\frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} - \frac{S_A B_{\mathrm{flux}}}{V}.
+\end{equation}
+
+The two now vectorized forms of the equations are packaged into a single new function \textbf{f}
 \begin{equation} \label{eq: ODEpackagef}
-  f(t,y) = \left[\frac{dx}{dt}\left(y(1), t, y(2), V_\mathrm{det}\right) , 
-	      \frac{dS}{dt}\left(y(1), t, y(2)\right)\right]
+  \textbf{f}(t,\textbf{y}) = \left[\frac{dx}{dt}\left(\textbf{y}(1),t,\textbf{y}(2)\right) , 
+	      \frac{dS}{dt}\left(\textbf{y}(1),t,\textbf{y}(2)\right)\right]
 \end{equation}
 
-A 4th Order Runge-Kutta Method is used to discretize and solve the packed differential equations in this function. The Runge-Kutta Numerical Method calculates the slope of function at four points between each step of the iteration process in order to boost the accuracy of the next-point estimation. The first of these four slope calculations is the most simple, and occurs at the beginning of the interval,
+A Low Order Runge-Kutta Method, based off the structure of $ode23$, an intrinsic Matlab function, is used to discretize and solve the packaged differential equations in this function. The Runge-Kutta Numerical Method calculates the slope of function at three points between each step of the iteration process in order to boost the accuracy of the next-point estimation. The first of these three intermediate slope calculations is the most simple, and occurs at the beginning of the interval,
 \begin{equation} \label{eq: S_1}
   S_1 = f(t_n,y_n).
 \end{equation}
@@ -433,7 +453,7 @@ The equations used to solve for the steady state solutions of this problem are d
 
 
 \subsection{Test Variable Time Dynamic of Tank Environment Calculations}
-The 4th Order Runge-Kutta Method used in the 'tankenvironment' function utilizes an additional 'error' step which compares the coefficients calculated to the coefficients of the Butcher Tableau. This is done to ensure that the numerical method never varies from the analytic solution beyond a certain tolerance. This error term is coupled to the step size term dt so that maximum accuracy is obtained. 
+The Low Order Runge-Kutta Method used in the 'tankenvironment' function utilizes an additional 'error' step which compares the coefficients calculated to the coefficients of the Butcher Tableau. This is done to ensure that the numerical method never varies from the analytic solution beyond a certain tolerance. This error term is coupled to the step size term dt so that maximum accuracy is obtained. 
 
 This coupling establishes the boundaries of the allowable step size, so that that when the error is too large, the step size can shrink and reduce the inaccuracy. When the error is small, the step size can be increased to expedite the solving and improve efficiency. 
 
