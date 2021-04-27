@@ -162,7 +162,7 @@ Yxs=param.Yxs;
 Sin=param.Sin;
 Kdet=param.Kdet;
 V=param.V;
-SA=param.SA;
+A=param.A;
 Q=param.Q;
 Xb=param.Xb;
 S=1; % Initial guess
@@ -174,7 +174,7 @@ while abs(error)>tol
     Vdet=mu(S,param)*Lf;
     x=Yxs*(Sin-S);
     LHS=Q*x;
-    RHS=Vdet*SA*Xb+mu(S,param)*x*V;
+    RHS=Vdet*A*Xb+mu(S,param)*x*V;
     
     error=LHS-RHS;
     S=S+0.001*error;
