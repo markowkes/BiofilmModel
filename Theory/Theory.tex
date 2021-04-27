@@ -19,8 +19,11 @@
 \date{}
 
 \begin{document}
+
 \maketitle
-\abstract{Summary of theory used in biofilm model.}
+
+\abstract
+Biofilms are everywhere. From alpine streams to wastewater treatment plants complex multilayered biofilms exist. These films grow with respect to the nutrients provided by their environment and break apart according to their thickness amongst other physical properties specific to each biofilm. The addition and detachment of biomass often reaches a state of equilibrium in a given environment. A one-dimensional biofilm model was created in MATLAB for user specified conditions within a continuous stirred tank reactor. This model utilizes numerical methods to iteratively solve for the diffusion of nutrients into a biofilm over a variable span of time as well as the depletion of nutrients in the tank reactor as they are integrated into the biofilm. Various growth kinetics are used to calculate the respective growth rate of the biofilm and therefore its change in size over time. Considerations for efficiency and convergence and stability of modeled differential equations have been the prime areas of focus throughout the modeling process to ensure accurate solutions for a wide range of user inputs.
 
 \section{Nomenclature}
 \begin{tabular}{c l c}
@@ -181,7 +184,16 @@ The $\mu$ function `mu' defines all these equations and allows for the desired g
   
 
 \section{Biofilm Diffusion}
-Substrates that exist within the tank will diffuse into the biofilm.  The diffusion process is described by
+Substrates that exist within the tank will diffuse into the biofilm. The general expression for the substrate gradient inside the biofilm is described by
+
+\begin{equation} \label{eq:substrate gradient}
+\frac{dS_b}{dt} = {D_e}\frac{d^2S_b}{dz^2} - \frac{\mu X_b}{Y_{xs}}
+\end{equation}
+
+where the first term on the right hand side of the expression represents the diffusion of substrate into the biofilm and the second term on the right hand side represents the substrate used throughout the biofilm for growth, or the flux.
+
+By considering the substrate concentration to be in a pseudo steady state condition at each time-step considered equation ~\ref {eq:substrate gradient} simplifies to 
+
 \begin{equation} \label{eq:diffusion}
   \frac{d^2 S_b}{dz^2} = \frac{\mu(S_b) X_b}{Y_{xs} D_e}.
 \end{equation}
@@ -302,6 +314,15 @@ The right-hand-side depends $S_{b,i}^{(k-1)}$, which is the concentration at the
   \max\left| S_{b,i}^{(k)} - S_{b,i}^{(k-1)} \right| < \mathrm{tol},
 \end{equation*}
 for a specified tolerance $\mathrm{tol}$.
+
+\subsection{Flux of Substrate In Biofilm}
+The flux term referenced in the discussion of equation ~\ref{eq:substrate gradient} is named $B_\mathrm{flux}$ and represents the growth of biomass in the biofilm. The result is utilized in the substrate balance in the tank (equation~\ref{eq: SubstrateEquation}).
+
+\begin{equation} \label{eq:Bflux}
+  B_\mathrm{flux} = \int_0^{L_f} \frac{\mu(S_b) X_b}{Y_{xs}} \, dz = \frac{ X_b}{Y_{xs}}\int_0^{L_f} \mu(S_b) \, dz = \frac{ X_b}{Y_{xs}} L_f \bar{\mu}
+\end{equation}
+
+where $\bar{\mu}$ represents the average growth rate in the biofilm at a specific instant in time.
 
 \section{Biofilm Thickness}
 With the current time-step's substrate concentrations throughout the thickness of the biofilm computed, the new thickness of the biofilm may now be computed by solving the first order differential equation
@@ -449,7 +470,21 @@ This was done by increasing the diffusion coefficients $D_e$ and $D_{aq}$ to unr
   \includegraphics[read=eps, width=3in]{SteadyState_Figure1.eps}
 \end{figure}
 
-The equations used to solve for the steady state solutions of this problem are described in \ref{Steady State}. These equations were solved iteratively. The solutions produced by the code were compared to the iterative solutions found by analyzing the steady state problem.
+The equations used to solve for the steady state solutions of this problem are described in \ref{Steady State}. These equations were solved iteratively within the test. The solutions produced by the code were compared to the iterative solutions found by analyzing the steady state problem as follows.
+
+\begin{center}
+\begin{tabular}{ | c | c | c | } 
+\hline
+ Variable & Steady State Solution & Code Solution \\ 
+ \hline
+ S [{$g/m^3$}]  & 0.162686253310 & 0.162726176774 \\ 
+ \hline
+ x  [{$g/m^3$}] & 12.418656873345 & 12.418635483884 \\
+ \hline
+ Lf  [{$\mu m$}] & 541.465937430183 & 541.457821739766 \\
+\hline
+\end{tabular}
+\end{center}
 
 
 \subsection{Test Variable Time Dynamic of Tank Environment Calculations}
@@ -498,7 +533,7 @@ The thickness of the biofilm described by equation~\ref{eq:dLfdt_1} at steady st
 \end{equation}
 
 \subsection{Biomass Concentration in Tank}
-Biomass in the tank described by equation~\ref{eq: BiomassEquation} at steady state simplifies to 
+Biomass in the tank described by equation~\ref{eq: BiomassEquation}. 
 
 \begin{equation*} 
   Qx = \mu xV +v_{\mathrm{det}} S_A x_b
@@ -509,22 +544,15 @@ and by plugging in $v_{\mathrm{det}}= K_\mathrm{det} L_f^2 = \mu L_f$ from equat
 \end{equation}
 
 \subsection{Substrate Concentration}
-The substrate concentration in the tank is described by
-\begin{equation}\label{eq:sub1}
-  \frac{dS V}{dt} = -\frac{\mu x V}{Y_{xs}} + Q S_{\mathrm{in}} - Q S - S_A B_{\mathrm{flux}}.
-\end{equation}
-The flux term $B_\mathrm{flux}$ can be computed using the growth of biomass in the biofilm, \ie,
+Using the definition of $B_{\mathrm{flux}}$ from equation ~\ref{eq:Bflux}, the substrate concentration in the tank described by equation~\ref{eq: SubstrateEquation} can be written as
+
 \begin{equation}
-  B_\mathrm{flux} = \int_0^{L_f} \frac{\mu(S) x_b}{Y_{xs}} \, dz = \frac{ x_b}{Y_{xs}}\int_0^{L_f} \mu(S) \, dz = \frac{ x_b}{Y_{xs}} L_f \bar{\mu}.
+  \frac{dS V}{dt} = -\frac{\mu x V}{Y_{xs}} + Q S_{\mathrm{in}} - Q S -\frac{\bar{\mu} X_b V_b}{Y_{xs}}
 \end{equation}
- Using this definition of the flux, Eq.~\ref{eq:sub1} can be written as
+
+where $V_b=A L_f$ is the volume of the biofilm.  At steady-state this simplifies to 
 \begin{equation}
-  \frac{dS V}{dt} = -\frac{\mu x V}{Y_{xs}} + Q S_{\mathrm{in}} - Q S -\frac{\bar{\mu} x_b V_b}{Y_{xs}}
-\end{equation}
-where $V_b=S_A L_f$ is the volume of the biofilm.   At steady-state this simplifies to 
-\begin{equation}
- {\color{red}
-   x = \frac{Y_{xs}}{\mu V}\left(Q S_{\mathrm{in}} - Q S\right) -\frac{\bar{\mu} V_b}{\mu V}x_b}
+   x = \frac{Y_{xs}}{\mu V}\left(Q S_{\mathrm{in}} - Q S\right) -\frac{\bar{\mu} V_b}{\mu V}X_b
 \end{equation}
 
 
