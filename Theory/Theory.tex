@@ -32,7 +32,7 @@ A one-dimensional biofilm model was created in MATLAB for user specified conditi
   $\mu_\mathrm{max}$  & Maximum specific growth rate & 1/days\\
   $\bar\mu$ & Average growth rate & 1/days\\
   $K_\mathrm{m}$ & Monod half saturation coefficient & g/m$^3$\\
-  $K_\mathrm{ib}$ & Inhibition Coefficient & g/m$^3$\\
+  $K_\mathrm{i}$ & Inhibition Coefficient & g/m$^3$\\
   $Y_\mathrm{xs}$ & Biomass yield coefficient on substrate & g$\cdot$g/s\\
   $v_g$ & Biofilm Growth Velocity & m/s\\
   $v_\mathrm{det}$ & Detachment Velocity & m/s\\
@@ -118,30 +118,32 @@ The two now vectorized forms of the equations are packaged into a single new fun
 
 A low order Runge-Kutta Method based off the structure of ODE23, an intrinsic Matlab function, is used to discretize and solve the packaged differential equations in this function. The Runge-Kutta numerical method calculates the slope of function at three points between each step of the iteration process in order to boost the accuracy of the next-point estimation. The first of these three intermediate slope calculations is the most simple, and occurs at the beginning of the interval.
 \begin{equation} \label{eq: S_1}
-  S_1 = f(t_n,y_n)
+  S_1 = f(t^n,y^n)
 \end{equation}
+
+Note that $^n$ represents the state at the current time-step.
 
 The next slope estimation occurs at the midpoint of the iterative step, using the slope calculated at the beginning of the interval to increase its accuracy.
 \begin{equation} \label{eq: S_2}
-  S_2 = f(t + \frac{1}{2} dt,y + \frac{1}{2} dt S_1)
+  S_2 = f(t^n + \frac{1}{2} dt,y^n + \frac{1}{2} dt S_1)
 \end{equation}
 
 The third calculation occurs at the 3/4  point of the step.
 \begin{equation} \label{eq: S_3}
-  S_3 = f(t + \frac{3}{4} dt,y+\frac{3}{4} dt S_2)
+  S_3 = f(t^n + \frac{3}{4} dt,y^2+\frac{3}{4} dt S_2)
 \end{equation}
 
-The final calculation of the slope at the next step uses the previous three calculations to produce the most accurate estimation of the slope possible. 
+The final calculation of the slope at the next step uses the previous three calculations to produce the most accurate estimation of the slope possible. Here $^{n+1}$ represents the state at the following time-step.
 \begin{equation} \label{eq: t_{new}}
-  t_{new} = t + dt
+  t^{n+1} = t^n + dt
 \end{equation}
 
 \begin{equation} \label{eq: y_{new}}
-  y_{new} = y + \frac{1}{9} dt (2 S_1 + 3 S_2 + 4 S_3)
+  y^{n+1} = y^n + \frac{1}{9} dt (2 S_1 + 3 S_2 + 4 S_3)
 \end{equation}
 
 \begin{equation} \label{eq: S_4}
-  S_4 = f(t_{new},y_{new})
+  S_4 = f(t^{n+1},y^{n+1})
 \end{equation}
 
 The final portion of each iterative step is to calculate the error of the step by comparing it to the Butcher Tableau coefficients produced by an adaptive Runge-Kutta Method.
@@ -171,14 +173,14 @@ Different equations are required to represent different growth kinetics. The sta
   \mu=\mu_\mathrm{max} \frac{S}{K_m + S}
 \end{equation}
 
-Next is the Double Monod Growth Rate to model multiple substrates `a' and `b'.
+Next is the Double Monod Growth Rate to model multiple substrates `x' and `y'.
 \begin{equation} \label{eq: DoubleMonodGrowthRate}
-  \mu=\mu_\mathrm{max} \frac{S_a}{K_{ma} + S_a} \frac{S_b}{K_{mb} + S_b}
+  \mu=\mu_\mathrm{max} \frac{S_x}{K_\mathrm{m,x} + S_x} \frac{S_y}{K_\mathrm{m,y} + S_y}
 \end{equation}
 
 The final equation that may be used is an Inhibition Model.
 \begin{equation} \label{eq: Inhibition}
-  \mu=\mu_\mathrm{max} \frac{S_a}{K_{ma} + S_a} \frac{1}{1 + \frac{S_b}{K_{ib}}}
+  \mu=\mu_\mathrm{max} \frac{S_x}{K_\mathrm{m,x} + S_x} \frac{1}{1 + \frac{S_y}{K_{i,y}}}
 \end{equation}
 
 The Matlab $\mu$ function `mu.m' defines all these equations and allows for the desired growth rate to be called throughout the rest of the code when needed.
@@ -188,7 +190,7 @@ The Matlab $\mu$ function `mu.m' defines all these equations and allows for the 
 Substrates that exist within the tank will diffuse into the biofilm. The general expression for the substrate gradient inside the biofilm is defined by
 
 \begin{equation} \label{eq:substrate gradient}
-\frac{dS_b}{dt} = {D_e}\frac{d^2S_b}{dz^2} - \frac{\mu X_b}{Y_{xs}},
+\frac{dS_b}{dt} = {D_e}\frac{d^2S_b}{dz^2} - \frac{\mu(S_b) X_b}{Y_{xs}},
 \end{equation}
 
 where the first term on the right hand side of the expression represents the diffusion of substrate into the biofilm, and the second term on the right hand side represents the substrate used throughout the biofilm for growth (or the flux).
@@ -499,33 +501,33 @@ The governing expressions for the biofilm may now be modified and solved for ste
 The thickness of the biofilm described by equation~\ref{eq:dLfdt_1} at steady state reduces to 
 
 \begin{equation*}
-   {\bar\mu L_f}={k_{\mathrm{det}}L_f^2}.
+   {\bar\mu(S_b) L_f}={k_{\mathrm{det}}L_f^2}.
 \end{equation*}
  
  or by simplifying further
  
  \begin{equation}
   \label{eq:Lfsteady}
-  {L_f}=\frac{\bar\mu}{k_{\mathrm{det}}}
+  {L_f}=\frac{\bar\mu(S_b)}{k_{\mathrm{det}}}
 \end{equation}
 
 \subsection{Biomass Concentration in Tank}
 Biomass in the tank described by equation~\ref{eq: BiomassEquation}. 
 
 \begin{equation*} 
-  Qx = \mu xV +v_{\mathrm{det}} A X_b
+  Qx = \mu(S) xV +v_{\mathrm{det}} A X_b
 \end{equation*}
-and by plugging in $v_{\mathrm{det}}= K_\mathrm{det} L_f^2 = \mu L_f$ from the description of equation~\ref{eq:dLfdt_1} the following is obtained
+and by plugging in $v_{\mathrm{det}}= K_\mathrm{det} L_f^2 = \mu(S) L_f$ from the description of equation~\ref{eq:dLfdt_1} the following is obtained
 \begin{equation}
  \label{eq:biomass steady}
-  Qx = \mu xV +\mu L_f A X_b
+  Qx = \mu(S) xV +\mu(S) L_f A X_b
 \end{equation}
 
 \subsection{Substrate Concentration}
 Using the definition of $B_{\mathrm{flux}}$ from equation~\ref{eq:Bflux}, the substrate concentration in the tank described by equation~\ref{eq: SubstrateEquation} can be written as
 
 \begin{equation}
-  \frac{dS}{dt} = -\frac{\mu(S) x }{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} -\frac{\bar{\mu(S_b)} X_b V_b}{Y_{xs}{V}}
+  \frac{dS}{dt} = -\frac{\mu(S) x }{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} -\frac{\bar\mu(S_b) X_b V_b}{Y_{xs}{V}}
 \end{equation}
 
 where $V_b=A L_f$ is the volume of the biofilm.  At steady-state this simplifies to 
