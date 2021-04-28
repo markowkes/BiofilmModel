@@ -61,10 +61,10 @@ To simulate biofilm activity and dynamics, a model is sought that incorporates t
 
 The model constructed here recapitulates the Biofilm Accumulation Model (BAM), developed at the Center for Biofilm Engineering. BAM was itself a version of a model termed BIOSIM that was based on a construct from Oskar Wanner and Willi Gujer.
 
-\section{Matlab}
-This model was created using Matlab, a multi-paradigm programming language utilized across most engineering fields to model and analyze data. This model could be rewritten in a different language such as C, Python, etc. to allow the code to be more accessible in an open source editor format for future changes. 
+\section{Code}
+This model was created using Matlab, a multi-paradigm programming language utilized across most engineering fields to model and analyze data. This model could be rewritten in a different language such as C, Python, etc. to allow the code to be more accessible in an open source editor format for future changes. This code and all the created files can be accessed through any Git GUI in the public repository created by Dr. Mark Owkes of the mechanical and industrial engineering department at Montana State University. The title of this repository is $BiofilmModel$.
 
-\subsection{Matlab Infrastructure}
+\subsection{Matlab Infrastructure, $BiofilmModel$}
 \begin{tabular}{c l c}
   File Name & Description \\ \hline
   biofilmdiffusion\_fd.m & Computes diffusion into biofilm \\
@@ -77,10 +77,12 @@ This model was created using Matlab, a multi-paradigm programming language utili
   tankenvironment.m & Computes concentrations within tank environment \\
 \end{tabular}
 
-\subsection{Code Execution}
-In order to run this model, open the MAINDRIVER.m file in Matlab and type "MAINDRIVER(number)" in the command window. The number within the parentheses will correspond to the desired test case to be run, which can be inputted in the cases.m file. 
+\subsection{Access}
+The file repository can be accessed using any free Git GUI software. Git is a system of project management used to handle large collaborative work involving multiple localities where all the work can be saved and accessed through a remote central cloud. The benefit of this system is that work can be saved and edited remotely until it is ready to be released to the cloud for access and use by all within the project. The two Git systems used most frequently throughout this project were Github and Sourcetree. 
+
+Downloading a system such as Github or Sourcetree will allow any user to search for the repository $BiofilmModel$ and gain access to all the files outlined above. 
   
-  \section{Tank Environment}
+\section{Tank Environment}
 The environment is modeled in this function as a continuous stirred tank reactor (CSTR), with the existence of an inflow and outflow which carries substrate into the bulk liquid, where some initial concentration of biomass already exists.
 
 \begin{figure}[H]
