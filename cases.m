@@ -51,7 +51,7 @@ model=2; %('Monod Growth Rate Equation')
 
 %% Biofilm
 Nz=50; %Linear grid points to describe biofilm
-dtol=1e-10; %tolerance for substrate diffusion conversion
+dtol=1e-10; %tolerance for substrate diffusion convergence
 
 %% Tank Geometry
 L=0.5; %[m]
