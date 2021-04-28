@@ -45,9 +45,9 @@ A one-dimensional biofilm model was created in MATLAB for user specified conditi
   $S_b$ & Substrate Concentration in biofilm & g/m$^3$ \\
   $x$ & Biomass Concentration in tank & g/m$^3$\\
   $x_o$ & Initial biomass concentration in tank &  g/m$^3$ \\
+  $X_b$ & Biomass density in biofilm &  g/m$^3$ \\
   $D_\mathrm{aq}$ & Diffusion coefficient of substrate in water & m$^2$/day \\
   $D_e$ & Effective diffusion coefficient of substrate in biofilm & m$^2$/day \\
-  $X_b$ & Biomass density in biofilm &  g/m$^3$ \\
   $L_{f}$ & Biofilm thickness & m\\
   $L_L$ & Concentration boundary layer thickness & m \\
   $k_\mathrm{det}$ &	Detachment rate coefficient & 1/(m$\cdot$days)\\
@@ -330,15 +330,15 @@ With the current time-step's substrate concentrations throughout the biofilm and
 
 \begin{equation}
   \label{eq:dLfdt_1}
-  \frac{d L_f}{dt} = {\bar\mu L_f}-{k_{\mathrm{det}}L_f^2},
+  \frac{d L_f}{dt} = {\bar\mu(S_b) L_f}-{k_{\mathrm{det}}L_f^2},
 \end{equation}
-in which the first term of the right hand side is equal to the growth velocity ($v_g={\bar\mu L_f}$) and the second term is equal to the detachment velocity of the biofilm's biomass ($v_{det}={k_{\mathrm{det}}L_f^2}$)
+in which the first term of the right hand side is equal to the growth velocity ($v_g={\bar\mu(S_b) L_f}$) and the second term is equal to the detachment velocity of the biofilm's biomass ($v_{det}={k_{\mathrm{det}}L_f^2}$)
 
 Since the growth rate $\mu$ is specified as an average value within the biofilm in the growth velocity term of equation ~\ref{eq:dLfdt_1}, and the specifics of the growth rate at each point within the biofilm depends on $\mu$ and $S_b$ a result for the growth velocity within the biofilm is obtained by numerically evaluating the integral 
 
 \begin{equation}
   \label{eq:vg_int}
-  {v_g}={\int_{0}^{L_f}\mu(S_b(z) dz}.
+  {v_g}={\int_{0}^{L_f}\mu(S_b(z)) dz}.
 \end{equation}
 
 Eq.~\ref{eq:dLfdt_1} is discretized and a future time step's solution is obtained using Euler's method and the information known at the current time step. The resulting expression is as follows, where the superscript $\ie L_f^{n}$ denotes the biofilms state at the respective time-step $n$.
@@ -446,7 +446,7 @@ This was done by increasing the diffusion coefficients $D_e$ and $D_{aq}$ to unr
   \caption{A depiction of the very small substrate concentration gradient within the biofilm under the given conditions.}
 \end{figure}
 
-The equations used to solve for the steady state solutions of this problem are described in \ref{Steady State}. These equations were solved iteratively within the test. The solutions produced by the code were compared to the iterative solutions found by analyzing the steady state problem as follows.
+The equations used to solve for the steady state solutions of this problem are described in \ref{Steady State}. These equations were solved iteratively within the test. The solutions produced by the code were compared to the iterative solutions found by analyzing this steady state problem. The error between each parameter was confirmed to be less than $1\%$.
 
 \begin{center}
 \begin{tabular}{ | c | c | c | } 
@@ -513,24 +513,28 @@ The thickness of the biofilm described by equation~\ref{eq:dLfdt_1} at steady st
 Biomass in the tank described by equation~\ref{eq: BiomassEquation}. 
 
 \begin{equation*} 
-  Qx = \mu xV +v_{\mathrm{det}} A x_b
+  Qx = \mu xV +v_{\mathrm{det}} A X_b
 \end{equation*}
 and by plugging in $v_{\mathrm{det}}= K_\mathrm{det} L_f^2 = \mu L_f$ from the description of equation~\ref{eq:dLfdt_1} the following is obtained
 \begin{equation}
-  Qx = \mu xV +\mu L_f A x_b
+ \label{eq:biomass steady}
+  Qx = \mu xV +\mu L_f A X_b
 \end{equation}
 
 \subsection{Substrate Concentration}
 Using the definition of $B_{\mathrm{flux}}$ from equation~\ref{eq:Bflux}, the substrate concentration in the tank described by equation~\ref{eq: SubstrateEquation} can be written as
 
 \begin{equation}
-  \frac{dS V}{dt} = -\frac{\mu x V}{Y_{xs}} + Q S_{\mathrm{in}} - Q S -\frac{\bar{\mu} X_b V_b}{Y_{xs}}
+  \frac{dS}{dt} = -\frac{\mu(S) x }{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} -\frac{\bar{\mu(S_b)} X_b V_b}{Y_{xs}{V}}
 \end{equation}
 
 where $V_b=A L_f$ is the volume of the biofilm.  At steady-state this simplifies to 
 \begin{equation}
-   x = \frac{Y_{xs}}{\mu V}\left(Q S_{\mathrm{in}} - Q S\right) -\frac{\bar{\mu} V_b}{\mu V}X_b
+ \label{eq:x steady}
+   x = \frac{Y_{xs}}{\mu V}\left(Q S_{\mathrm{in}} - Q S\right) -\frac{\bar{\mu} V_b}{\mu V}{X_b}
 \end{equation}
 
+\subsection{Solving for Steady State Parameters}
+Equation~\ref{eq:Lfsteady},~\ref{eq:biomass steady}, and~\ref{eq:x steady} were defined in Matlab. From here an initial guess of $S$ is made. $S$ is increased incrementally in a loop until the right hand side equals the left hand side of equation~\ref{eq:biomass steady} to within a tolerance of $1E-12$.
 
 \end{document}
