@@ -30,9 +30,9 @@ Biofilms are everywhere. From alpine streams to wastewater treatment plants comp
   Variable & Description & Units\\ \hline
   $\mu$ & Growth Rate & 1/days\\
   $\mu_\mathrm{max}$  & Maximum specific growth rate & 1/days\\
-  $\mu_\mathrm{bar}$ & Average growth rate & 1/days\\
-  $K_m$ & Monod half saturation coefficient & g/m$^3$\\
-  $K_i$ & Inhibition Coefficient & g/m$^3$\\
+  $\bar\mu$ & Average growth rate & 1/days\\
+  $K_\mathrm{m}$ & Monod half saturation coefficient & g/m$^3$\\
+  $K_\mathrm{ib}$ & Inhibition Coefficient & g/m$^3$\\
   $Y_\mathrm{xs}$ & Biomass yield coefficient on substrate & g$\cdot$g/s\\
   $V_g$ & Biofilm Growth Velocity & m/s\\
   $V_\mathrm{det}$ & Detachment Velocity & m/s\\
@@ -420,10 +420,10 @@ Again, when the code is producing results which match the expected analytic solu
 \subsection{Test Diffusion}
 To ensure the biofilm diffusion function was operating properly with respect to the the physical situation at hand, a test was setup in which the analytical solution for substrate concentrations throughout the biofilm would be compared to those computed numerically in the biofilm diffusion function.
 
-An analytical solution was able to be created for the substrate concentration gradient within the biofilm by enlarging parameters $\mu$ and $Km$ so that external mass transfer can be eliminated and therefore the tank concentration S can be considered to be a fixed value. The analytical solution for substrate concentrations within the biofilm was computed at each location z within the biofilm with the following expression.
+An analytical solution was able to be created for the substrate concentration gradient within the biofilm by enlarging parameters $\mu$ and $K_m$ in the code simulation so that external mass transfer is essentially eliminated and the tank concentration $S$ is forced to a fixed value in the bulk fluid. This analytical solution for substrate concentrations within the biofilm was computed at each location z within the biofilm with the assumptions that $\mu={S}{\mu_\mathrm{max}}$ and the boundary layer thickness $LL=0$ with the following expression.
 
 \begin{align}
-{Sb_{ana}}=\frac{S*{cosh(\frac{{\phi}{z}}{Lf})}}{cosh(\phi)}\\
+{Sb_\mathrm{ana}}=\frac{S{\cosh(\frac{{\phi}{z}}{Lf})}}{\cosh(\phi)}\\
 \text{where}{\quad} {\phi}=\frac{\mu_{max}{X_b}{L_f^{2}}}{{D_e}{K_m}{Y_{xs}}}
 \end{align}
 
