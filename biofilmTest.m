@@ -100,7 +100,7 @@ Lf=5e-6;
 param.LL=0;
 param.Xb=20000;
 param.dtol=1e-12;
-param.model=2;
+param.model=1;
 
 figure(1); clf(1); hold on
 Nzs=[10,50,100,1000,2000]; %Grid sizes to test
