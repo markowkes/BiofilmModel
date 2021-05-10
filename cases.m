@@ -81,6 +81,7 @@ Kdet =[1900 1900 1900 1900 190000 1900 1900 1900 1900];
 %% Index variables under structure "param"
 param.tFin   =tFin;
 param.dt     =dt;
+param.dtmax  =dt;
 param.ttol   =ttol;
 
 param.model  =model;
