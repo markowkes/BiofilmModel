@@ -12,6 +12,7 @@ Yxs=param.Yxs;
 Sin=param.Sin;
 A  =param.A;
 tol=param.ttol;
+dtmax=param.dtmax;
 
 dxdt = @(x,t,S,Vdet) (mu(S,param)-(Q/V))*x+(Vdet*A*Xb)/V; %Biomass Concentration Change wrt time
 dsdt = @(x,t,S) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-((A*bflux)/V); % ^^^Substrate Concentration Change wrt time
@@ -46,6 +47,12 @@ while true
     if abs(error) < tol/100 
         %dt is getting very small
         dt=dt*2;
+        %Check if dt max is exceded
+        if dt>dtmax 
+            %Set dt to dtmax
+            dt=dtmax;
+            break
+        end
     elseif abs(error) > tol
         %dt is too big
         dt=dt/2;
