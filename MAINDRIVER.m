@@ -43,6 +43,20 @@ plots=0; titles=0;
 i=1;
 while t(i)<tFin-dt
     
+    % Check if arrays are filling up
+    if length(bflux)==i 
+        % Compute an estimate for reamaining time steps
+        Nrem    =round((tFin-t(i))/dt(i));
+        
+        % Append time dependant arrays with estimate
+        t       =[t     zeros(1,Nrem)]; 
+        x       =[x     zeros(1,Nrem)]; 
+        S       =[S     zeros(1,Nrem)]; 
+        bflux   =[bflux zeros(1,Nrem)]; 
+        Lf      =[Lf    zeros(1,Nrem)]; 
+        dt      =[dt    zeros(1,Nrem)];        
+    end
+    
     %Update biofilm grid as biofilm grows
     z=linspace(0,Lf(i),Nz); %[m] Grid of Biofilm Depth
     dz=z(2)-z(1); %[m]
