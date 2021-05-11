@@ -156,7 +156,7 @@ function test_steadystate(testCase)
 tc=7 ; %number of case, A corresponds to 1, B corresponds to 2....
 param=cases(tc); %structure variables are stored in
 % Run simulation
-[~,xsim,Ssim,Lfsim]=MAINDRIVER(tc);
+[~,xsim,Ssim,Lfsim]=MAINDRIVER(param);
 
 % Analytic solution
 Yxs=param.Yxs;
@@ -195,7 +195,8 @@ function test_timedynamicsdt(testCase)
 % run test
 
 % Simulation with no biomass (mu=0)
-[t,~,S,~]=MAINDRIVER(9);
+param=cases(9);
+[t,~,S,~]=MAINDRIVER(param);
 
 % Analytic Solution
 param=cases(9);

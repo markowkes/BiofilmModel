@@ -1,6 +1,4 @@
-function [t,x,S,Lf]=MAINDRIVER(tc)
-%% Inputs from cases function
-param=cases(tc);
+function [t,x,S,Lf]=MAINDRIVER(param)
 
 Nz      =param.Nz;
 So      =param.So;
