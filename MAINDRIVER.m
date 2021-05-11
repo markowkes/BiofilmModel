@@ -3,12 +3,11 @@ function [t,x,S,Lf]=MAINDRIVER(param)
 Nz      =param.Nz;
 So      =param.So;
 tFin    =param.tFin;
-dt      =param.dt;
 outFreq =param.outFreq;
 
 %% Preallocation
 %Compute number of time-steps to solve for
-N=tFin/dt; 
+N=round(tFin/param.dtmax); 
 
 %Corresponding arrays
 t       =zeros(1,N); %Time
@@ -31,7 +30,7 @@ S(1)=param.So;
 
 
 %Time
-dt(1)=param.dt;
+dt(1)=param.dtmax;
 
 %% Initialize plots 
 outIter=outFreq-1;
@@ -39,7 +38,7 @@ plots=0; titles=0;
 
 %% Time Loop
 i=1;
-while t(i)<tFin-dt
+while t(i)<tFin-dt(i)
     
     % Check if arrays are filling up
     if length(bflux)==i 
