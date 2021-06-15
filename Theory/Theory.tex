@@ -192,7 +192,7 @@ The Matlab $\mu$ function `mu.m' defines all these equations and allows for the 
 Substrates that exist within the tank will diffuse into the biofilm. The general expression for the substrate gradient inside the biofilm is defined by
 
 \begin{equation} \label{eq:substrate gradient}
-\frac{dS_b}{dt} = {D_e}\frac{d^2S_b}{dz^2} - \frac{\mu(S_b) X_b}{Y_{xs}},
+\frac{dS_{b,j}}{dt} = {D_e}\frac{d^2S_{b,j}}{dz^2} - \frac{\mu_j(\mathbf{S}_b) X_b}{Y_{xs}},
 \end{equation}
 
 where the first term on the right hand side of the expression represents the diffusion of substrate into the biofilm, and the second term on the right hand side represents the substrate used throughout the biofilm for growth (or the flux).
@@ -200,121 +200,166 @@ where the first term on the right hand side of the expression represents the dif
 By considering the substrate concentration to be in a pseudo steady state condition at each time-step considered equation~\ref {eq:substrate gradient} simplifies to 
 
 \begin{equation} \label{eq:diffusion}
-  \frac{d^2 S_b}{dz^2} = \frac{\mu(S_b) X_b}{Y_{xs} D_e}.
+  \frac{d^2 S_{b,j}}{dz^2} = \frac{\mu_j(\mathbf{S}_b) X_b}{Y_{xs} D_e}.
 \end{equation}
 This differential equation is typically non-linear due the growth-rate $\mu$.
 
 \subsection{Discretization and Linearization}
 To solve it we use the direct, finite-difference method, which leads to the following discretized equation
 \begin{equation} \label{eq:diff_dis}
-  \frac{ S_{b,i-1} - 2 S_{b,i} + S_{b,i+1}}{dz^2} = \frac{\mu(S_{b,i}) X_b}{Y_{xs} D_e},
+  \frac{ S_{b,j,i-1} - 2 S_{b,j,i} + S_{b,j,i+1}}{dz^2} = \frac{\mu_j(\mathbf{S}_{b,i}) X_b}{Y_{xs} D_e},
 \end{equation}
-which is valid at all the interior grid points, \ie, for $i=2,3,\dots,N_z-1$. 
+which is valid at all the interior grid points, \ie, for $i=2,3,\dots,N_z-1$ and for all substrates $j=1,2,\dots,N_S$.
+Note that $\mu_j$, the growth-rate for the $j^\mathrm{th}$ substrate may depend on the other substrates and is thus written as a function of the array of substrates at the $i^\mathrm{th}$ grid point $\mathbf{S}_{b,i}$.
 This non-linear equation is solved by linearizing and then iterating the solution from an initial guess until converged.
-The iterations are denoted by a superscript, \ie, $S_{b}^{(k)}$.  With this notation Equation~\ref{eq:diff_dis} becomes
+The iterations are denoted by a superscript, \ie, $S_{b,j}^{(k)}$.  With this notation Equation~\ref{eq:diff_dis} becomes
 \begin{equation} \label{eq:diff_dis_iter}
-  \frac{ S_{b,i-1}^{(k)} - 2 S_{b,i}^{(k)} + S_{b,i+1}^{(k)}}{\Delta z^2} = \frac{\mu\left(S_{b,i}^{(k)}\right) X_b}{Y_{xs} D_e} =  g\left(S_{b,i}^{(k)}\right),
+  \frac{ S_{b,j,i-1}^{(k)} - 2 S_{b,j,i}^{(k)} + S_{b,j,i+1}^{(k)}}{\Delta z^2} = \frac{\mu_j\left(\mathbf{S}_{b,i}^{(k)}\right) X_b}{Y_{xs} D_e} =  g_j\left(\mathbf{S}_{b,i}^{(k)}\right),
 \end{equation}
-where we have introduced $g$ as the right hand side of the equation.
+where we have introduced $g_j$ as the right hand side of the equation.
 
 To linearize this equation, the Taylor series of $g$ is employed about the previous iteration $S_{b,i}^{(k-1)}$ which is
 \begin{equation}\label{eq:TaylorSeries}
-  g\left(S_{b,i}^{(k)}\right) =   g\left(S_{b,i}^{(k-1)}\right) + \left( S_{b,i}^{(k)} - S_{b,i}^{(k-1)}\right) \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} + \dots
+  g_j\left(\mathbf{S}_{b,i}^{(k)}\right) =   g_j\left(\mathbf{S}_{b,i}^{(k-1)}\right) + \sum_{m=1}^{N_S} \left( S_{b,m,i}^{(k)} - S_{b,m,i}^{(k-1)}\right) \frac{d g_j\left(\mathbf{S}_{b,i}^{(k-1)}\right)}{d S_{b,m}} + H.O.T.
 \end{equation}
 
 Combining Equations.~\ref{eq:diff_dis_iter} and~\ref{eq:TaylorSeries} and keeping only the linear terms in the Taylor series leads to
 \begin{equation} \label{eq:diff_linear}
-  \frac{ S_{b,i-1}^{(k)} - 2 S_{b,i}^{(k)} + S_{b,i+1}^{(k)}}{\Delta z^2} =  g\left(S_{b,i}^{(k-1)}\right) + \left( S_{b,i}^{(k)} - S_{b,i}^{(k-1)}\right) \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}},
+  \frac{ S_{b,j,i-1}^{(k)} - 2 S_{b,j,i}^{(k)} + S_{b,j,i+1}^{(k)}}{\Delta z^2} =  g_j\left(\mathbf{S}_{b,i}^{(k-1)}\right) + \sum_{m=1}^{N_S} \left( S_{b,m,i}^{(k)} - S_{b,m,i}^{(k-1)}\right)  \frac{d g_j\left(\mathbf{S}_{b,i}^{(k-1)}\right)}{d S_{b,m}} 
 \end{equation}
-which is linear with-respect-to $S_{b,i}^{(k)}$ and can be rearranged to
+which is linear with-respect-to $S_{b,j,i}^{(k)}$ for $j=1,\dots,N_S$ and can be rearranged to
 \begin{equation}
   \label{eq:diff_final}
-  -S_{b,i-1}^{(k)} + \left( 2 +\Delta z^2\left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}}\right) S_{b,i}^{(k)} - S_{b,i+1}^{(k)}
-  = \Delta z^2\left( S_{b,i}^{(k-1)} \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} - g\left(S_{b,i}^{(k-1)}\right)\right) .
+  \begin{split}
+    -S_{b,j,i-1}^{(k)} + 2 S_{b,i}^{(k)} - S_{b,j,i+1}^{(k)}
+    &+  \Delta z^2\sum_{m=1}^{N_S} \left( \frac{d g_j\left(\mathbf{S}_{b,i}^{(k-1)}\right)}{d S_{b,m}}  S_{b,m,i}^{(k  )}\right)\\
+    &=  \Delta z^2\sum_{m=1}^{N_S} \left( \frac{d g_j\left(\mathbf{S}_{b,i}^{(k-1)}\right)}{d S_{b,m}}  S_{b,m,i}^{(k-1)}\right) - \Delta z^2 g_j\left(\mathbf{S}_{b,i}^{(k-1)}\right) .
+  \end{split}
 \end{equation}
 
-The derivative $\left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}}$ needs to be approximated and we use
+The derivatives $\frac{d g_j\left(\mathbf{S}_{b,i}^{(k)}\right)}{d S_{b,m}}$  for $m=1,\dots,N_S$ at this $i$ location and for the $j^\mathrm{th}$ substrate need to be approximated and we use
 \begin{equation}
   \label{eq:dgds}
-  \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} = \frac{g\left(S_{b,i}^+\right) - g\left(S_{b,i}^{-}\right)}{\Delta S},
+  \frac{d g_j\left(\mathbf{S}_{b,i}^{(k)}\right)}{d S_{b,m}} = \frac{g_j\left(\mathbf{S}_{b,m,i}^+\right) - g_j\left(\mathbf{S}_{b,m,i}^{-}\right)}{ dS},
 \end{equation}
 where
 \begin{align*}
-  S_{b,i}^+&=S_{b,i}^{(k-1)}+\delta \text{\quad and} \\
-  S_{b,i}^-&=\max\left[S_{b,i}^{(k-1)}+\delta,0\right]
+  \mathbf{S}_{b,m,i}^+&=\mathbf{S}_{b,i}^{(k-1)}+ \Delta \left[\delta_{1,m},\delta_{2,m},\dots,\delta_{N_S,m}\right]^\mathsf{T} \text{\quad and} \\
+  \mathrbf{S}_{b,m,i}^-&=\max\left\{0, \mathbf{S}_{b,i}^{(k-1)}- \Delta\left[\delta_{1,m},\delta_{2,m},\dots,\delta_{N_S,m}\right]^\mathsf{T}\right\}
 \end{align*}
-and $\Delta S = S_{b,i}^+ - S_{b,i}^-$ and $\delta=1\times 10^{-3}$ is an specified constant.  The maximum on $S_{b,i}^-$ ensures the concentration remains non-negative.
+where $\Delta=1\times 10^{-3}$ is an specified constant, $\delta_{j,m}$ is the Kronecker delta, and $dS = S_{b,i}^+ - S_{b,i}^-$.  The maximum on $S_{b,i}^-$ ensures the concentration remains non-negative.
 
 \subsection{Boundary Conditions} \label{Boundary Conditions}
-Eq.~\ref{eq:diff_final} for $i=2,3,\dots,N_z-1$ provides $N_z-2$ equations for $S_{b}^{(k)}$.  The remaining equations come from the boundary conditions.  At the bottom of the biofilm ($z=0$) there is a wall and a no-flux boundary condition is appropriate, \ie,
+Eq.~\ref{eq:diff_final} for $i=2,3,\dots,N_z-1$ and $j=1,2,\dots,N_S$ provides $N_z-2 \times N_S$ equations for $S_{b,j}^{(k)}$.  The remaining equations come from the boundary conditions.  At the bottom of the biofilm ($z=0$) there is a wall and a no-flux boundary condition is appropriate, \ie,
 \begin{equation}
   \label{eq:BC1}
-  \left.\frac{d S_b}{dz}\right|_{z=0}= \frac{S_2 - S_1}{\Delta z} =0.
+  \left.\frac{d S_{b,j}}{dz}\right|_{z=0}= \frac{S_{b,j,2} - S_{b,j,1}}{\Delta z} =0,
 \end{equation}
+for $j=1,2,\dots,N_S$.
 
 At the top of the biofilm the substrate is diffusing from the tank into the biofilm.  Depending on the conditions in the tank, \eg, how well it is mixed, the flux of substrate into the biofilm may be controlled by the diffusion through the liquid in the tank.  This leads to a flux-matching condition that can be written as
 \begin{equation}
   \label{eq:BC2}
-  D_e \left.\frac{d S_b}{dz}\right|_{z=L_f} = D_{\mathrm{aq}} \frac{S - S_b(L_f)}{L_L}.
+  D_{e,j} \left.\frac{d S_{b,j}}{dz}\right|_{z=L_f} = D_{\mathrm{aq},j} \frac{S_j - S_{b,j}(L_f)}{L_L}.
 \end{equation}
-where a simple diffusion model through the liquid has been used.  Discretizing the derivative using a finite-difference operator leads to
+for $j=1,2,\dots,N_S$, where a simple diffusion model through the liquid has been used.  Discretizing the derivative using a finite-difference operator leads to
 \begin{equation}
   \label{eq:BC2_dis}
-  D_e \frac{S_{b,N_z} - S_{b,N_z-1}}{\Delta z} = D_{\mathrm{aq}} \frac{S - S_{b,N_z}}{L_L}.
+  D_{e,j} \frac{S_{b,j,N_z} - S_{b,j,N_z-1}}{\Delta z} = D_{\mathrm{aq},j} \frac{S_j - S_{b,j,N_z}}{L_L}.
 \end{equation}
 Rearranging leads to
 \begin{equation}
   \label{eq:BC2_dis2}
-  \left(D_e L_l + D_{\mathrm{aq}} \Delta z\right) S_{b,N_z} - D_e L_l S_{b,N_z-1} = D_{\mathrm{aq}} \Delta z S
+  \left(D_{e,j} L_l + D_{\mathrm{aq},j} \Delta z\right) S_{b,j,N_z} - D_{e,j} L_l S_{b,j,N_z-1} = D_{\mathrm{aq},j} \Delta z S_j
 \end{equation}
-which is a useful form because if $L_l=0$ it simplifies to $S_{b,N_z}=S$ as expected without dividing by zero.
+for $j=1,2,\dots,N_S$, which is a useful form because if $L_l=0$ it simplifies to $S_{b,j, N_z}=S_j$ as expected without dividing by zero.
 
 \subsection{Solution of System of Equations}
 The previous two section describe the equations used to solve the diffusion problem through
 the biofilm and apply appropriate boundary conditions.
-In summary, Eq.~\ref{eq:diff_linear} for $i=2,3,\dots,N_z-1$ provides $N_z-2$ equations with
-Eq.~\ref{eq:BC1} and Eq.~\ref{eq:BC2_dis2} providing the two other equations
-for a total of $N_z$ equations for the $N_z$ unknowns $S_{b,i}$ for $i=1,\dots,N_z$.
+In summary, Eq.~\ref{eq:diff_linear} for $i=2,3,\dots,N_z-1$ and for $j=1,2,\dots,N_S$ provides $N_z-2 \times N_S$ equations with
+Eq.~\ref{eq:BC1} and Eq.~\ref{eq:BC2_dis2} each providing $N_S$ other equations
+for a total of $N_z\times N_S$ equations for the $N_z\times N_S$ unknowns $S_{b,j,i}$ for $i=1,\dots,N_z$ and for $j=1,2,\dots,N_S$.
 
-The $N_z$ equations are solved by iteratively solving for $S_b$ using the matrices
+The $N_z\times N_s$ equations are solved by iteratively solving for $S_{b,j,i}^{(k)}$ using the matrices
 \begin{equation}
   \label{eq:system}
   \renewcommand*{\arraystretch}{1.5}
-  \begin{bmatrix}
-    1 &-1  &   &   &   & \\
-    L &  D & U &  &   & \\
-    ~ & L &  D & U &  & \\
-    ~ & ~ & \ddots &  \ddots & \ddots & \\
-    ~ & ~ & ~ & L &  D & U\\
-    ~ & ~ & ~ & ~ &  C_1 & C_2  
-  \end{bmatrix}
-  \begin{bmatrix}
-    S_{b,1}^{(k)}\\
-    S_{b,2}^{(k)}\\
-    S_{b,3}^{(k)}\\
-   \vdots\\
-    S_{b,N_z-1}^{(k)}\\
-    S_{b,N_z}^{(k)}
-  \end{bmatrix}
-  =
+  \setcounter{MaxMatrixCols}{20}
+  \rotatebox{90}{
     \begin{bmatrix}
-   0\\
-    R_{2}\\
-    R_{3}\\
-    \vdots\\
-    R_{N_z-1}\\
-    C_3
-  \end{bmatrix}
+      1 &-1  &   &   &  \\
+      L &  D_{1,2,1} & U &  & & & D_{1,2,2} &  & & & &  D_{1,2,3} \\
+      & \ddots &  \ddots & \ddots & \\
+      &   & L &  D_{1,N_z-1,1} & U &  & & & D_{1,N_z-1,2} &  & & & D_{1,N_z-1,3}\\
+      &   &   &  E_1 & F_1  \\
+      &    &    &    &    &  1 &-1  &   &   &  \\
+      &    D_{2,2,1} &    &    &    &  L &  D_{2,2,2} & U &  & &  & D_{2,2,3}  \\
+      &    &    &    &    &        & \ddots &  \ddots & \ddots &   \\
+      &    &    &   D_{2,N_z-1,2}  &    &        &   & L &  D_{2,N_z-1,2} & U &  & & D_{2,N_z-1,3}\\
+      &    &    &    &    &        &   &   &  E_2 & F_2  \\
+      &    &    &    &    &    &    &    &    &    &  1 & -1  &   &   &  \\
+      &   D_{3,2,1} &    &    &    &     & D_{3,2,2}    &    &    &    &  L &  D_{3,2,3} & U &  &  \\
+      &    &    &    &    &    &    &    &    &    &        & \ddots &  \ddots & \ddots &   \\
+      &    &     &   D_{3,N_z-1,1} &  &    &    &    &  D_{3,N_z-1,2}    &        &   & L &  D_{3,N_z-1,3} & U\\
+      &    &    &    &    &    &    &    &    &        &   &   &  E_2 & F_2  \\
+    \end{bmatrix}
+    \begin{bmatrix}
+      S_{b,1,1}^{(k)}\\
+      S_{b,1,2}^{(k)}\\
+      \vdots\\
+      S_{b,1,N_z-1}^{(k)}\\
+      S_{b,1,N_z}^{(k)}\\
+      S_{b,2,1}^{(k)}\\
+      S_{b,2,2}^{(k)}\\
+      \vdots\\
+      S_{b,2,N_z-1}^{(k)}\\
+      S_{b,2,N_z}^{(k)}\\
+      S_{b,3,1}^{(k)}\\
+      S_{b,3,2}^{(k)}\\
+      \vdots\\
+      S_{b,3,N_z-1}^{(k)}\\
+      S_{b,3,N_z}^{(k)}\\
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+      0\\
+      R_{1,2}\\
+      \vdots\\
+      R_{1,N_z-1}\\
+      G_1 \\
+      0\\
+      R_{2,2}\\
+      \vdots\\
+      R_{2,N_z-1}\\
+      G_2\\
+      0\\
+      R_{3,2}\\
+      \vdots\\
+      R_{3,N_z-1}\\
+      G_3\\
+    \end{bmatrix}
+  }
 \end{equation}
-The first row comes from Eq.~\ref{eq:BC1}.
-The second through $N_z-1$ rows are Eq.~\ref{eq:diff_final} written with $i=2,\dots,N_z-1$ and the constants are $L=U=-1$,
-\begin{align*}
-  D&=\left( 2 +\Delta z^2\left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}}\right)\text{\quad and}\\
-  R_i&=\Delta z^2\left( S_{b,i}^{(k-1)} \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} - g\left(S_{b,i}^{(k-1)}\right)\right) 
-\end{align*}
-The last row is Eq.~\ref{eq:BC2_dis2} with $C_1=D_e L_l$, $C_2=\left(D_e L_l + D_{\mathrm{aq}} \Delta z\right)$, and $C_3=D_{\mathrm{aq}} \Delta z S$.
 
-The right-hand-side depends $S_{b,i}^{(k-1)}$, which is the concentration at the previous iteration.  The solution process is started with a guess, e.g., $S_b=0$. Iteration continues until
+This matrix is shown for three substrates, but the pattern continues for more (or less) substrates.  The first 5 rows corespond to substrate 1, the next five rows for substrate 2, and so on.
+
+The first row for each substrate comes from Eq.~\ref{eq:BC1}.
+The second through fourth row (corresponding to the $N_z-1$ location) are Eq.~\ref{eq:diff_final} written with $i=2,\dots,N_z-1$ and the constants are $L=U=-1$,
+\begin{align*}
+  D_{j,i,m}&=\left( 2 \delta_{j,m} +\Delta z^2\frac{d g_j\left(\mathbf{S}_{b,i}^{(k-1)}\right)}{d S_{b,m}}\right)\text{\quad and}\\
+  R_{j,i}   &= \Delta z^2\sum_{m=1}^{N_S} \left( \frac{d g_j\left(\mathbf{S}_{b,i}^{(k-1)}\right)}{d S_{b,m}}  S_{b,m,i}^{(k-1)}\right) - \Delta z^2 g_j\left(\mathbf{S}_{b,i}^{(k-1)}\right) 
+\end{align*}
+where $\delta_{j,m}$ is the Kronecker delta.
+
+The last row in each set is Eq.~\ref{eq:BC2_dis2} with
+\begin{align}
+  E_j&=D_{e,j} L_l,\\
+  F_j&=\left(D_{e,j} L_l + D_{\mathrm{aq}} \Delta z\right),\text{ and}\\
+  G_j&=D_{\mathrm{aq}} \Delta z S.
+\end{align}
+
+The right-hand-side depends on $S_{b,j,i}^{(k-1)}$, which is the concentration at the previous iteration.  The solution process is started with a guess, e.g., $S_b=0$. Iteration continues until
 \begin{equation*}
   \max\left| S_{b,i}^{(k)} - S_{b,i}^{(k-1)} \right| < \mathrm{tol},
 \end{equation*}
