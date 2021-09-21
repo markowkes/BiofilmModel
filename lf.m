@@ -9,11 +9,14 @@ Kdet=param.Kdet;
 %% Growth
 
 %Trapzoidal Integration Method
-Vg=0; %initial growth velocity
-for i=1:length(Sb)-1
-    Vg=Vg+dz*((mu(Sb(i),param)+mu(Sb(i+1),param))/2);
-end
 
+Ns = size(Sb,1);
+Vg=0; %initial growth velocity
+for j=1:Ns
+    for i=1:length(Sb)-1
+        Vg=Vg+dz*((mu(1,Sb(:,i),param)+mu(1,Sb(:,i+1),param))/2);
+    end
+end
 % %Midpoint Integration Method
 % Vg=0; %initial growth velocity
 % i=1;

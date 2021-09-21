@@ -171,14 +171,14 @@ S=1; % Initial guess
 tol=1e-12;
 error=1;
 while abs(error)>tol
-    Lf=mu(S,param)/Kdet;
-    Vdet=mu(S,param)*Lf;
-    x=Yxs*(Sin-S);
+    Lf=mu(S(1,:),param)/Kdet;
+    Vdet=mu(S(1,:),param)*Lf;
+    x=Yxs*(Sin(1,:)-S(1,:));
     LHS=Q*x;
-    RHS=Vdet*A*Xb+mu(S,param)*x*V;
+    RHS=Vdet*A*Xb+mu(S(1,:),param)*x*V;
     
     error=LHS-RHS;
-    S=S+0.001*error;
+    S(1,:)=S(1,:)+0.001*error;
 end
 % Compare solution
 fprintf('S      =%16.12f, %16.12f g/m^3 \n',S,Ssim(end))

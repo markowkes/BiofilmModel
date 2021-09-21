@@ -28,7 +28,7 @@ if (all(plots(:)==0) || ~ishandle(1))
     hold on
     
     subplot(2,3,4)
-    plots(4,1)=plot(z,Sb);
+    plots(4,1)=plot(z,Sb(1,:));
     hold on
     plots(4,2)=plot([z(end),z(end)+param.LL],[Sb(end),S(end)]);
     title('Substrate Concentration within Biofilm')
@@ -53,8 +53,8 @@ else
     set(plots(1,1),'XData',t,'YData',x)
     set(plots(2,1),'XData',t,'YData',S)
     set(plots(3,1),'XData',t,'YData',bflux)
-    set(plots(4,1),'XData',z,'YData',Sb)
-    set(plots(4,2),'XData',[z(end),z(end)+param.LL],'YData',[Sb(end),S(end)]);
+    set(plots(4,1),'XData',z,'YData',Sb(1,:))
+    set(plots(4,2),'XData',[z(end),z(end)+param.LL],'YData',[Sb(1,end),S(1,end)]);
     set(plots(5,1),'XData',t,'YData',1E6*thickness)
     str=sprintf('Time = %5.2f days',t(end));
     set(titles,'String',str)

@@ -14,16 +14,27 @@ A  =param.A;
 tol=param.ttol;
 dtmax=param.dtmax;
 
-dxdt = @(x,t,S,Vdet) (mu(S,param)-(Q/V))*x+(Vdet*A*Xb)/V; %Biomass Concentration Change wrt time
-dsdt = @(x,t,S) -((mu(S,param)*x)/Yxs)+((Q*Sin)/V)-((Q*S)/V)-((A*bflux)/V); % ^^^Substrate Concentration Change wrt time
+dxdt = @(x,t,S,Vdet) (mu(1,S(:,1),param)-(Q/V))*x+(Vdet*A*Xb)/V; %Biomass Concentration Change wrt time
+dsdt = @(x,t,S) -((mu(1,S(:,1),param)*x)/Yxs)+((Q.*Sin(:,1))/V)-((Q.*S(:,1))/V)-((A*bflux)/V); % ^^^Substrate Concentration Change wrt time
 
 % Packing y
-y=[x; S];
+y=[x; S(:,1)];
 
-f =@(t,y) [dxdt(y(1),t,y(2),Vdet)
-           dsdt(y(1),t,y(2))];
+f =@(t,y) [dxdt(y(1),t,y,Vdet)
+           dsdt(y(1),t,y(1:2))];
 
 while true
+%     s1 = f(t     ,y(1:2,:)            );
+%     s2 = f(t+  dt/2,y(1:2)+  dt/2*s1);
+%     s3 = f(t+3*dt/4,y(1:2)+3*dt/4*s2);
+%     
+%     tnew = t + dt;
+%     ynew = y + dt/9*(2*s1 + 3*s2 + 4*s3);
+%     
+%     s4 = f(tnew,ynew);
+%     
+%     error = dt/72*(-5*s1 + 6*s2 + 8*s3 - 9*s4);
+    
     s1 = f(t     ,y            );
     s2 = f(t+  dt/2,y+  dt/2*s1);
     s3 = f(t+3*dt/4,y+3*dt/4*s2);
