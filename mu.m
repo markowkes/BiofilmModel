@@ -24,11 +24,12 @@ switch model(j)
 %         
 %         mu = ((mumax*Sa)./(Kma+Sa)).*(Sb./(Kmb+Sb));
     case 4 %'Inhibition Growth Rate Equation'
-        Sa=S(j,:);
-        Sb=S(Km(1,2,j),:);
+        
+        Sa=S(1,:);
+        Sb=S(2,:);
 
-        Kma=Km(2,1,j);
-        Kmb=Km(2,2,j);
+        Kma=Km(1,1,1);
+        Kmb=Km(1,1,2);
         
         mu = ((mumax*Sa)./(Kma+Sa))*(1./(1+(Sb/Kmb)));
     case 5 %'None'

@@ -4,7 +4,7 @@ function [Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param)
 % substrates into the biofilm over the grid . The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
 
-Ns = size(S,1);
+Ns = 1;%size(S,1);
 
 Sb=Sbold;
 delta=1e-3;
@@ -24,7 +24,7 @@ L = -1;
 U = -1;
 j=1;
 % Define RHS of ODE
-g=@(k,S) mu(j,S,param)*Xb/(Yxs*De(k));
+g=@(k,S) mu(j,S,param)*Xb/(Yxs(k)*De(k));
 
 % Define Sb plus and Sb minus, delta is added/subtracted to Sb(i,m)
 Sb_p=@(m,i) Sbold(m,:) + delta.*transpose(eq(1:Ns,m));
@@ -102,11 +102,11 @@ for n=1:iter
 end
 
 % Flux = \int_0^Lf mu(S) * xB / Yxs dz = xB/Yxs * int_0^Lf mu dz
-bflux = 0;
+bflux = zeros(Ns,1);
 for i=1:length(Sb)-1
     bflux=bflux+dz*((mu(1,Sb(:,i),param)+mu(1,Sb(:,i+1),param))/2); %trapezoidal 
 end
-bflux=Xb/Yxs.*bflux;
+bflux=Xb./Yxs.*bflux;
 
 
 

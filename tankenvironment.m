@@ -15,13 +15,13 @@ tol=param.ttol;
 dtmax=param.dtmax;
 
 dxdt = @(x,t,S,Vdet) (mu(1,S(:,1),param)-(Q/V))*x+(Vdet*A*Xb)/V; %Biomass Concentration Change wrt time
-dsdt = @(x,t,S) -((mu(1,S(:,1),param)*x)/Yxs)+((Q.*Sin(:,1))/V)-((Q.*S(:,1))/V)-((A*bflux)/V); % ^^^Substrate Concentration Change wrt time
+dsdt = @(x,t,S,k) -((mu(1,S(:,1),param)*x)./Yxs)+((Q.*Sin(:,1))./V)-((Q.*S(:,1))./V)-((A.*bflux)./V); % ^^^Substrate Concentration Change wrt time
 
 % Packing y
 y=[x; S(:,1)];
 
 f =@(t,y) [dxdt(y(1),t,y,Vdet)
-           dsdt(y(1),t,y(1:2))];
+           dsdt(y(1),t,y(2:end),[1:2])];
 
 while true
 %     s1 = f(t     ,y(1:2,:)            );
@@ -76,6 +76,6 @@ end
 
 % Unpacking y
 xnew=ynew(1);
-Snew=ynew(2);
+Snew=ynew(2:end);
 
 end
