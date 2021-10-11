@@ -4,7 +4,7 @@ function [Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param)
 % substrates into the biofilm over the grid . The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
 
-Ns = 1;%size(S,1);
+Ns = size(S,1);
 
 Sb=Sbold;
 delta=1e-3;
@@ -84,7 +84,8 @@ for n=1:iter
     Sb(Sb < 0) = 0;
 
     % Reshape from vector to a more readable matrix
-    Sb = reshape(Sb,[Ns,Nz]);
+    Sb = reshape(Sb,[Nz,Ns]);
+    Sb = Sb';
     
     % Check if converged
     if max(abs(Sb-Sbold))<tol
