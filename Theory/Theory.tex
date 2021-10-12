@@ -202,14 +202,14 @@ where the first term on the right hand side of the expression represents the dif
 
 By considering the substrate concentration to be in a pseudo steady state condition at each time-step considered equation~\ref {eq:substrate gradient} simplifies to 
 \begin{equation} \label{eq:diffusion}
-  \frac{d^2 S_{B,k}}{dz^2} = \sum_{j=1}^{N_x}\frac{\mu_j(\bm{S}_B) x_B}{Y_{j,k} D_{e,k}}.
+  \frac{d^2 S_{B,k}}{dz^2} = \sum_{j=1}^{N_x}\frac{\mu_j(\bm{S}_B) x_{B,j}}{Y_{j,k} D_{e,k}}.
 \end{equation}
 This differential equation is typically non-linear due the growth-rate $\mu$.
 
 \subsection{Discretization and Linearization}
 To solve it we use the direct, finite-difference method, which leads to the following discretized equation
 \begin{equation} \label{eq:diff_dis}
-  \frac{ S_{B,k,i-1} - 2 S_{B,k,i} + S_{B,k,i+1}}{dz^2} = \sum_{j=1}^{N_x}\frac{\mu_j(\bm{S}_{B,i}) x_B}{Y_{j,k} D_{e,k}},
+  \frac{ S_{B,k,i-1} - 2 S_{B,k,i} + S_{B,k,i+1}}{dz^2} = \sum_{j=1}^{N_x}\frac{\mu_j(\bm{S}_{B,i}) x_{B,j}}{Y_{j,k} D_{e,k}},
 \end{equation}
 which is valid at all the interior grid points, \ie, for $i=2,3,\dots,N_z-1$ and for all substrates $k=1,2,\dots,N_S$.
 Note that $\mu_j$, the growth-rate for the $j^\mathrm{th}$ biomass species may depend on the other substrates and is thus written as a function of the array of substrates at the $i^\mathrm{th}$ grid point $\bm{S}_{B,i}$.
@@ -246,8 +246,8 @@ The derivatives $\frac{d g_k\left(\bm{S}_{B,i}^{(p-1)}\right)}{d S_{B,m}}$  for 
 \end{equation}
 where
 \begin{alignat*}{3}
-  \bm{S}_{B,m,i}^+&=              &&\bm{S}_{B,i}^{(p-1)}+ \Delta \left[\delta_{1,m},\delta_{2,m},\dots,\delta_{N_S,m}\right]^\mathsf{T} \text{\quad and} \\
-  \bm{S}_{B,m,i}^-&=\max\left\{0, &&\bm{S}_{B,i}^{(p-1)}- \Delta\left[\delta_{1,m},\delta_{2,m},\dots,\delta_{N_S,m}\right]^\mathsf{T}\right\}
+  \bm{S}_{B,m,i}^+&=          &&\bm{S}_{B,i}^{(p-1)}+ \Delta \left[\delta_{1,m},\delta_{2,m},\dots,\delta_{N_S,m}\right]^\mathsf{T} \text{\quad and} \\
+  \bm{S}_{B,m,i}^-&=\max \bigg ( 0, &&\bm{S}_{B,i}^{(p-1)}- \Delta \left[\delta_{1,m},\delta_{2,m},\dots,\delta_{N_S,m}\right]^\mathsf{T} \bigg )
 \end{alignat*}
 where $\Delta=1\times 10^{-3}$ is an specified constant, $\delta_{k,m}$ is the Kronecker delta and applies $\Delta$ to only the $m^\mathrm{th}$ term in $\bm{S}_{B,i}^{(p-1)}$, and $dS = \max\left(\bm{S}_{B,m,i}^+ - \bm{S}_{B,m,i}^-\right)$.  The maximum on $\bm{S}_{B,m,i}^-$ ensures the concentration remains non-negative.
 
@@ -373,7 +373,7 @@ for a specified tolerance $\mathrm{tol}$.
 The flux term referenced in the discussion of equation ~\ref{eq:substrate gradient} is named $B_\mathrm{flux}$ and represents the growth of biomass in the biofilm. The result is utilized in the substrate balance in the tank (equation~\ref{eq: SubstrateEquation}).
 
 \begin{equation} \label{eq:Bflux}
-  B_{\mathrm{flux},k} = \sum_{j=1}^{N_x} \int_0^{L_f} \frac{\mu_j(\bm{S}_B) x_B}{Y_{j,k}} \, dz %= \frac{ X_b}{Y_{xs}} L_f \bar{\mu}
+  B_{\mathrm{flux},k} = \sum_{j=1}^{N_x} \int_0^{L_f} \frac{\mu_j(\bm{S}_B) x_{B,j}}{Y_{j,k}} \, dz %= \frac{ X_b}{Y_{xs}} L_f \bar{\mu}
 \end{equation}
 which is computed using the trapezoidal integration method. 
 %where $\bar{\mu}$ represents the average growth rate in the biofilm at a specific instant in time.
