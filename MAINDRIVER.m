@@ -65,7 +65,7 @@ while t(i)<tFin-dt(i)
     [Lf(i+1),Vdet]=lf(Sb,Lf(i),dt(i),dz,param);
     
     %Call on "tankenvironment"
-    [~,t(i+1),x(i+1),S(:,i+1),dt(i+1)]=tankenvironment(t(i),x(i),S(:,i),Vdet,dt(i),bflux(:,i+1),param);
+    [t(i+1),x(i+1),S(:,i+1),dt(i+1)]=tankenvironment(t(i),x(i),S(:,i),Vdet,dt(i),bflux(:,i+1),param);
     
     %Call on desired plots from 'outputs'
     outIter=outIter+1;
@@ -81,7 +81,7 @@ end
 % Make final figures
 [~,~] = outputs(t(1:i),x(1:i),S(1:i),z,bflux(1:i),Lf(1:i),Sb,param,plots,titles);
 
-% Remove extra zeros if they exisit
+% Remove extra zeros if they exist
 t=t(1:i);
 x=x(1:i);
 S=S(1:i);
