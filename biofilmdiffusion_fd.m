@@ -1,16 +1,17 @@
-function [Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param)
+function [Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Xb,Nz,dz,t,param)
 %% This function models the diffusion of a substrate within the biofilm
 %This Function will take tank conditions (So,Xb,LL) and various growth factors (Yxs,De,Km,Daq) model the diffusion of
 % substrates into the biofilm over the grid . The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
 
 Ns = size(S,1);
+Nx = param.Nx;
 
 Sb=Sbold;
 delta=1e-3;
 
 % Get variables out of param
-Xb=param.Xb;
+
 Yxs=param.Yxs;
 De=param.De;
 LL=param.LL;
@@ -22,22 +23,20 @@ iter=100; %maximum iterations
 
 L = -1;
 U = -1;
-j=1;
-% Define RHS of ODE
-g=@(k,S) mu(j,S,param)*Xb/(Yxs(k)*De(k));
 
 % Define Sb plus and Sb minus, delta is added/subtracted to Sb(i,m)
-Sb_p=@(m,i) Sbold(m,:) + delta.*transpose(eq(1:Ns,m));
-Sb_m=@(m,i) max(0, Sbold(m,:) - delta.*transpose(eq(1:Ns,m)));
+Sb_p=@(m,Sb) Sb + delta.*transpose(eq(1:Ns,m));
+Sb_m=@(m,Sb) max(0, Sb - delta.*transpose(eq(1:Ns,m)));
 
 % Define dgds = (g(Sb+)-g(Sb-))/dS
-dgds=@(k,i,m) (g(k,Sb_p(m,i))-g(k,Sb_m(m,i)))/max(max(Sb_p(m,i) - Sb_m(m,i)));
+dgds=@(k,i,m) (g(k,Sb_p(m,Sb(:,i)),Xb(:,i),Yxs,De,Nx,param)-g(k,Sb_m(m,Sb(:,i)),Xb(:,i),Yxs,De,Nx,param))/max(max(Sb_p(m,Sb(:,i)) - Sb_m(m,Sb(:,i))));
 
 % Define D = 2*kronecker + dz^2*dgds(j,i,m)
 D=@(k,i,m) (2*eq(k,m)+dz^2*dgds(k,i,m));
 
 % Preallocate solution array
 A = zeros(Nz*Ns, Nz*Ns);
+B = zeros(1,Nz*Ns);
 
 %Iterations
 for n=1:iter
@@ -65,7 +64,7 @@ for n=1:iter
             
             % R, interior points in the B matrix for each substrate
             % (2:Nz-1)
-            B((k-1)*Nz+i) = R(k,i,Ns,dz,Sbold,dgds,g,Sb_p,Sb_m,delta);
+            B((k-1)*Nz+i) = R(k,i,Ns,dz,Sbold,dgds,Sb_p,Sb_m,delta,Xb,Yxs,De,Nx,param);
             for m=1:Ns               
                 
                 % D, populates dia. and off dia. interior points (2:Nz-1)
@@ -95,26 +94,32 @@ for n=1:iter
              fprintf('Diffusion Unable to Converge at time %3.8f\n',t)
         end
     end
-
-    % Transfer solution for next iteration
-    Sbold=Sb;
-    
-
+    % Save current iteration Sb value
+    Sbold = Sb;
 end
 
 % Flux = \int_0^Lf mu(S) * xB / Yxs dz = xB/Yxs * int_0^Lf mu dz
 bflux = zeros(Ns,1);
-for i=1:length(Sb)-1
-    bflux=bflux+dz*((mu(1,Sb(:,i),param)+mu(1,Sb(:,i+1),param))/2); %trapezoidal 
+for j=1:Nx
+    for i=1:length(Sb)-1
+        bflux=bflux+dz*((Xb(j,i)*mu(1,Sb(:,i),param)+Xb(j,i+1)*mu(1,Sb(:,i+1),param))/2); %trapezoidal 
+    end
 end
-bflux=Xb./Yxs.*bflux;
+bflux=bflux./Yxs;
 
+end
 
-
-
-function r = R(k,i,Ns,dz,Sbold,dgds,g,Sb_p,Sb_m,delta)
+function r = R(k,i,Ns,dz,Sbold,dgds,Sb_p,Sb_m,delta,Xb,Yxs,De,Nx,param)
     r = 0;
     for m = 1:Ns
         r = r + dz^2*dgds(k,i,m).*Sbold(m,i);
     end
-    r = r - dz^2*g(k,Sbold(:,i));
+    r = r - dz^2*g(k,Sbold(:,i),Xb,Yxs,De,Nx,param);
+end
+% Define RHS of ODE
+function g = g(k,S,Xb,Yxs,De,Nx,param)
+    g = 0;
+    for j = 1:Nx
+       g = g + mu(j,S,param)*Xb(j)/(Yxs(k)*De(k));
+    end
+end

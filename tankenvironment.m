@@ -1,4 +1,4 @@
-function [s4,tnew,xnew,Snew,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param)
+function [tnew,xnew,Snew,dt]=tankenvironment(t,x,S,Vdet,Xb,dt,bflux,param)
 %% This function describes the greater tank environment and assumed that it is well mixed
 % It calls all the necessary tank geometry, flow parameters, and specific
 % parameters describing the biofilm and uses the differential equations
@@ -7,53 +7,52 @@ function [s4,tnew,xnew,Snew,dt]=tankenvironment(t,x,S,Vdet,dt,bflux,param)
 
 Q  =param.Q;
 V  =param.V;
-Xb =param.Xb;
+
 Yxs=param.Yxs;
 Sin=param.Sin;
 A  =param.A;
 tol=param.ttol;
 dtmax=param.dtmax;
 
-dxdt = @(x,t,S,Vdet) (mu(1,S(:,1),param)-(Q/V))*x+(Vdet*A*Xb)/V; %Biomass Concentration Change wrt time
-dsdt = @(x,t,S,k) -((mu(1,S(:,1),param)*x)./Yxs)+((Q.*Sin(:,1))./V)-((Q.*S(:,1))./V)-((A.*bflux)./V); % ^^^Substrate Concentration Change wrt time
+Nx = 1;
 
-% Packing y
-y=[x; S(:,1)];
-
-f =@(t,y) [dxdt(y(1),t,y,Vdet)
-           dsdt(y(1),t,y(2:end),[1:2])];
 
 while true
-%     s1 = f(t     ,y(1:2,:)            );
-%     s2 = f(t+  dt/2,y(1:2)+  dt/2*s1);
-%     s3 = f(t+3*dt/4,y(1:2)+3*dt/4*s2);
-%     
-%     tnew = t + dt;
-%     ynew = y + dt/9*(2*s1 + 3*s2 + 4*s3);
-%     
-%     s4 = f(tnew,ynew);
-%     
-%     error = dt/72*(-5*s1 + 6*s2 + 8*s3 - 9*s4);
+    % RHS 1
+    k1_x = dxdt(t     ,Nx,x,S,Vdet,Q,V,A,Xb,Yxs,param);
+    k1_S = dSdt(t     ,Nx,x,S,Q,V,A,Xb,Yxs,Sin,bflux,param);
     
-    s1 = f(t     ,y            );
-    s2 = f(t+  dt/2,y+  dt/2*s1);
-    s3 = f(t+3*dt/4,y+3*dt/4*s2);
+    % RHS 2
+    % variables at dt/2
+    t2= t+dt/2;
+    x2= x+dt/2*k1_x;
+    S2= S+dt/2*k1_S;
+    k2_x = dxdt(t2,Nx,x2,S2,Vdet,Q,V,A,Xb,Yxs,param);
+    k2_S = dSdt(t2,Nx,x2,S2,Q,V,A,Xb,Yxs,Sin,bflux,param);
+    
+    % RHS 3
+    % variables at 3*dt/4
+    t3= t+3*dt/4;
+    x3= x+3*dt/4*k2_x;
+    S3= S+3*dt/4*k2_S;
+    k3_x = dxdt(t3,Nx,x3,S3,Vdet,Q,V,A,Xb,Yxs,param);
+    k3_S = dSdt(t3,Nx,x3,S3,Q,V,A,Xb,Yxs,Sin,bflux,param);
+    
+    % Update with computed RHS's
     
     tnew = t + dt;
-    ynew = y + dt/9*(2*s1 + 3*s2 + 4*s3);
+    xnew = x + dt/9*(2*k1_x + 3*k2_x + 4*k3_x);
+    Snew = S + dt/9*(2*k1_S + 3*k2_S + 4*k3_S);
     
-    s4 = f(tnew,ynew);
+    % RHS 4 with updated variables
+    k4_x = dxdt(tnew,Nx,xnew,Snew,Vdet,Q,V,A,Xb,Yxs,param);
+    k4_S = dSdt(tnew,Nx,xnew,Snew,Q,V,A,Xb,Yxs,Sin,bflux,param);
+
+    error_x = dt/72*(-5*k1_x + 6*k2_x + 8*k3_x - 9*k4_x);
+    error_S = dt/72*(-5*k1_S + 6*k2_S + 8*k3_S - 9*k4_S);
+
+    error=max(error_x,error_S);
     
-    error = dt/72*(-5*s1 + 6*s2 + 8*s3 - 9*s4);
-    
-%     dt=1/(0.05*norm(s4));
-%     if norm(s4)==0
-%         dt=1;
-%     else
-%         dt=dt;
-%     end
-    
-  
     % Update timestep
     if abs(error) < tol/100 
         %dt is getting very small
@@ -74,8 +73,19 @@ while true
         
 end
 
-% Unpacking y
-xnew=ynew(1);
-Snew=ynew(2:end);
-
 end
+
+function dxdt = dxdt(t,Nx,x,S,Vdet,Q,V,A,Xb,Yxs,param) 
+    dxdt = zeros(Nx);
+    for j=1:Nx
+        dxdt(j) = (mu(j,S(:,1),param)-(Q/V))*x(j)+(Vdet(j)*A*Xb(j,end))/V;
+    end
+end
+
+function dSdt = dSdt(t,Nx,x,S,Q,V,A,Xb,Yxs,Sin,bflux,param) % ^^^Substrate Concentration Change wrt time
+    dSdt = ((Q.*Sin(:,1))./V)-((Q.*S(:,1))./V)-((A.*bflux)./V);
+    for j=1:Nx
+            dSdt = dSdt-((mu(j,S(:,1),param)*x(j))./Yxs(j));
+    end
+end
+%dxbdt= @

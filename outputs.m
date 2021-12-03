@@ -7,21 +7,27 @@ if (all(plots(:)==0) || ~ishandle(1))
     % Figure does not exist, create it
     figure(1); clf(1);
     subplot(2,3,1)
-    plots(1,1)=plot(t,x);
+    plots(1,1)=plot(t,x(1,:));
+    hold on
+    plots(1,2)=plot(t,x(2,:));
     title('Biomass Concentration For Tank')
     ylabel('Concentration [g/m^3]')
     xlabel('Time [days]')
     hold on
     
     subplot(2,3,2)
-    plots(2,1)=plot(t,S);
+    plots(2,1)=plot(t,S(1,:));
+    hold on
+    plots(2,2)=plot(t,S(2,:));
     title('Substrate Concentrations For Tank')
     ylabel('Concentration [g/m^3]')
     xlabel('Time [days]')
     hold on
     
     subplot(2,3,3)
-    plots(3,1)=plot(t,bflux);
+    plots(3,1)=plot(t,bflux(1,:));
+    hold on
+    plots(3,2)=plot(t,bflux(2,:));
     title('Flux through Boundary Layer of Biofilm')
     ylabel('Flux [g/m^2]')
     xlabel('Time [days]')
@@ -50,9 +56,12 @@ if (all(plots(:)==0) || ~ishandle(1))
     drawnow
 else
     % Figure exists, update data
-    set(plots(1,1),'XData',t,'YData',x)
-    set(plots(2,1),'XData',t,'YData',S)
-    set(plots(3,1),'XData',t,'YData',bflux)
+    set(plots(1,1),'XData',t,'YData',x(1,:))
+    set(plots(1,2),'XData',t,'YData',x(2,:))
+    set(plots(2,1),'XData',t,'YData',S(1,:))
+    set(plots(2,2),'XData',t,'YData',S(2,:))
+    set(plots(3,1),'XData',t,'YData',bflux(1,:))
+    set(plots(3,2),'XData',t,'YData',bflux(2,:))
     set(plots(4,1),'XData',z,'YData',Sb(1,:))
     set(plots(4,2),'XData',[z(end),z(end)+param.LL],'YData',[Sb(1,end),S(1,end)]);
     set(plots(5,1),'XData',t,'YData',1E6*thickness)

@@ -51,7 +51,7 @@ x=param.xo;
 S=param.So;
 bflux=0;
 Vdet=0;
-[~,~,x,~,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+[~,x,~,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
 % Analyze result
 figure(1); clf(1)
 plot(x)
@@ -78,9 +78,9 @@ Vdet=0;
 [~,~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
 %Analyze Result
 figure(1);clf(1);
-plot(S)
-actSolution=S;
-expSolution=So;
+plot(S(1))
+actSolution=S(1);
+expSolution=So(1);
 tol=1e-1;
 verifyLessThan(testCase,abs(actSolution-expSolution),tol)
 end
@@ -166,19 +166,19 @@ V=param.V;
 A=param.A;
 Q=param.Q;
 Xb=param.Xb;
-S=1; % Initial guess
+S=[0,0]; % Initial guess
 
 tol=1e-12;
 error=1;
 while abs(error)>tol
-    Lf=mu(S(1,:),param)/Kdet;
-    Vdet=mu(S(1,:),param)*Lf;
-    x=Yxs*(Sin(1,:)-S(1,:));
+    Lf=mu(1,S(1,:),param)/Kdet;
+    Vdet=mu(1,S(1,:),param)*Lf;
+    x=Yxs(1)*(Sin(1,:)-S(1,:));
     LHS=Q*x;
-    RHS=Vdet*A*Xb+mu(S(1,:),param)*x*V;
+    RHS=Vdet*A*Xb+mu(1,S(1,:),param)*x*V;
     
     error=LHS-RHS;
-    S(1,:)=S(1,:)+0.001*error;
+    S(1,:)=S(1,:)+0.001*error(1);
 end
 % Compare solution
 fprintf('S      =%16.12f, %16.12f g/m^3 \n',S,Ssim(end))
@@ -217,7 +217,7 @@ ylabel('Output')
 xlabel('Time Iteration')
 
 %Analyze Result
-maxError=max(abs(S-S_anal));  % Maximum Error
+maxError=max(abs(S(1,:)-S_anal(1,:)));  % Maximum Error
 expTol=param.ttol;            % Expected Maximum Error
 verifyLessThan(testCase,maxError,expTol)
 end
