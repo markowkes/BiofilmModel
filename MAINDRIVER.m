@@ -69,10 +69,10 @@ while t(i)<tFin-dt(i)
     dz=z(2)-z(1); %[m]
     
     %Call on "biofilmdiffusion"
-    [Sb,bflux(:,i+1)]=biofilmdiffusion_fd(Sb,S(:,i),Xb,Nz,dz,t(i),param);
+    [Sb,bflux(:,i+1)]=biofilmdiffusion_fd(Sb,S(:,i),Xb,dz,t(i),param);
     
     %Call on "particulates"
-    [Lf(i+1),Vdet,Xb]=particulates(Sb,phi,Lf(i),dt(i),dz,Nz,param);
+    [Lf(i+1),Vdet,Xb]=particulates(Sb,phi,Lf(i),dt(i),dz,param);
     
     %Call on "tankenvironment"
     [t(i+1),x(:,i+1),S(:,i+1),dt(i+1)]=tankenvironment(t(i),x(:,i),S(:,i),Vdet,Xb,dt(i),bflux(:,i+1),param);

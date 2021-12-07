@@ -1,4 +1,4 @@
-function [Lf,Vdet,phi]=particulates(Sb,phi_old,Lf_old,dt,dz,Nz,param)
+function [Lf,Vdet,phi]=particulates(Sb,phi_old,Lf_old,dt,dz,param)
 %This function takes the substrate concentration at a given instant in
 %time and the old biofilm thickness to computes the growth velocity as well
 %as the detachement velocity at a given instant in time. These results are
@@ -8,7 +8,8 @@ Kdet=param.Kdet;
 
 %% Growth
 
-Ns       =size(Sb,1);
+Ns       =param.Ns;
+Nz       =param.Nz;
 Nx       =param.Nx;
 Xb       =zeros(Nx,Nz);
 phi_tot  =param.phi_tot;

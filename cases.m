@@ -87,6 +87,17 @@ LL   =[1.00E-7];
 Kdet =[1900];
 
 
+% Growthrates for each biomass species 
+% param.mu=@(j,S,param) [
+%     (2000*S(1))./(2500)
+%     (2000*S(2))./(2500)
+%     ];
+mu{1}=@(S,param) (2000*S(1))./(2500);
+mu{2}=@(S,param) (2000*S(1))./(2500);
+
+param.mu=mu;
+
+
 %% Index variables under structure "param"
 param.tFin   =tFin;
 param.dtmax  =dt;

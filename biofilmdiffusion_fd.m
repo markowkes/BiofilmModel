@@ -1,14 +1,14 @@
-function [Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Xb,Nz,dz,t,param)
+function [Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Xb,dz,t,param)
 %% This function models the diffusion of a substrate within the biofilm
 %This Function will take tank conditions (So,Xb,LL) and various growth factors (Yxs,De,Km,Daq) model the diffusion of
 % substrates into the biofilm over the grid . The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
 
-Ns = size(S,1);
+Ns = param.Ns;
+Nz = param.Nz;
 Nx = param.Nx;
 
 Sb=Sbold;
-delta=1e-3;
 
 % Get variables out of param
 
@@ -24,15 +24,8 @@ iter=100; %maximum iterations
 L = -1;
 U = -1;
 
-% Define Sb plus and Sb minus, delta is added/subtracted to Sb(i,m)
-Sb_p=@(m,Sb) Sb + delta.*transpose(eq(1:Ns,m));
-Sb_m=@(m,Sb) max(0, Sb - delta.*transpose(eq(1:Ns,m)));
-
-% Define dgds = (g(Sb+)-g(Sb-))/dS
-dgds=@(k,i,m) (g(k,Sb_p(m,Sb(:,i)),Xb(:,i),Yxs,De,Nx,param)-g(k,Sb_m(m,Sb(:,i)),Xb(:,i),Yxs,De,Nx,param))/max(max(Sb_p(m,Sb(:,i)) - Sb_m(m,Sb(:,i))));
-
 % Define D = 2*kronecker + dz^2*dgds(j,i,m)
-D=@(k,i,m) (2*eq(k,m)+dz^2*dgds(k,i,m));
+D=@(k,i,m) (2*eq(k,m)+dz^2*dgds(k,i,m,Sb,Xb,param));
 
 % Preallocate solution array
 A = zeros(Nz*Ns, Nz*Ns);
@@ -64,7 +57,7 @@ for n=1:iter
             
             % R, interior points in the B matrix for each substrate
             % (2:Nz-1)
-            B((k-1)*Nz+i) = R(k,i,Ns,dz,Sbold,dgds,Sb_p,Sb_m,delta,Xb,Yxs,De,Nx,param);
+            B((k-1)*Nz+i) = R(k,i,Ns,dz,Sb,Xb,param);
             for m=1:Ns               
                 
                 % D, populates dia. and off dia. interior points (2:Nz-1)
@@ -99,27 +92,44 @@ for n=1:iter
 end
 
 % Flux = \int_0^Lf mu(S) * xB / Yxs dz = xB/Yxs * int_0^Lf mu dz
+%%% Todo - Double check this %%%
 bflux = zeros(Ns,1);
-for j=1:Nx
-    for i=1:length(Sb)-1
-        bflux=bflux+dz*((Xb(j,i)*mu(1,Sb(:,i),param)+Xb(j,i+1)*mu(1,Sb(:,i+1),param))/2); %trapezoidal 
+for k=1:Ns
+    for j=1:Nx
+        for i=1:length(Sb)-1
+            bflux(k)=bflux(k)+dz*((Xb(j,i  )*param.mu{j}(Sb(:,i  ),param) ...
+                                  +Xb(j,i+1)*param.mu{j}(Sb(:,i+1),param))/2); %trapezoidal
+        end
     end
+    bflux(k)=bflux(k)/Yxs(k);
 end
-bflux=bflux./Yxs;
-
 end
 
-function r = R(k,i,Ns,dz,Sbold,dgds,Sb_p,Sb_m,delta,Xb,Yxs,De,Nx,param)
-    r = 0;
+function R = R(k,i,Ns,dz,Sb,Xb,param)
+    R = 0;
     for m = 1:Ns
-        r = r + dz^2*dgds(k,i,m).*Sbold(m,i);
+        R = R + dz^2*dgds(k,i,m,Sb,Xb,param).*Sb(m,i);
     end
-    r = r - dz^2*g(k,Sbold(:,i),Xb,Yxs,De,Nx,param);
+    R = R - dz^2*g(k,Sb(:,i),Xb,param);
 end
 % Define RHS of ODE
-function g = g(k,S,Xb,Yxs,De,Nx,param)
+function g = g(k,S,Xb,param)
     g = 0;
-    for j = 1:Nx
-       g = g + mu(j,S,param)*Xb(j)/(Yxs(k)*De(k));
+    for j = 1:param.Nx
+       g = g + param.mu{j}(S,param)*Xb(j)/(param.Yxs(k)*param.De(k));
     end
 end
+% Define dgds = (g(Sb+)-g(Sb-))/dS
+function dgds = dgds(k,i,m,Sb,Xb,param) 
+    % Define Sb plus and Sb minus, delta is added/subtracted to Sb(i,m)
+    delta=1e-3; 
+    Sb_p =        Sb(:,i) + delta.*transpose(eq(1:param.Ns,m)) ;
+    Sb_m = max(0, Sb(:,i) - delta.*transpose(eq(1:param.Ns,m)));
+    % Compute g at plus and minus points
+    gp=g(k,Sb_p,Xb(:,i),param);
+    gm=g(k,Sb_m,Xb(:,i),param);
+    % Compute derivative
+    dgds=(gp-gm)/max(Sb_p-Sb_m);
+end
+
+

@@ -101,6 +101,11 @@ param.LL=0;
 param.Xb=20000;
 param.dtol=1e-12;
 param.model=1;
+param.Ns=1;
+param.Nx=1;
+
+% Growthrates for each biomass species 
+param.mu{1}=@(S,param) (param.mumax*S(1))./(param.Km);
 
 figure(1); clf(1); hold on
 Nzs=[10,50,100,1000,2000]; %Grid sizes to test
@@ -108,11 +113,16 @@ error=zeros(1,length(Nzs)); %Preallocate
 
 for i=1:length(Nzs)
     Nz=Nzs(i);
+    param.Nz=Nz;
+    
+    % Define Xb
+    Xb=zeros(1,Nz)+param.Xb;
+    
     z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
     dz=z(2)-z(1); %[m]
     Sbold=linspace(0,S,Nz);
     t=0;
-    [Sb,~]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
+    [Sb,~]=biofilmdiffusion_fd(Sbold,S,Xb,dz,t,param);
     plot(z,Sb)
     
     % Analyze Result
