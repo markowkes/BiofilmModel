@@ -40,8 +40,8 @@ for n=1:iter
         A((k-1)*Nz+1,(k-1)*Nz+2) = -1;
         
         % E and F on the dia. and upper dia. at the end of each substrate (once every Nz)
-        E = De(k)*LL;
-        F = De(k)*LL+Daq(k)*dz;
+        E = -De(k)*LL;
+        F =  De(k)*LL+Daq(k)*dz;
         A(Nz*k,Nz*k) = F;
         A(Nz*k,Nz*k-1) = E;
         

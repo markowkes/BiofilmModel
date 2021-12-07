@@ -78,14 +78,14 @@ end
 function dxdt = dxdt(t,Nx,x,S,Vdet,Q,V,A,Xb,Yxs,param) 
     dxdt = zeros(Nx);
     for j=1:Nx
-        dxdt(j) = (mu(j,S(:,1),param)-(Q/V))*x(j)+(Vdet(j)*A*Xb(j,end))/V;
+        dxdt(j) = (param.mu{j}(S(:,1),param)-(Q/V))*x(j)+(Vdet(j)*A*Xb(j,end))/V;
     end
 end
 
 function dSdt = dSdt(t,Nx,x,S,Q,V,A,Xb,Yxs,Sin,bflux,param) % ^^^Substrate Concentration Change wrt time
     dSdt = ((Q.*Sin(:,1))./V)-((Q.*S(:,1))./V)-((A.*bflux)./V);
     for j=1:Nx
-            dSdt = dSdt-((mu(j,S(:,1),param)*x(j))./Yxs(j));
+            dSdt = dSdt-((param.mu{j}(S(:,1),param)*x(j))./Yxs(j));
     end
 end
 %dxbdt= @

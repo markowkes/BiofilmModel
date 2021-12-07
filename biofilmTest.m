@@ -75,7 +75,7 @@ x=param.xo;
 S=param.So;
 bflux=0;
 Vdet=0;
-[~,~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+[~,~,~,S,~]=tankenvironment(t,x,S,Vdet,Xb,dt,bflux,param);
 %Analyze Result
 figure(1);clf(1);
 plot(S(1))

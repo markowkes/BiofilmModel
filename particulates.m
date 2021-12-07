@@ -21,16 +21,16 @@ phi      =phi_old;
 Vg = zeros(1,length(Sb));
 for j=1:Nx
     for i=2:length(Sb) % Input boundary condition @ i=1 v=0
-        Vg(i)=Vg(i-1)+1/phi_tot*phi(i)*dz*(mu(j,Sb(:,i),param)+mu(j,Sb(:,i-1),param))/2;
+        Vg(i)=Vg(i-1)+1/phi_tot*phi(i)*dz*(param.mu{j}(Sb(:,i),param)+param.mu{j}(Sb(:,i-1),param))/2;
     end
 end
 
 for j=1:Nx
     for i=2:length(Sb)-1 % Volume fraction boundary condition (Nuemann?)
-        dphidt(j,i) = mu(j,Sb(:,i),param)*phi(j,i)-(Vg(i+1)*phi(j,i+1)-Vg(i-1)*phi(j,i-1))/(2*dz);
+        dphidt(j,i) = param.mu{j}(Sb(:,i),param)*phi(j,i)-(Vg(i+1)*phi(j,i+1)-Vg(i-1)*phi(j,i-1))/(2*dz);
     end
-    i=1; dphidt(j,i) = mu(j,Sb(:,i),param)*phi(j,i);
-    i=length(Sb); dphidt(j,i) = mu(j,Sb(:,length(Sb)),param)*phi(j,i)-(Vg(i)*phi(j,i)-Vg(i-1)*phi(j,i-1))/dz;
+    i=1; dphidt(j,i) = param.mu{j}(Sb(:,i),param)*phi(j,i);
+    i=length(Sb); dphidt(j,i) = param.mu{j}(Sb(:,length(Sb)),param)*phi(j,i)-(Vg(i)*phi(j,i)-Vg(i-1)*phi(j,i-1))/dz;
     % add Nz
 end
 

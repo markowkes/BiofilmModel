@@ -1,4 +1,4 @@
-function [mu] = mu(j,S,param)
+function [mu] = mu_old(j,S,param)
 %% This function will allow for mu to be calculated 
 % This function calls various growth models to calculate an
 % array of growth rates mu for any array 'S'

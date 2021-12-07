@@ -36,7 +36,7 @@ Lf(1)=param.Lfo;
 
 %Tank
 t(1)=0;
-x(1)=param.xo;
+x(:,1)=param.xo;
 S(:,1)=So;
 
 %Time
