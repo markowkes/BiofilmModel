@@ -7,36 +7,41 @@ if (all(plots(:)==0) || ~ishandle(1))
     % Figure does not exist, create it
     figure(1); clf(1);
     subplot(2,3,1)
-    plots(1,1)=plot(t,x(1,:));
-    hold on
-    plots(1,2)=plot(t,x(2,:));
+    for i=1:param.Nx
+        plots(1,i)=plot(t,x(i,:));
+        hold on
+    end
     title('Biomass Concentration For Tank')
     ylabel('Concentration [g/m^3]')
     xlabel('Time [days]')
     hold on
     
     subplot(2,3,2)
-    plots(2,1)=plot(t,S(1,:));
-    hold on
-    plots(2,2)=plot(t,S(2,:));
+    for i=1:param.Ns
+        plots(2,i)=plot(t,S(1,:));
+        hold on
+    end
     title('Substrate Concentrations For Tank')
     ylabel('Concentration [g/m^3]')
     xlabel('Time [days]')
     hold on
     
     subplot(2,3,3)
-    plots(3,1)=plot(t,bflux(1,:));
-    hold on
-    plots(3,2)=plot(t,bflux(2,:));
+    for i=1:param.Ns
+        plots(3,i)=plot(t,bflux(i,:));
+        hold on
+    end
     title('Flux through Boundary Layer of Biofilm')
     ylabel('Flux [g/m^2]')
     xlabel('Time [days]')
     hold on
     
     subplot(2,3,4)
-    plots(4,1)=plot(z,Sb(1,:));
-    hold on
-    plots(4,2)=plot([z(end),z(end)+param.LL],[Sb(end),S(end)]);
+    for i=1:param.Ns
+        plots(4,i)=plot(z,Sb(i,:));
+        hold on
+        %plots(4,2)=plot([z(end),z(end)+param.LL],[Sb(end),S(end)]);
+    end
     title('Substrate Concentration within Biofilm')
     ylabel('Concentration [g/m^3]')
     xlabel('Depth of Biofilm [m]')
@@ -56,14 +61,15 @@ if (all(plots(:)==0) || ~ishandle(1))
     drawnow
 else
     % Figure exists, update data
-    set(plots(1,1),'XData',t,'YData',x(1,:))
-    set(plots(1,2),'XData',t,'YData',x(2,:))
-    set(plots(2,1),'XData',t,'YData',S(1,:))
-    set(plots(2,2),'XData',t,'YData',S(2,:))
-    set(plots(3,1),'XData',t,'YData',bflux(1,:))
-    set(plots(3,2),'XData',t,'YData',bflux(2,:))
-    set(plots(4,1),'XData',z,'YData',Sb(1,:))
-    set(plots(4,2),'XData',[z(end),z(end)+param.LL],'YData',[Sb(1,end),S(1,end)]);
+    for i=1:param.Nx
+        set(plots(1,i),'XData',t,'YData',x(i,:))
+    end
+    for i=1:param.Ns
+        set(plots(2,i),'XData',t,'YData',S(i,:))
+        set(plots(3,i),'XData',t,'YData',bflux(i,:))
+        set(plots(4,i),'XData',z,'YData',Sb(i,:))
+        %set(plots(4,i),'XData',[z(end),z(end)+param.LL],'YData',[Sb(i,end),S(i,end)]);
+    end
     set(plots(5,1),'XData',t,'YData',1E6*thickness)
     str=sprintf('Time = %5.2f days',t(end));
     set(titles,'String',str)

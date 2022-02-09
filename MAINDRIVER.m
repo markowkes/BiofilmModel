@@ -16,20 +16,20 @@ N=round(tFin/param.dtmax);
 %Corresponding arrays
 t       =zeros(1,N); %Time
 x       =zeros(Nx,N); %Biomass Concentration in bulk liquid
-S       =zeros(2,N); %Substrate in bulk liquid
-bflux   =zeros(2,N); %Boundary Layer Flux of Biofilm Preallocate
+S       =zeros(Ns,N); %Substrate in bulk liquid
+bflux   =zeros(Ns,N); %Boundary Layer Flux of Biofilm Preallocate
 Lf      =zeros(1,N); %Right hand side of power point equation to ensure matching flux
 dt      =zeros(1,N); %size of each time step
 
 %% Initial Conditions
 %Biofilm
-Xb=zeros(2,Nz);
-Xb(1,:)=Xbo(1);
-Xb(2,:)=Xbo(2);
-Sb=zeros(2,Nz);
-phi=zeros(2,Nz);
-phi(1,:)=phio(1);
-phi(2,:)=phio(2);
+Xb=zeros(Nx,Nz);
+phi=zeros(Nx,Nz);
+for i=1:Nx
+    Xb(i,:)=Xbo(i);
+    phi(i,:)=phio(i);
+end
+Sb=zeros(Ns,Nz);
 Sb(:,end)=So; %initially assume boundary concentration = So 
 
 Lf(1)=param.Lfo;

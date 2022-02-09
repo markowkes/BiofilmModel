@@ -25,7 +25,7 @@ L = -1;
 U = -1;
 
 % Define D = 2*kronecker + dz^2*dgds(j,i,m)
-D=@(k,i,m) (2*eq(k,m)+dz^2*dgds(k,i,m,Sb,Xb,param));
+D=@(k,i,m,Sb,Xb) (2*eq(k,m)+dz^2*dgds(k,i,m,Sb,Xb,param));
 
 % Preallocate solution array
 A = zeros(Nz*Ns, Nz*Ns);
@@ -61,7 +61,7 @@ for n=1:iter
             for m=1:Ns               
                 
                 % D, populates dia. and off dia. interior points (2:Nz-1)
-                A((k-1)*Nz+i,(m-1)*Nz+i) = D(k,i,m);
+                A((k-1)*Nz+i,(m-1)*Nz+i) = D(k,i,m,Sb,Xb);
                 
 %                 A((j-1)*Nz+i,(m-1)*Nz+i+1) = U;
 %                 A((j-1)*Nz+i,(m-1)*Nz+i-1) = L;     
@@ -105,12 +105,14 @@ for k=1:Ns
 end
 end
 
+% k -> substrate
+% i -> location in biofilm
 function R = R(k,i,Ns,dz,Sb,Xb,param)
     R = 0;
     for m = 1:Ns
         R = R + dz^2*dgds(k,i,m,Sb,Xb,param).*Sb(m,i);
     end
-    R = R - dz^2*g(k,Sb(:,i),Xb,param);
+    R = R - dz^2*g(k,Sb(:,i),Xb(:,i),param);
 end
 % Define RHS of ODE
 function g = g(k,S,Xb,param)
