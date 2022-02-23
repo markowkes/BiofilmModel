@@ -1,4 +1,4 @@
-function [Lf,Vdet,phi]=particulates(Sb,phi_old,Lf_old,dt,dz,param)
+function [Lf,Vdet,phi,Xb]=particulates(Sb,phi_old,Lf_old,dt,dz,param)
 %This function takes the substrate concentration at a given instant in
 %time and the old biofilm thickness to computes the growth velocity as well
 %as the detachement velocity at a given instant in time. These results are
@@ -29,12 +29,13 @@ for j=1:Nx
     for i=2:length(Sb)-1 % Volume fraction boundary condition (Nuemann?)
         dphidt(j,i) = param.mu{j}(Sb(:,i),param)*phi(j,i)-(Vg(i+1)*phi(j,i+1)-Vg(i-1)*phi(j,i-1))/(2*dz);
     end
-    i=1; dphidt(j,i) = param.mu{j}(Sb(:,i),param)*phi(j,i);
+    i=1; dphidt(j,i) = dphidt(j,i+1);%param.mu{j}(Sb(:,i),param)*phi(j,i);
     i=length(Sb); dphidt(j,i) = param.mu{j}(Sb(:,length(Sb)),param)*phi(j,i)-(Vg(i)*phi(j,i)-Vg(i-1)*phi(j,i-1))/dz;
     % add Nz
 end
 
 phi = phi_old+dt*dphidt;
+%phi = phi_old;
 
 %% Old Integration Methods
 % %Trapzoidal Integration Method

@@ -97,11 +97,13 @@ bflux = zeros(Ns,1);
 for k=1:Ns
     for j=1:Nx
         for i=1:length(Sb)-1
+            %bflux(k)=bflux(k)+dz*((param.mu{j}(Sb(:,i  ),param) ...
+                                  %+param.mu{j}(Sb(:,i+1),param))/2);
             bflux(k)=bflux(k)+dz*((Xb(j,i  )*param.mu{j}(Sb(:,i  ),param) ...
                                   +Xb(j,i+1)*param.mu{j}(Sb(:,i+1),param))/2); %trapezoidal
         end
     end
-    bflux(k)=bflux(k)/Yxs(k);
+    bflux(k)=bflux(k)/Yxs(k);%*Xb(j,i  );
 end
 end
 

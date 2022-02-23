@@ -37,7 +37,7 @@ function [param]=case1()
 % tc=7;
 
 %% Time Constraints
-tFin=30;   %[days]
+tFin=5;   %[days]
 dt  =1e-2; %time interval between calculations
 ttol=1e-8; %tolerance for timestep conversion
 
@@ -76,12 +76,12 @@ A    =(V/H)+2*((V/L)+(V/W));
 Sin  =[25];
 So   =[25];
 Ns   =size(So, 1);
-phio =[.2];
+phio =[0.2];
 xo   =[10];
 Daq  =[4.0E-5];
 De   =[1.0E-5];
 Xb   =[20000];
-rho  =[3.0E5];
+rho  =[1.0E5];
 Lfo  =[5.0E-6];
 LL   =[1.00E-4];
 Kdet =[1900];

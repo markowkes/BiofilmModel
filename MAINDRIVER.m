@@ -1,11 +1,11 @@
 function [t,x,S,Lf]=MAINDRIVER(param)
 
-Xbo     =param.Xb;
 Nz      =param.Nz;
 Nx      =param.Nx;
 Ns      =param.Ns;
 So      =param.So;
 phio    =param.phio;
+rho     =param.rho;
 tFin    =param.tFin;
 outFreq =param.outFreq;
 
@@ -26,8 +26,12 @@ dt      =zeros(1,N); %size of each time step
 Xb=zeros(Nx,Nz);
 phi=zeros(Nx,Nz);
 for i=1:Nx
-    Xb(i,:)=Xbo(i);
     phi(i,:)=phio(i);
+end
+for i=1:Nz % Place into own function
+    for j=1:Nx
+        Xb(j,i)=rho(j).*phi(j,i);
+    end
 end
 Sb=zeros(Ns,Nz);
 Sb(:,end)=So; %initially assume boundary concentration = So 
@@ -72,7 +76,7 @@ while t(i)<tFin-dt(i)
     [Sb,bflux(:,i+1)]=biofilmdiffusion_fd(Sb,S(:,i),Xb,dz,t(i),param);
     
     %Call on "particulates"
-    [Lf(i+1),Vdet,Xb]=particulates(Sb,phi,Lf(i),dt(i),dz,param);
+    [Lf(i+1),Vdet,phi,Xb]=particulates(Sb,phi,Lf(i),dt(i),dz,param);
     
     %Call on "tankenvironment"
     [t(i+1),x(:,i+1),S(:,i+1),dt(i+1)]=tankenvironment(t(i),x(:,i),S(:,i),Vdet,Xb,dt(i),bflux(:,i+1),param);
