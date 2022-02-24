@@ -37,7 +37,7 @@ function [param]=case1()
 % tc=7;
 
 %% Time Constraints
-tFin=30;   %[days]
+tFin=10;   %[days]
 dt  =1e-2; %time interval between calculations
 ttol=1e-8; %tolerance for timestep conversion
 
@@ -60,7 +60,8 @@ W=0.5; %[m]
 H=0.5; %[m]
 
 %% Frequency of Plots
-outFreq=2000; %Number of steps between plot updates.
+%outFreq=2000; %Number of steps between plot updates.
+outFreq=1e-4; % Time in days for outputs
 
 %% Substrate Dependant Properties
 %model = [1 1; 1 1]; % j, k growth model for jth particulate based on kth substrate 
@@ -76,12 +77,12 @@ A    =(V/H)+2*((V/L)+(V/W));
 Sin  =[25];
 So   =[25];
 Ns   =size(So, 1);
-phio =[.2];
+phibo =[.2];
+Sbo  =[0];
 xo   =[10];
 Daq  =[4.0E-5];
 De   =[1.0E-5];
-Xb   =[20000];
-rho  =[3.0E5];
+rho  =[1.0E5];
 Lfo  =[5.0E-6];
 LL   =[1.00E-4];
 Kdet =[1900];
@@ -93,6 +94,7 @@ Kdet =[1900];
 %     (2000*S(2))./(2500)
 %     ];
 mu{1}=@(S,param) (20*S(1))./(3+S(1));
+%mu{1}=@(S,param) 0;
 
 param.mu=mu;
 
@@ -119,12 +121,12 @@ param.A      =A;
 param.Sin    =Sin(:);
 param.So     =So(:);
 param.Ns     =Ns;
-param.phio   =phio;
-param.phi_tot=sum(phio);
+param.phibo  =phibo;
+param.Sbo    =Sbo;
+param.phi_tot=sum(phibo);
 param.xo     =xo;
 param.Daq    =Daq(:);
 param.De     =De(:);
-param.Xb     =Xb;
 param.rho    =rho;
 param.Lfo    =Lfo;
 param.LL     =LL;
