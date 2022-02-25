@@ -7,16 +7,18 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     Ns = param.Ns;
     
     % Arrays
-    X  = zeros(Nx);     % Tank particulates (concentration)
-    S  = zeros(Ns);     % Tank substrates (concentration)
+    X  = zeros(Nx, 1);     % Tank particulates (concentration)
+    S  = zeros(Ns, 1);     % Tank substrates (concentration)
     Pb = zeros(Nx,Nz);  % Biofilm particulates (volume fraction)
-    Sb = zeros(Nx,Nz);  % Biofilm substrates (concentration)
+    Sb = zeros(Ns,Nz);  % Biofilm substrates (concentration)
     
     % Initial Conditions
-    X(:)    = param.xo;
+    X(:)    = param.Xo;
     S(:)    = param.So;
-    Pb(:,:) = param.phibo;
-    Sb(:,:) = param.Sbo;
+    for i=1:Nz
+        Pb(:,i) = param.phibo;
+        Sb(:,i) = param.Sbo;
+    end
     Lf      = param.Lfo;
 
     % Package initial condition
@@ -31,9 +33,11 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     % Call ODE solver
     %ops = odeset('OutputFcn',@odeprint,'AbsTol',1e-3);
     ops = odeset('OutputFcn',@myOutputFcn,'AbsTol',1e-3);
+    %ops = odeset('OutputFcn',@odeplot,'AbsTol',1e-4);
+    %ops = odeset('OutputFcn',@odeprog,'Events',@odeabort,'AbsTol',1e-4);
     [t,y]=ode23s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
 
-    % Extract variables
+    % Extract computed solution
     Nvar=0;
     N=Nx;     X =y(:,Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank particulates
     N=Ns;     S =y(:,Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank substrates
@@ -41,6 +45,9 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     N=Ns*Nz;  Sb=y(:,Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm substrates
     N=1;      Lf=y(:,Nvar+1:Nvar+N);              % Biofilm thickness
 
+    % Reshape and return last biofilm values: Var(Nx/Ns, Nz)
+    Pb = reshape(Pb(end,:),Nx,Nz);
+    Sb = reshape(Sb(end,:),Ns,Nz);
 end
 
 %% Status of ODE solver
@@ -54,8 +61,12 @@ function status=myOutputFcn(t,y,flag) %#ok<INUSL>
 end
 
 %% RHS of all the ODEs
-function [f]=RHS(~,y,param)
-    
+function [f]=RHS(t,y,param)
+
+    if t>1e-5
+        A=1;
+    end
+
     % Extract variables
     Nvar=0;  Nx=param.Nx; Ns=param.Ns; Nz=param.Nz;
     N=Nx;     X =y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank particulates
@@ -65,7 +76,7 @@ function [f]=RHS(~,y,param)
     N=1;      Lf=y(Nvar+1:Nvar+N);              % Biofilm thickness
 
     % Update grid
-    grid.z  = linspace(0,Lf,param.Nz);
+    grid.z  = linspace(0,Lf,param.Nz+1);
     grid.dz = grid.z(2) - grid.z(1);
     
     % Reshape biofilm varialbes Var(Nx/Ns, Nz)
@@ -79,10 +90,10 @@ function [f]=RHS(~,y,param)
     end
     
     % Compute intermediate variables
-    fluxS =computeFluxS(S,Sb,param,grid);  % Flux of substrate in biofilm
-    V     =computeVel  (Pb,Sb,param,grid); % Velocity of particulates
-    fluxP =computeFluxP(Pb,V,param);       % Flux of particulates in biofilm
-    Vdet  = param.Kdet*Lf^2;               % Detachment velocity
+    fluxS = computeFluxS(S,Sb,param,grid);  % Flux of substrate in biofilm
+    V     = computeVel  (Pb,Sb,param,grid); % Velocity of particulates
+    fluxP = computeFluxP(Pb,V,param);       % Flux of particulates in biofilm
+    Vdet  = param.Kdet*Lf^2;                % Detachment velocity
 
     
     % Compute RHS's
@@ -104,9 +115,9 @@ function [fluxS]=computeFluxS(S,Sb,param,grid)
     end
     % Bottom boundary - no flux condition -> nothing to do
     % Top boundary - flux matching between biofilm and boundary layer 
-    Sp=(param.Daq*grid.dz/2*S+param.De*param.LL*Sb(:,param.Nz)) ...
-        /(param.Daq*grid.dz/2+param.De*param.LL); 
-    fluxS(:,param.Nz+1) = param.Daq*(S-Sp)/param.LL;
+    S_top=(param.Daq*grid.dz/2.*S+param.De*param.LL.*Sb(:,param.Nz)) ...
+        ./(param.Daq*grid.dz/2+param.De*param.LL); 
+    fluxS(:,param.Nz+1) = param.De.*(S_top-Sb(:,param.Nz))/(grid.dz/2);
 end
 
 %% Velocity due to growth in biofilm
@@ -150,11 +161,13 @@ end
 %% RHS of tank substrates
 function dSdt = dSdt(X,S,param,fluxS) 
     dSdt = zeros(param.Ns,1); 
-    for j=1:param.Nx                                   
-        dSdt(j) = param.Q.*param.Sin(j)/param.V ...       % Flow in
-            -     param.Q.*      S(j)  /param.V ...       % Flow out
-            -     param.A.*fluxS(j,end)/param.V ...       % Flux into biofilm
-            -     param.mu{j}(S,param)*X(j)/param.Yxs(j); % Used by growth
+    for k=1:param.Ns                                 
+        dSdt(k) = param.Q.*param.Sin(k)/param.V ...   % Flow in
+            -     param.Q.*      S(k)  /param.V ...   % Flow out
+            -     param.A.*fluxS(k,end)/param.V;      % Flux into biofilm
+        for j=1:param.Nx                              % Used by growth
+            dSdt(k) = dSdt(k) - param.mu{j}(S,param)*X(j)/param.Yxs(j,k); 
+        end
     end
 end
 
@@ -166,7 +179,7 @@ function dPbdt = dPbdt(Pb,Sb,fluxPb,param,grid)
         % Loop over cells
         for i=1:param.Nz
             dPbdt(j,i)= ...
-                - (fluxPb(i+1)-fluxPb(i))/grid.dz ... % Growth velocity
+                - (fluxPb(j,i+1)-fluxPb(j,i))/grid.dz ... % Growth velocity
                 + param.mu{j}(Sb(:,i),param)*Pb(j,i); % Growth in cell
         end
     end
@@ -184,7 +197,7 @@ function dSbdt = dSbdt(Xb,Sb,fluxS,param,grid)
             dSbdt(k,i) = (fluxS(k,i+1)-fluxS(k,i))/grid.dz; % Diffusion
             for j=1:param.Nx                                % Used by growth
                 dSbdt(k,i) = dSbdt(k,i) ...
-                    - param.mu{j}(Sb(:,i),param)*Xb(j,i)/param.Yxs(j);
+                    - param.mu{j}(Sb(:,i),param)*Xb(j,i)/param.Yxs(j,k);
             end
         end
     end
