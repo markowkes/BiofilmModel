@@ -1,14 +1,17 @@
 
 function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
 
+    % Check parameters to provide more useful error messages
+    check_param(param);
+
     % Common parameters
     Nz = param.Nz;
     Nx = param.Nx;
     Ns = param.Ns;
     
     % Arrays
-    X  = zeros(Nx, 1);     % Tank particulates (concentration)
-    S  = zeros(Ns, 1);     % Tank substrates (concentration)
+    X  = zeros(Nx, 1);  % Tank particulates (concentration)
+    S  = zeros(Ns, 1);  % Tank substrates   (concentration)
     Pb = zeros(Nx,Nz);  % Biofilm particulates (volume fraction)
     Sb = zeros(Ns,Nz);  % Biofilm substrates (concentration)
     
@@ -32,11 +35,14 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
 
     % Call ODE solver
     %ops = odeset('OutputFcn',@odeprint,'AbsTol',1e-3);
-    ops = odeset('OutputFcn',@myOutputFcn,'AbsTol',1e-3);
+    ops = odeset('OutputFcn',@myOutputFcn,'RelTol',1e-4,'AbsTol',1e-2);
     %ops = odeset('OutputFcn',@odeplot,'AbsTol',1e-4);
     %ops = odeset('OutputFcn',@odeprog,'Events',@odeabort,'AbsTol',1e-4);
     [t,y]=ode23s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
-
+    %[t,y]=ode15s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
+    %[t,y]=ode23t(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
+    %[t,y]=ode23tb(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
+    
     % Extract computed solution
     Nvar=0;
     N=Nx;     X =y(:,Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank particulates
@@ -61,11 +67,7 @@ function status=myOutputFcn(t,y,flag) %#ok<INUSL>
 end
 
 %% RHS of all the ODEs
-function [f]=RHS(t,y,param)
-
-    if t>1e-5
-        A=1;
-    end
+function [f]=RHS(~,y,param)
 
     % Extract variables
     Nvar=0;  Nx=param.Nx; Ns=param.Ns; Nz=param.Nz;
@@ -90,8 +92,9 @@ function [f]=RHS(t,y,param)
     end
     
     % Compute intermediate variables
+    mu    = computeMu(Sb,param);        % Growthrate in biofilm
     fluxS = computeFluxS(S,Sb,param,grid);  % Flux of substrate in biofilm
-    V     = computeVel  (Pb,Sb,param,grid); % Velocity of particulates
+    V     = computeVel  (mu,Pb,param,grid); % Velocity of particulates
     fluxP = computeFluxP(Pb,V,param);       % Flux of particulates in biofilm
     Vdet  = param.Kdet*Lf^2;                % Detachment velocity
 
@@ -101,10 +104,19 @@ function [f]=RHS(t,y,param)
     Nrhs=0;
     N=Nx;    f(Nrhs+1:Nrhs+N)=dXdt (X,S,Xb,Vdet,param);      Nrhs=Nrhs+N;  % Tank particulates
     N=Ns;    f(Nrhs+1:Nrhs+N)=dSdt (X,S,param,fluxS);        Nrhs=Nrhs+N;  % Tank substrates
-    N=Nx*Nz; f(Nrhs+1:Nrhs+N)=dPbdt(Pb,Sb,fluxP,param,grid); Nrhs=Nrhs+N;  % Biofilm particulates
-    N=Ns*Nz; f(Nrhs+1:Nrhs+N)=dSbdt(Xb,Sb,fluxS,param,grid); Nrhs=Nrhs+N;  % Biofilm substrates
+    N=Nx*Nz; f(Nrhs+1:Nrhs+N)=dPbdt(mu,Pb,fluxP,param,grid); Nrhs=Nrhs+N;  % Biofilm particulates
+    N=Ns*Nz; f(Nrhs+1:Nrhs+N)=dSbdt(mu,Xb,fluxS,param,grid); Nrhs=Nrhs+N;  % Biofilm substrates
     N=1;     f(Nrhs+1:Nrhs+N)=dLfdt(V,Vdet);                               % Biofilm thickness
 
+end
+
+%% Growthrate for each particulate in biofilm
+function [mu]=computeMu(Sb,param)
+    mu=zeros(param.Nx,param.Nz);
+    % Loop over particulates
+    for j=1:param.Nx
+        mu(j,:)=param.mu{j}(Sb,param);
+    end
 end
 
 %% Fluxes of substrate due to diffusion: F=De*dSb/dz
@@ -121,18 +133,13 @@ function [fluxS]=computeFluxS(S,Sb,param,grid)
 end
 
 %% Velocity due to growth in biofilm
-function [V]=computeVel(Pb,Sb,param,grid)
+function [V]=computeVel(mu,Pb,param,grid)
     % Velocities on faces of cells
     V=zeros(1,param.Nz+1); 
     % Start with zero velocity at wall -> integrate through the biofilm
     for i=1:param.Nz
-        % Start with constant velocity (no growth)
-        V(i+1)=V(i);
-        % Loop over particulates in this cell and add to velocity
-        for j=1:param.Nx
-            V(i+1)=V(i+1)+ ...
-                param.mu{j}(Sb(:,i),param)*Pb(j,i)*grid.dz/param.phi_tot;
-        end
+        % Add growth of particulates in this cell to velocity
+        V(i+1)=V(i) + sum(mu(:,i).*Pb(:,i)*grid.dz/param.phi_tot);
     end
 end
 
@@ -172,35 +179,24 @@ function dSdt = dSdt(X,S,param,fluxS)
 end
 
 %% RHS of biofilm particulates 
-function dPbdt = dPbdt(Pb,Sb,fluxPb,param,grid) 
-    dPbdt = zeros(param.Nx,param.Nz);
-    % Loop over particulates
-    for j=1:param.Nx
-        % Loop over cells
-        for i=1:param.Nz
-            dPbdt(j,i)= ...
-                - (fluxPb(j,i+1)-fluxPb(j,i))/grid.dz ... % Growth velocity
-                + param.mu{j}(Sb(:,i),param)*Pb(j,i); % Growth in cell
-        end
-    end
+function dPbdt = dPbdt(mu,Pb,fluxPb,param,grid) 
+    netFlux= (fluxPb(:,2:end)-fluxPb(:,1:end-1))/grid.dz; % Flux in/out
+    growth = mu.*Pb;                                      % Growth
+    dPbdt  = growth - netFlux;
     % Return RHS as a column vector
     dPbdt=reshape(dPbdt,param.Nx*param.Nz,1);
 end
 
 %% RHS of biofilm substrates 
-function dSbdt = dSbdt(Xb,Sb,fluxS,param,grid)
-    dSbdt = zeros(param.Ns,param.Nz);
-    % Loop over substrates
+function dSbdt = dSbdt(mu,Xb,fluxS,param,grid)
+    netFlux= (fluxS(:,2:end)-fluxS(:,1:end-1))/grid.dz; % Diffusion flux
+    growth = zeros(param.Ns,param.Nz);
     for k=1:param.Ns
-        % Loop over cells
-        for i=1:param.Nz
-            dSbdt(k,i) = (fluxS(k,i+1)-fluxS(k,i))/grid.dz; % Diffusion
-            for j=1:param.Nx                                % Used by growth
-                dSbdt(k,i) = dSbdt(k,i) ...
-                    - param.mu{j}(Sb(:,i),param)*Xb(j,i)/param.Yxs(j,k);
-            end
+        for j=1:param.Nx
+            growth(k,:) = mu(j,:).*Xb(j,:)./param.Yxs(j,k); % Used by growth
         end
     end
+    dSbdt = netFlux - growth; 
     % Return RHS as a column vector
     dSbdt=reshape(dSbdt,param.Ns*param.Nz,1);
 end
@@ -209,4 +205,97 @@ end
 function dLfdt = dLfdt(V,Vdet)
     Vfilm = V(end);    % Growth velocity at top of biofilm
     dLfdt = Vfilm - Vdet;     % Surface Velocity 
+end
+
+%% Check parameters
+function check_param(param)
+    Nx=param.Nx;
+    Ns=param.Ns;
+    Nz=param.Nz;
+
+    if param.tFin<=0
+        error('param.tFin should be a positive amount of time')
+    end
+
+    if param.V<=0
+        error('param.V should be a positive volume')
+    end
+
+    if param.A<=0
+        error('param.A should be a positive area')
+    end
+
+    if param.Q<0
+        error('param.Q should be a non-negative flow rate')
+    end
+
+    if length(param.Xo)~=Nx
+        error(['param.Xo should have Nx=',num2str(Nx),' particulate tank ICs'])
+    end
+
+    if length(param.So)~=Ns
+        error(['param.So should have Ns=',num2str(Ns),' substrate tank ICs'])
+    end
+
+    if length(param.Sin)~=Ns
+        error(['param.Sin should have Ns=',num2str(Ns),' substrate concentrations'])
+    end
+
+    if length(param.LL)<0
+        error('param.LL should be a non-negative boundary layer thickness')
+    end
+
+    if param.Nz<2 || param.Nz ~= floor(param.Nz)
+        error('param.Nz should be an integer >= 2')
+    end
+
+    if length(param.phibo)~=Nx
+        error(['param.phibo should have Nx=',num2str(Nx),' particulate ICs for biofilm'])
+    end
+
+    if length(param.Sbo)~=Ns
+        error(['param.Sbo should have Ns=',num2str(Ns),' substrate ICs for biofilm'])
+    end
+
+    if length(param.Lfo)~=1 || param.Lfo<1e-12
+        error('param.Lfo should have one number that is larger than 1e-12 (an already very small number)')
+    end
+
+    if size(param.Yxs,1)~=Nx || size(param.Yxs,2)~=Ns
+        error(['param.Yxs should be of size', Nx,' x ',Ns])
+    end
+    if any(param.Yxs<eps) 
+        error('param.Yxs should have all non-zero entries')
+    end
+
+    if length(param.Daq) ~= Ns
+        error(['param.Daq should have Ns=',num2str(Ns),' diffusion coefficients'])
+    end
+
+    if length(param.De) ~= Ns
+        error(['param.De should have Ns=',num2str(Ns),' diffusion coefficients'])
+    end
+
+    if length(param.rho) ~= Nx
+        error(['param.rho should have Nx=',num2str(Nx),' densities'])
+    end
+
+    if length(param.Kdet) ~= 1
+        error('param.Kdet should have 1 detachment coefficient')
+    end
+
+    if length(param.mu) ~= Nx
+        error(['param.mu should have Nx=',num2str(Ns),' growthrate equations'])
+    end
+
+    Stest=rand(Ns,Nz);
+    for j=1:Nx
+        if ~isequal(size(param.mu{j}(Stest,param)),[1 Nz])
+            error(['mu{',num2str(j),'}(Sb,param) returns a matrix of size '...
+                ,num2str(size(param.mu{j}(Stest,param))),[', ' ...
+                'it should return a matrix of size 1 x '],num2str(Nz)])
+        end
+    end
+
+
 end

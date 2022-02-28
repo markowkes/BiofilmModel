@@ -34,8 +34,8 @@ param.Ns = size(param.So, 1);  % Number of substrates
 param.Nx = size(param.Xo, 1);  % Number of substrates
 
 % Growthrates for each particulate
-mu{1}=@(S,param) (20*S(1))./(3+S(1));
-mu{2}=@(S,param) (20*S(1))./(3+S(1));
+mu{1}=@(S,param) (20*S(1,:))./(3+S(1,:));
+mu{2}=@(S,param) (20*S(1,:))./(3+S(1,:));
 param.mu=mu;  
 
 %% Solver

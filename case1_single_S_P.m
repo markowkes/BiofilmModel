@@ -14,10 +14,10 @@ param.Sin = 25;         % Substrates concentration(s) into tank
 param.LL  = 1.00E-4;    % Boundary layer thickness
 
 % Biofilm
-param.Nz=50; %Linear grid points to describe biofilm
+param.Nz=50;            % Number of grid points to represent biofilm
 param.phibo= 0.2;       % Biofilm particulates initial condition(s)
 param.Sbo  = 0;         % Biofilm substrates initial condition(s)
-param.Lfo  = 5.0E-6;    % Biofilm initial thickness
+param.Lfo  = 5.0E-8;    % Biofilm initial thickness
 
 % Substance Constants
 param.Yxs  = 0.5;       % Biomass yield coeffficient on substrate
@@ -32,7 +32,7 @@ param.Ns = size(param.So, 1);  % Number of substrates
 param.Nx = size(param.Xo, 1);  % Number of substrates
 
 % Growthrates for each particulate
-mu{1}=@(S,param) (20*S(1))./(3+S(1));
+mu{1}=@(S,param) (20*S(1,:))./(3+S(1,:));
 param.mu=mu;  
 
 %% Solver

@@ -38,6 +38,7 @@ for j=1:param.Nx
 end
 xlabel('Location in Biofilm')
 ylabel('Biofilm Particulate Vol. Fraction')
+ylim([0,1])
 set(gca,'Fontsize',16)
 
 % Biofim substrates
