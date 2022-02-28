@@ -2,6 +2,7 @@
 function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
 
     % Check parameters to provide more useful error messages
+    param.instantaneousDiffusion = true;
     check_param(param);
 
     % Common parameters
@@ -30,12 +31,14 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     N=Nx;    yo(Nvar+1:Nvar+N)=X(:);    Nvar=Nvar+N; % Tank particulates
     N=Ns;    yo(Nvar+1:Nvar+N)=S(:);    Nvar=Nvar+N; % Tank substrates
     N=Nx*Nz; yo(Nvar+1:Nvar+N)=Pb(:,:); Nvar=Nvar+N; % Biofilm particulates
-    N=Ns*Nz; yo(Nvar+1:Nvar+N)=Sb(:,:); Nvar=Nvar+N; % Biofilm substrates
+    if ~param.instantaneousDiffusion
+        N=Ns*Nz; yo(Nvar+1:Nvar+N)=Sb(:,:); Nvar=Nvar+N; % Biofilm substrates
+    end
     N=1;     yo(Nvar+1:Nvar+N)=Lf;                   % Biofilm thicknes
 
     % Call ODE solver
     %ops = odeset('OutputFcn',@odeprint,'AbsTol',1e-3);
-    ops = odeset('OutputFcn',@myOutputFcn,'RelTol',1e-4,'AbsTol',1e-2);
+    ops = odeset('OutputFcn',@myOutputFcn,'RelTol',param.tol,'AbsTol',param.tol);
     %ops = odeset('OutputFcn',@odeplot,'AbsTol',1e-4);
     %ops = odeset('OutputFcn',@odeprog,'Events',@odeabort,'AbsTol',1e-4);
     [t,y]=ode23s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
@@ -48,12 +51,28 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     N=Nx;     X =y(:,Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank particulates
     N=Ns;     S =y(:,Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank substrates
     N=Nx*Nz;  Pb=y(:,Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm particulates
-    N=Ns*Nz;  Sb=y(:,Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm substrates
+    if ~param.instantaneousDiffusion
+        N=Ns*Nz;  Sb=y(:,Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm substrates
+    end
     N=1;      Lf=y(:,Nvar+1:Nvar+N);              % Biofilm thickness
 
     % Reshape and return last biofilm values: Var(Nx/Ns, Nz)
     Pb = reshape(Pb(end,:),Nx,Nz);
-    Sb = reshape(Sb(end,:),Ns,Nz);
+
+    % Substrate in biofilm
+    if param.instantaneousDiffusion
+        % Compute particulate concentration from volume fractions
+        Xb=zeros(param.Nx,param.Nz);
+        for j=1:param.Nx
+            Xb(j,:) = param.rho(j)*Pb(j,:);
+        end
+        % Solve for final substrate concentrations in biofilm
+        grid.z  = linspace(0,Lf(end),param.Nz+1);
+        grid.dz = grid.z(2) - grid.z(1);
+        Sb = biofilmdiffusion_fd(S(end,:),Xb,param,grid);
+    else
+        Sb = reshape(Sb(end,:),Ns,Nz);
+    end
 end
 
 %% Status of ODE solver
@@ -74,7 +93,9 @@ function [f]=RHS(~,y,param)
     N=Nx;     X =y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank particulates
     N=Ns;     S =y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank substrates
     N=Nx*Nz;  Pb=y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm particulates
-    N=Ns*Nz;  Sb=y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm substrates
+    if ~param.instantaneousDiffusion
+        N=Ns*Nz;  Sb=y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm substrates
+    end
     N=1;      Lf=y(Nvar+1:Nvar+N);              % Biofilm thickness
 
     % Update grid
@@ -83,7 +104,9 @@ function [f]=RHS(~,y,param)
     
     % Reshape biofilm varialbes Var(Nx/Ns, Nz)
     Pb = reshape(Pb,param.Nx,param.Nz);
-    Sb = reshape(Sb,param.Ns,param.Nz);
+    if ~param.instantaneousDiffusion
+        Sb = reshape(Sb,param.Ns,param.Nz);
+    end
 
     % Compute particulate concentration from volume fractions
     Xb=zeros(param.Nx,param.Nz);
@@ -92,6 +115,9 @@ function [f]=RHS(~,y,param)
     end
     
     % Compute intermediate variables
+    if param.instantaneousDiffusion
+        Sb    = biofilmdiffusion_fd(S,Xb,param,grid); % Diffusion of substrates into biofilm
+    end
     mu    = computeMu(Sb,param);        % Growthrate in biofilm
     fluxS = computeFluxS(S,Sb,param,grid);  % Flux of substrate in biofilm
     V     = computeVel  (mu,Pb,param,grid); % Velocity of particulates
@@ -105,7 +131,9 @@ function [f]=RHS(~,y,param)
     N=Nx;    f(Nrhs+1:Nrhs+N)=dXdt (X,S,Xb,Vdet,param);      Nrhs=Nrhs+N;  % Tank particulates
     N=Ns;    f(Nrhs+1:Nrhs+N)=dSdt (X,S,param,fluxS);        Nrhs=Nrhs+N;  % Tank substrates
     N=Nx*Nz; f(Nrhs+1:Nrhs+N)=dPbdt(mu,Pb,fluxP,param,grid); Nrhs=Nrhs+N;  % Biofilm particulates
-    N=Ns*Nz; f(Nrhs+1:Nrhs+N)=dSbdt(mu,Xb,fluxS,param,grid); Nrhs=Nrhs+N;  % Biofilm substrates
+    if ~param.instantaneousDiffusion
+        N=Ns*Nz; f(Nrhs+1:Nrhs+N)=dSbdt(mu,Xb,fluxS,param,grid); Nrhs=Nrhs+N;  % Biofilm substrates
+    end
     N=1;     f(Nrhs+1:Nrhs+N)=dLfdt(V,Vdet);                               % Biofilm thickness
 
 end

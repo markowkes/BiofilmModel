@@ -28,15 +28,18 @@ param.Kdet = 1900;            % Particulates detachment coefficient
 param.Yxs  =[1                % dX1/dS1
              1];              % dX2/dS1
 
+% Growthrates for each particulate
+mu{1}=@(S,param) (20*S(1,:))./(3+S(1,:));
+mu{2}=@(S,param) (20*S(1,:))./(3+S(1,:));
+param.mu=mu;  
+
 % Computed parameters
 param.phi_tot = sum(param.phibo);
 param.Ns = size(param.So, 1);  % Number of substrates
 param.Nx = size(param.Xo, 1);  % Number of substrates
 
-% Growthrates for each particulate
-mu{1}=@(S,param) (20*S(1,:))./(3+S(1,:));
-mu{2}=@(S,param) (20*S(1,:))./(3+S(1,:));
-param.mu=mu;  
+% Tolerance
+param.tol=1e-2;
 
 %% Solver
 

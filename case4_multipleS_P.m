@@ -14,10 +14,10 @@ param.Sin = [25; 25];   % Substrates concentration(s) into tank
 param.LL  = 1.00E-4;    % Boundary layer thickness
 
 % Biofilm
-param.Nz=50; %Linear grid points to describe biofilm
+param.Nz   = 50;         %Linear grid points to describe biofilm
 param.phibo= [0.2; 0.2]; % Biofilm particulates initial condition(s)
 param.Sbo  = [25; 25];   % Biofilm substrates initial condition(s)
-param.Lfo  = 5.0E-6;    % Biofilm initial thickness
+param.Lfo  = 5.0E-6;     % Biofilm initial thickness
 
 % Substance Constants
 param.Yxs  =[0.5,   inf        % X1 yield coeffficient on substrates
@@ -30,15 +30,18 @@ param.Kdet = 1900;             % Particulate detachment coefficient
 param.Yxs  =[0.5,   inf        % [ dX1/dS1, dX1/dS2
              inf, 0.278];      %   dX2/dS1, dX2/dS2 ]
 
+% Growthrates for each particulate
+mu{1}=@(S,param) (2000*S(1,:))./(2500);
+mu{2}=@(S,param) (2000*S(2,:))./(2500);
+param.mu=mu;  
+
 % Computed parameters
 param.phi_tot = sum(param.phibo);
 param.Ns = size(param.So, 1);  % Number of substrates
 param.Nx = size(param.Xo, 1);  % Number of substrates
 
-% Growthrates for each particulate
-mu{1}=@(S,param) (2000*S(1,:))./(2500);
-mu{2}=@(S,param) (2000*S(2,:))./(2500);
-param.mu=mu;  
+% Tolerance
+param.tol=1e-2;
 
 %% Solver
 
