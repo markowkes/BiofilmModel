@@ -1,3 +1,10 @@
+% Todo's
+% - initial guess for biofilmdiffusion_fd methods - currently using zeros
+% - plot during ode solve (?)
+% - move biofilmdiffusion_fd to cells (new) vs grid points (old version)
+% - compare to BAM 
+% - test different ode solvers and tolerances 
+% - compare instantaneous or time dependent diffusion (param.instantaneousDiffusion)
 
 function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
 
@@ -41,6 +48,7 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     ops = odeset('OutputFcn',@myOutputFcn,'RelTol',param.tol,'AbsTol',param.tol);
     %ops = odeset('OutputFcn',@odeplot,'AbsTol',1e-4);
     %ops = odeset('OutputFcn',@odeprog,'Events',@odeabort,'AbsTol',1e-4);
+    %[t,y]=ode45(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
     [t,y]=ode23s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
     %[t,y]=ode15s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
     %[t,y]=ode23t(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
@@ -69,7 +77,7 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
         % Solve for final substrate concentrations in biofilm
         grid.z  = linspace(0,Lf(end),param.Nz+1);
         grid.dz = grid.z(2) - grid.z(1);
-        Sb = biofilmdiffusion_fd(S(end,:),Xb,param,grid);
+        Sb = biofilmdiffusion_fd_old(S(end,:),Xb,param,grid);
     else
         Sb = reshape(Sb(end,:),Ns,Nz);
     end
@@ -102,7 +110,7 @@ function [f]=RHS(~,y,param)
     grid.z  = linspace(0,Lf,param.Nz+1);
     grid.dz = grid.z(2) - grid.z(1);
     
-    % Reshape biofilm varialbes Var(Nx/Ns, Nz)
+    % Reshape biofilm variables Var(Nx/Ns, Nz)
     Pb = reshape(Pb,param.Nx,param.Nz);
     if ~param.instantaneousDiffusion
         Sb = reshape(Sb,param.Ns,param.Nz);
@@ -116,10 +124,12 @@ function [f]=RHS(~,y,param)
     
     % Compute intermediate variables
     if param.instantaneousDiffusion
-        Sb    = biofilmdiffusion_fd(S,Xb,param,grid); % Diffusion of substrates into biofilm
+        %[Sb,fluxS] = biofilmdiffusion_fd(S,Xb,param,grid); % Diffusion of substrates into biofilm
+        [Sb,fluxS] = biofilmdiffusion_fd_old(S,Xb,param,grid); % Diffusion of substrates into biofilm
+    else
+        fluxS = computeFluxS(S,Sb,param,grid);  % Flux of substrate in biofilm
     end
     mu    = computeMu(Sb,param);        % Growthrate in biofilm
-    fluxS = computeFluxS(S,Sb,param,grid);  % Flux of substrate in biofilm
     V     = computeVel  (mu,Pb,param,grid); % Velocity of particulates
     fluxP = computeFluxP(Pb,V,param);       % Flux of particulates in biofilm
     Vdet  = param.Kdet*Lf^2;                % Detachment velocity

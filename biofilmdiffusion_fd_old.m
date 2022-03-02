@@ -1,4 +1,4 @@
-function [Sb,Sflux]=biofilmdiffusion_fd(S,Xb,param,grid)
+function [Sb,Sflux]=biofilmdiffusion_fd_old(S,Xb,param,grid)
 %% This function models the diffusion of a substrate within the biofilm
 %This Function will take tank conditions (So,Xb,LL) and various growth factors (Yxs,De,Km,Daq) model the diffusion of
 % substrates into the biofilm over the grid . The results of this uptake will be used to
@@ -6,15 +6,17 @@ function [Sb,Sflux]=biofilmdiffusion_fd(S,Xb,param,grid)
 
 Ns = param.Ns;
 Nz = param.Nz;
+dz = grid.dz;
 
 Sbold=zeros(Ns,Nz);
 Sb   =zeros(Ns,Nz);
 
 % Get variables out of param
+
+Yxs=param.Yxs;
 De=param.De;
 LL=param.LL;
 Daq=param.Daq;
-dz = grid.dz;
 tol=param.tol;
 
 %Iterations
@@ -34,28 +36,24 @@ B = zeros(1,Nz*Ns);
 for n=1:iter
     for k=1:Ns
         
+        % 1 and -1 on the dia. and upper dia. at the start of each substrate (once every Nz)
+        A((k-1)*Nz+1,(k-1)*Nz+1) = 1;
+        A((k-1)*Nz+1,(k-1)*Nz+2) = -1;
+        
         % E and F on the dia. and upper dia. at the end of each substrate (once every Nz)
-%         E = -De(k)*LL;
-%         F =  De(k)*LL+Daq(k)*dz;
-%         A(Nz*k,Nz*k) = F;
-%         A(Nz*k,Nz*k-1) = E;
-        A(Nz*k,Nz*k) = ((3*Daq(k)*dz + 2*De(k)*LL))/(Daq(k)*dz + 2*De(k)*LL); % Si term
-        A(Nz*k,Nz*k-1) = -1;  % Si-1 term
+        E = -De(k)*LL;
+        F =  De(k)*LL+Daq(k)*dz;
+        A(Nz*k,Nz*k) = F;
+        A(Nz*k,Nz*k-1) = E;
         
         % G at the end of each substrate in B array (once every Nz)
-        %G = Daq(k)*dz*S(k);
-        %B(Nz*k) = G;
-        B(Nz*k) = R(k,Nz,Ns,dz,Sb,Xb,param) + (2*Daq(k)*S(k)*dz)/(Daq(k)*dz + 2*De(k)*LL);
+        G = Daq(k)*dz*S(k);
+        B(Nz*k) = G;
 
-
-        for i=1:Nz-1
+        for i=2:Nz-1
             % L and U, lower and upper dia. interior points for each
             % substrate (2:Nz-1)
-            if i~=1
-                A((k-1)*Nz+i,(k-1)*Nz+i-1) = L;
-            else
-                A((k-1)*Nz+i,(k-1)*Nz+i  ) = L;  % add to main diagonal (BC)
-            end
+            A((k-1)*Nz+i,(k-1)*Nz+i-1) = L;
             A((k-1)*Nz+i,(k-1)*Nz+i+1) = U;
             
             % R, interior points in the B matrix for each substrate
@@ -64,12 +62,11 @@ for n=1:iter
             for m=1:Ns               
                 
                 % D, populates dia. and off dia. interior points (2:Nz-1)
-                A((k-1)*Nz+i,(m-1)*Nz+i) = A((k-1)*Nz+i,(m-1)*Nz+i) + D(k,i,m,Sb,Xb);
+                A((k-1)*Nz+i,(m-1)*Nz+i) = D(k,i,m,Sb,Xb);
                 
 %                 A((j-1)*Nz+i,(m-1)*Nz+i+1) = U;
 %                 A((j-1)*Nz+i,(m-1)*Nz+i-1) = L;     
             end
-
         end
     end
 
@@ -95,9 +92,19 @@ for n=1:iter
     Sbold = Sb;
 end
 
-% Compute Sflux at top of biofilm
-Stop = (Daq*dz/2.*S + De*LL.*Sb(:,end))./(Daq*dz/2 + De*LL);
-Sflux = (Stop - Sb(:,end))/(dz/2);
+% Flux = \int_0^Lf mu(S) * xB / Yxs dz = xB/Yxs * int_0^Lf mu dz
+%%% Todo - Double check this %%%
+Sflux = zeros(Ns,1);
+for k=1:Ns
+    for j=1:param.Nx
+        for i=1:length(Sb)-1
+            %bflux(k)=bflux(k)+dz*((param.mu{j}(Sb(:,i  ),param) ...
+                                  %+param.mu{j}(Sb(:,i+1),param))/2);
+            Sflux(k)=Sflux(k)+dz*((Xb(j,i  )*param.mu{j}(Sb(:,i  ),param) ...
+                                  +Xb(j,i+1)*param.mu{j}(Sb(:,i+1),param))/2)/Yxs(j,k); %trapezoidal
+        end
+    end
+end
 end
 
 % k -> substrate
