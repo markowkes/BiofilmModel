@@ -8,21 +8,43 @@ end
 %% Test when LL=0 
 function test_diffusion_zeroLL(testCase)
 % Run test
-param=cases(1);
-param.LL=0;
-Nz=50;
-Sbold=linspace(0,5,Nz);
+param.Daq  = 4.0E-5;    % Substrate diffusion through boundary layer
+param.De   = 1.0E-3;    % Substrate diffusion through biofilm     
+param.Yxs  = 0.5;       % Biomass yield coeffficient on substrate
+param.LL=1e-2;
+param.Ns=1;
+param.Nx=1;
+param.Nz=50;
+param.tol=1e-2;
+param.Lfo=50e-6;
+mu{1}=@(S,param) (20*S(1,:))./(3+S(1,:));
+param.mu=mu;  
+
 S=10;
-dz=1e-7;
-t=0;
-[Sb,~]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
-% Analyze result
+Xb=zeros(1,param.Nz)+20000;
+param.dtol=1e-2;
+
+grid.z=linspace(0,param.Lfo,param.Nz); %specify for plot
+grid.dz = grid.z(2)-grid.z(1);
+% Old method
+[Sbold,~]=biofilmdiffusion_fd_old(S,Xb,param,grid);
 figure(1); clf(1)
-z=linspace(0,param.Lfo,Nz); %specify for plot
-plot(z(end),Sb(end),'r*','Markersize',16)
+plot(grid.z(end),Sbold(end),'r*','Markersize',16)
 hold on
-plot(z,Sb,'black')
-xl=xline(z(end),'--b','Biofilm Thickness','Fontsize',16);
+plot(grid.z,Sbold,'r--')
+
+% New method
+grid.z=linspace(0,param.Lfo,param.Nz+1); %specify for plot
+grid.zm=0.5*(grid.z(1:end-1)+grid.z(2:end));
+grid.dz = grid.z(2)-grid.z(1);
+[Sb,~]=biofilmdiffusion_fd(S,Xb,param,grid);
+Stop = ((param.Daq*S)*grid.dz + (2*param.De*Sb(:,end))*param.LL) ...
+    /(param.Daq*grid.dz + (2*param.De)*param.LL);
+plot(grid.zm,Sb,'black')
+plot(grid.z(end),Stop,'bo','Markersize',16)
+
+% Annotate
+xl=xline(grid.z(end),'--b','Biofilm Thickness','Fontsize',16);
 xl.LabelVerticalAlignment = 'middle';
 xl.LabelHorizontalAlignment = 'center';
 title('Substrate Concentration Profile')
@@ -31,10 +53,11 @@ ylabel('Sb(z)')
 legend(sprintf('Sb = %3.3f [g/m^3]',Sb(end)),'Concentration Profile','location','Northwest','Fontsize',16)
 set(gca,'Fontsize',20)
 
-actSolution = Sb(end);
+actSolution = Stop;
 expSolution = S;
+error=abs(actSolution-expSolution);
 tol=1e-15;
-verifyLessThan(testCase,abs(actSolution-expSolution),tol)
+verifyLessThan(testCase,error,tol)
 end
 
 %% Test tank biomass concentration when no inflow Q

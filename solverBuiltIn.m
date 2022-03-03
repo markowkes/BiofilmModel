@@ -124,8 +124,7 @@ function [f]=RHS(~,y,param)
     
     % Compute intermediate variables
     if param.instantaneousDiffusion
-        %[Sb,fluxS] = biofilmdiffusion_fd(S,Xb,param,grid); % Diffusion of substrates into biofilm
-        [Sb,fluxS] = biofilmdiffusion_fd_old(S,Xb,param,grid); % Diffusion of substrates into biofilm
+        [Sb,fluxS] = biofilmdiffusion_fd(S,Xb,param,grid); % Diffusion of substrates into biofilm
     else
         fluxS = computeFluxS(S,Sb,param,grid);  % Flux of substrate in biofilm
     end

@@ -24,57 +24,52 @@ L = -1;
 U = -1;
 
 % Define D = 2*kronecker + dz^2*dgds(j,i,m)
-D=@(k,i,m,Sb,Xb) (2*eq(k,m)+dz^2*dgds(k,i,m,Sb,Xb,param));
-
-% Preallocate solution array
-A = zeros(Nz*Ns, Nz*Ns);
-B = zeros(1,Nz*Ns);
+D=@(k,i,m,Sb,Xb) (dz^2*dgds(k,i,m,Sb,Xb,param));
 
 %Iterations
 for n=1:iter
+    % Preallocate solution array
+    A = zeros(Nz*Ns, Nz*Ns);
+    B = zeros(Nz*Ns,1);
+
     for k=1:Ns
         
-        % E and F on the dia. and upper dia. at the end of each substrate (once every Nz)
-%         E = -De(k)*LL;
-%         F =  De(k)*LL+Daq(k)*dz;
-%         A(Nz*k,Nz*k) = F;
-%         A(Nz*k,Nz*k-1) = E;
-        A(Nz*k,Nz*k) = ((3*Daq(k)*dz + 2*De(k)*LL))/(Daq(k)*dz + 2*De(k)*LL); % Si term
-        A(Nz*k,Nz*k-1) = -1;  % Si-1 term
+        % Bottom of biofilm
+        i=1; % Index
+        d=(k-1)*Nz+i; % Row for this substrate 
+        A(d,d  ) = L + 2;  % Add lower diagonal to main diagonal (Neuman)
+        A(d,d+1) = U; 
+        B(d,1  ) = R(k,i,Ns,dz,Sb,Xb,param); % RHS
         
-        % G at the end of each substrate in B array (once every Nz)
-        %G = Daq(k)*dz*S(k);
-        %B(Nz*k) = G;
-        B(Nz*k) = R(k,Nz,Ns,dz,Sb,Xb,param) + (2*Daq(k)*S(k)*dz)/(Daq(k)*dz + 2*De(k)*LL);
+        % Top of biofilm
+        i=Nz; % Index
+        d=(k-1)*Nz+i; % Row for this substrate 
+        % Top of biofilm - flux matching condition between biofilm and tank
+        A(d,d  ) = ((3*Daq(k)*dz + 2*De(k)*LL))/(Daq(k)*dz + 2*De(k)*LL);
+        A(d,d-1) = L; 
+        B(Nz*k) = R(k,i,Ns,dz,Sb,Xb,param) + (2*Daq(k)*S(k)*dz)/(Daq(k)*dz + 2*De(k)*LL);
 
+        % Interior points
+        for i=2:Nz-1
+            d=(k-1)*Nz+i; % Row for this substrate 
+            A(d,d-1) = L;
+            A(d,d+1) = U;
+            A(d,d  ) = 2;
+            B(d,1  ) = R(k,i,Ns,dz,Sb,Xb,param);
+        end
 
-        for i=1:Nz-1
-            % L and U, lower and upper dia. interior points for each
-            % substrate (2:Nz-1)
-            if i~=1
-                A((k-1)*Nz+i,(k-1)*Nz+i-1) = L;
-            else
-                A((k-1)*Nz+i,(k-1)*Nz+i  ) = L;  % add to main diagonal (BC)
-            end
-            A((k-1)*Nz+i,(k-1)*Nz+i+1) = U;
-            
-            % R, interior points in the B matrix for each substrate
-            % (2:Nz-1)
-            B((k-1)*Nz+i) = R(k,i,Ns,dz,Sb,Xb,param);
+        % All points
+        for i=1:Nz
+            d=(k-1)*Nz+i; % Row for this substrate 
             for m=1:Ns               
-                
                 % D, populates dia. and off dia. interior points (2:Nz-1)
-                A((k-1)*Nz+i,(m-1)*Nz+i) = A((k-1)*Nz+i,(m-1)*Nz+i) + D(k,i,m,Sb,Xb);
-                
-%                 A((j-1)*Nz+i,(m-1)*Nz+i+1) = U;
-%                 A((j-1)*Nz+i,(m-1)*Nz+i-1) = L;     
+                A(d,(m-1)*Nz+i) = A(d,(m-1)*Nz+i) + D(k,i,m,Sb,Xb);
             end
-
         end
     end
 
     % Solve for new concentration
-    Sb=(A\B')';
+    Sb=(A\B)';
 
     % Non Zero Condition
     Sb(Sb < 0) = 0;
@@ -96,8 +91,8 @@ for n=1:iter
 end
 
 % Compute Sflux at top of biofilm
-Stop = (Daq*dz/2.*S + De*LL.*Sb(:,end))./(Daq*dz/2 + De*LL);
-Sflux = (Stop - Sb(:,end))/(dz/2);
+S_top = (Daq*dz/2.*S + De*LL.*Sb(:,end))./(Daq*dz/2 + De*LL);
+Sflux = De.*(S_top - Sb(:,end))/(dz/2);
 end
 
 % k -> substrate
