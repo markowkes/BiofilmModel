@@ -77,7 +77,7 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
         % Solve for final substrate concentrations in biofilm
         grid.z  = linspace(0,Lf(end),param.Nz+1);
         grid.dz = grid.z(2) - grid.z(1);
-        Sb = biofilmdiffusion_fd_old(S(end,:),Xb,param,grid);
+        Sb = biofilmdiffusion_fd(S(end,:),Xb,param,grid);
     else
         Sb = reshape(Sb(end,:),Ns,Nz);
     end
