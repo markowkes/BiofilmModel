@@ -46,13 +46,14 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     % Call ODE solver
     %ops = odeset('OutputFcn',@odeprint,'AbsTol',1e-3);
     ops = odeset('OutputFcn',@myOutputFcn,'RelTol',param.tol,'AbsTol',param.tol);
+    %ops = odeset('OutputFcn',@odeprog,'RelTol',param.tol,'AbsTol',param.tol);
     %ops = odeset('OutputFcn',@odeplot,'AbsTol',1e-4);
     %ops = odeset('OutputFcn',@odeprog,'Events',@odeabort,'AbsTol',1e-4);
-    %[t,y]=ode45(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
-    [t,y]=ode23s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
-    %[t,y]=ode15s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
-    %[t,y]=ode23t(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
-    %[t,y]=ode23tb(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
+    %[t,y]=ode45  (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
+    [t,y]=ode23s (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
+    %[t,y]=ode15s (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
+    %[t,y]=ode23t (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
+    %[t,y]=ode23tb(@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
     
     % Extract computed solution
     Nvar=0;
@@ -84,11 +85,47 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
 end
 
 %% Status of ODE solver
-function status=myOutputFcn(t,y,flag) %#ok<INUSL> 
+function status=myOutputFcn(t,y,flag,param) %#ok<INUSL> 
     if strcmp(flag,'init') || strcmp(flag,'done')
         % do nothing
     else
         fprintf('Time = %5.5e \n',t)
+
+        % Common parameters
+        Nz = param.Nz;
+        Nx = param.Nx;
+        Ns = param.Ns;
+
+        % Extract computed solution
+        Nvar=0;
+        N=Nx;     X =y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank particulates
+        N=Ns;     S =y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank substrates
+        N=Nx*Nz;  Pb=y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm particulates
+        if ~param.instantaneousDiffusion
+            N=Ns*Nz;  Sb=y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm substrates
+        end
+        N=1;      Lf=y(Nvar+1:Nvar+N);              % Biofilm thickness
+
+        % Reshape and return last biofilm values: Var(Nx/Ns, Nz)
+        Pb = reshape(Pb(:),Nx,Nz);
+
+        % Substrate in biofilm
+        if param.instantaneousDiffusion
+            % Compute particulate concentration from volume fractions
+            Xb=zeros(param.Nx,param.Nz);
+            for j=1:param.Nx
+                Xb(j,:) = param.rho(j)*Pb(j,:);
+            end
+            % Solve for final substrate concentrations in biofilm
+            grid.z  = linspace(0,Lf(end),param.Nz+1);
+            grid.dz = grid.z(2) - grid.z(1);
+            Sb = biofilmdiffusion_fd(S(:),Xb,param,grid);
+        else
+            Sb = reshape(Sb(:),Ns,Nz);
+        end
+
+        plotSolution(t,X,S,Pb,Sb,Lf,param)
+
     end
     status=0;
 end
@@ -165,7 +202,7 @@ function [fluxS]=computeFluxS(S,Sb,param,grid)
     % Bottom boundary - no flux condition -> nothing to do
     % Top boundary - flux matching between biofilm and boundary layer 
     S_top=(param.Daq*grid.dz/2.*S+param.De*param.LL.*Sb(:,param.Nz)) ...
-        ./(param.Daq*grid.dz/2+param.De*param.LL); 
+        ./(param.Daq*grid.dz/2+param.De*param.LL);
     fluxS(:,param.Nz+1) = param.De.*(S_top-Sb(:,param.Nz))/(grid.dz/2);
 end
 
@@ -230,7 +267,7 @@ function dSbdt = dSbdt(mu,Xb,fluxS,param,grid)
     growth = zeros(param.Ns,param.Nz);
     for k=1:param.Ns
         for j=1:param.Nx
-            growth(k,:) = mu(j,:).*Xb(j,:)./param.Yxs(j,k); % Used by growth
+            growth(k,:) = growth(k,:) + mu(j,:).*Xb(j,:)./param.Yxs(j,k); % Used by growth
         end
     end
     dSbdt = netFlux - growth; 

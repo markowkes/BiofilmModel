@@ -3,6 +3,7 @@ clear; clc;
 
 % Time
 param.tFin=30;   % Simulation time [days]
+param.outPeriod=0.5; % Output period [days]
 
 % Tank Geometry
 param.V   = 0.1;        % Volume of tank
