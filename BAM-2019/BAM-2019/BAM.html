@@ -1,0 +1,62 @@
+<html>
+
+<head>
+<title>Biofilm Hypertextbook</title>
+<meta name="GENERATOR" content="Microsoft FrontPage 3.0">
+</head>
+
+<body>
+
+<p align="center"><font face="Times New Roman" size="4"><strong>Biofilm Hypertextbook</strong></font></p>
+
+<p align="center"><strong><font face="Times New Roman" size="3">Bam Model</font></strong></p>
+
+<p align="center"><strong><font face="Times New Roman" size="3">Charts developed using
+JFreeChart &nbsp; (</font><a href="http://www.object-refinery.com">http://www.object-refinery.com</a>)</strong></p>
+
+<!-- Adapted from example given in forum.java.sun.com "Launch a new Browser within a JApplet -->
+<script language = "JavaScript">
+var printWindow = null
+function openPrintWindow() {
+  alert("openPrintWindow")
+  printWindow = window.open("",
+                            "",
+                            "status,resizable,menubar,toolbar,scrollbars,height=650,width=800")
+  printWindow.focus()
+}
+function writePrintWindow(content) {
+  if ( printWindow != null ) 
+  {
+    printWindow.document.write(content)
+  }
+}
+function writelnPrintWindow(content) {
+  if ( printWindow != null ) 
+  {
+    printWindow.document.writeln(content)
+  }
+}
+function closePrintDocument() {
+  if ( printWindow != null ) 
+  {
+    printWindow.document.close()
+    printWindow.focus()
+  }
+}
+function closePrintWindow() {
+  if ( printWindow != null ) 
+  {
+    printWindow.close()
+  }
+}
+</script>
+
+<p align="center">
+<APPLET CODE = "bam/BAM_Applet.class" CODEBASE="./"
+        ARCHIVE = "bam.jar, lib/bamdata.jar, lib/dom4j-1.6.1.jar lib/jcommon-0.6.3.jar, lib/jfreechart-0.9.1.jar" WIDTH = "975" HEIGHT = "700" MAYSCRIPT>
+
+
+</APPLET>
+</p>
+</body>
+</html>

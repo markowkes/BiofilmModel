@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE BAM SYSTEM "bam.dtd">
+
+<BAM>
+  <modelName>Default BAM model </modelName>
+  <modelDescr>Default BAM Model description with slider specifications.  The sliders are used in the hypertextbook interactive model.</modelDescr>
+  <rxnName>Growth</rxnName>
+  <rxnName>Biocide w/live</rxnName>
+  <rxnName>Biocide w/dead</rxnName>
+  <rxnName>Disinfection</rxnName>
+  <substrate name="Glucose" abbr="Glu" diff="+5.70000e-04">
+    <rxnData stoich="-2.22000e+00" law="Monod" coeff="+2.55000e+00"/>
+    <rxnData stoich="+0.00000e+00" law="ZeroOrder" coeff="+1.00000e+00"/>
+    <rxnData stoich="+0.00000e+00" law="ZeroOrder" coeff="+1.00000e+00"/>
+    <rxnData stoich="+0.00000e+00" law="ZeroOrder" coeff="+1.00000e+00"/>
+  </substrate>
+  <substrate name="Biocide" abbr="Bio" diff="+1.50000e-04">
+    <rxnData stoich="+0.00000e+00" law="ZeroOrder" coeff="+1.00000e+00"/>
+    <rxnData stoich="-1.00000e+00" law="FirstOrder" coeff="+6.00000e+01"/>
+    <rxnData stoich="-1.00000e+00" law="FirstOrder" coeff="+6.00000e+01"/>
+    <rxnData stoich="+0.00000e+00" law="FirstOrder" coeff="+1.00000e+02"/>
+    <biocide conc="+0.00000e+00" begin="+0.00000e+00" duration="+0.00000e+00" freq="+9.99000e+02" det="+0.00000e+00" pulseStep="Step"/>
+  </substrate>
+  <particulate name="Pseudomonas" abbr="Pse" rho="+3.00000e+04">
+    <rxnData stoich="+1.00000e+00" law="FirstOrder" coeff="+7.50000e+00"/>
+    <rxnData stoich="+0.00000e+00" law="FirstOrder" coeff="+1.00000e+00"/>
+    <rxnData stoich="+0.00000e+00" law="ZeroOrder" coeff="+1.00000e+00"/>
+    <rxnData stoich="-1.00000e+00" law="FirstOrder" coeff="+1.00000e+00"/>
+  </particulate>
+  <particulate name="Dead cells" abbr="Dea" rho="+3.00000e+04">
+    <rxnData stoich="+0.00000e+00" law="ZeroOrder" coeff="+1.00000e+00"/>
+    <rxnData stoich="+0.00000e+00" law="ZeroOrder" coeff="+1.00000e+00"/>
+    <rxnData stoich="+0.00000e+00" law="FirstOrder" coeff="+1.00000e+00"/>
+    <rxnData stoich="+1.00000e+00" law="ZeroOrder" coeff="+1.00000e+00"/>
+  </particulate>
+  <time init="+0.00000e+00" final="+1.00000e+01" step="+1.00000e-01"/>
+  <numGrid>5</numGrid>
+  <detach coeff1="96000" coeff2="0" coeff3="0" coeff4="0" coeff5="0"/>
+  <flow time1="+0.00000e+00" flow1="+1.00000e00" time2="+9.99000e+02" flow2="+0.00000e00" time3="+9.99000e+02" flow3="+0.00000e00" time4="+9.99000e+02" flow4="+0.00000e00" time5="+9.99000e+02" flow5="+0.00000e00"/>
+  <unit initThickness="5.0E-5" fixCalc="Calculate">
+    <geometry area="1.0" thickness="1.05E-4" vol="0.1" voidFrac="0.885" diff="0.8" rate="0.0"/>
+    <initSubstrate inletConc="+0.00000e+01" bulkConc="+0.00000e+00" fixCalc="Calculate"/>
+    <initSubstrate inletConc="+4.00000e+00" bulkConc="+0.00000e+00" fixCalc="Calculate"/>
+    <initParticulate inletConc="+0.00000e+01" bulkConc="+0.00000e+00" voidFrac="0.1149997"/>
+    <initParticulate inletConc="+0.00000e+01" bulkConc="+0.00000e+00" voidFrac="1.0e-8"/>
+  </unit>
+  <sliders>
+    <subSlider min="0" max="20" major="10" minor="5"/>
+    <subSlider min="0" max="20" major="10" minor="5"/>
+    <flowSlider current="10" min="1" max="21" major="10" minor="5"/>
+    <detachSlider min="70000" max="130000" major="20000" minor="10000"/>
+    <thicknessSlider min="0" max="50" major="10" minor="5"/>
+  </sliders>
+  <numCoeff stol="0.00" ntol="0.00"/>
+</BAM>

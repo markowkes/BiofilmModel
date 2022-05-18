@@ -108,7 +108,7 @@ end
 function g = g(k,S,Xb,param)
     g = 0;
     for j = 1:param.Nx
-       g = g + param.mu{j}(S,param)*Xb(j)/(param.Yxs(j,k)*param.De(k));
+       g = g + param.mu{j}(S,Xb,param)*Xb(j)/(param.Yxs(j,k)*param.De(k));
     end
 end
 % Define dgds = (g(Sb+)-g(Sb-))/dS

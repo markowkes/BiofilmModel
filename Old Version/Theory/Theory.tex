@@ -1,0 +1,544 @@
+\documentclass[letterpaper, twoside]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{fullpage}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{listings}
+\numberwithin{equation}{section}
+
+% Text
+\newcommand{\etc}{etc.}
+\newcommand{\eg}{e.g.}
+\newcommand{\ie}{i.e.}
+
+\title{Biofilm Model Theory}
+\author{Austen, Takumi, Mark, Phil}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\abstract
+A one-dimensional biofilm model was created in MATLAB for user specified conditions within a continuous stirred tank reactor. This model utilizes numerical methods to iteratively solve for the diffusion of nutrients into a biofilm over a variable span of time as well as the depletion of nutrients in the tank reactor as they are integrated into the biofilm. Various growth kinetics are used to calculate the respective growth rate of the biofilm and therefore its change in size over time. Considerations for efficiency, convergence, and stability of modeled differential equations have been the prime areas of focus throughout the modeling process to ensure accurate solutions for a wide range of user inputs.
+
+\section{Nomenclature}
+\begin{tabular}{c l c}
+  Variable & Description & Units\\ \hline
+  $\mu$ & Growth Rate & 1/days\\
+  $\mu_\mathrm{max}$  & Maximum specific growth rate & 1/days\\
+  $\bar\mu$ & Average growth rate & 1/days\\
+  $K_\mathrm{m}$ & Monod half saturation coefficient & g/m$^3$\\
+  $K_\mathrm{i}$ & Inhibition Coefficient & g/m$^3$\\
+  $Y_\mathrm{xs}$ & Biomass yield coefficient on substrate & g$\cdot$g/s\\
+  $v_g$ & Biofilm Growth Velocity & m/s\\
+  $v_\mathrm{det}$ & Detachment Velocity & m/s\\
+  $V$ & Volume &m$^3$ \\
+  $Q$	& Flowrate & m$^3$/day\\
+  $A$	& Wetted surface area & m$^2$\\
+  $S$ & Substration Concentration in tank & g/m$^3$\\
+  $S_{\mathrm{in}}$ & Influent substrate concentration &  g/m$^3$ \\
+  $S_o$ & Initial bulk fluid substrate concentration in tank &  g/m$^3$ \\
+  $S_b$ & Substrate Concentration in biofilm & g/m$^3$ \\
+  $x$ & Biomass Concentration in tank & g/m$^3$\\
+  $x_o$ & Initial biomass concentration in tank &  g/m$^3$ \\
+  $X_b$ & Biomass density in biofilm &  g/m$^3$ \\
+  $D_\mathrm{aq}$ & Diffusion coefficient of substrate in water & m$^2$/day \\
+  $D_e$ & Effective diffusion coefficient of substrate in biofilm & m$^2$/day \\
+  $L_{f}$ & Biofilm thickness & m\\
+  $L_L$ & Concentration boundary layer thickness & m \\
+  $k_\mathrm{det}$ &	Detachment rate coefficient & 1/(m$\cdot$days)\\
+  $z$ & Biofilm Gride Size & m
+\end{tabular}
+
+\section{Background}
+Multispecies biofilm research has implications in a wide range of fields, from dental plaque growth to gastrointestinal lining in stomachs to structuring the aquatic food chain on the surfaces of rocky riverbeds. Biofilms are the result of respective species of bacteria competing for the substrate within a bulk liquid environment. Bacteria consume nutrients, or substrate, and create biomass, which floats within the liquid until it attaches to a surface. As this biomass attaches to surfaces, they develop an external biofilm which provides protection from the surrounding environment. Following biofilm formation, the detachment phase can begin, and biomass is released to find new surfaces to inhabit.
+
+To simulate biofilm activity and dynamics, a model is sought that incorporates these phenomena: 1) microbial growth 2) substrate consumption/production associated with microbial growth 3) diffusion of dissolved substrates and products into/out of the biofilm 4) activity of both planktonic and biofilm cells, detachment, and 5) system concentrations and flows.
+
+The model constructed here recapitulates the Biofilm Accumulation Model (BAM), developed at the Center for Biofilm Engineering. BAM was itself a version of a model termed BIOSIM that was based on a construct from Oskar Wanner and Willi Gujer.
+
+\section{Code}
+This model was created using Matlab, a multi-paradigm programming language utilized across most engineering fields to model and analyze data. This model could be rewritten in a different language such as C, Python, etc. to allow the code to be more accessible in an open source editor format for future changes. This code and all the created files can be accessed through any Git GUI in the public repository created by Dr. Mark Owkes of the mechanical and industrial engineering department at Montana State University. The title of this repository is $BiofilmModel$.
+
+\subsection{Matlab Infrastructure, $BiofilmModel$}
+\begin{tabular}{c l c}
+  File Name & Description \\ \hline
+  biofilmdiffusion\_fd.m & Computes diffusion into biofilm \\
+  biofilmTest.m & Runs all tests for code validation \\
+  cases.m & Creates "param" structure, hosts all other variables \\
+  lf.m & Computes biofilm thickness \\
+  MAINDRIVER.m & Organizes and calls all other functions to produce solution \\
+  mu.m & Stores all growth rate formulas and calculates growth rate $\mu$ \\
+  outputs.m & Inputs all computed data and produces plots for results \\
+  tankenvironment.m & Computes concentrations within tank environment \\
+\end{tabular}
+
+\subsection{Access}
+The file repository can be accessed using any free Git GUI software. Git is a system of project management used to handle large collaborative work involving multiple localities where all the work can be saved and accessed through a remote central cloud. The benefit of this system is that work can be saved and edited remotely until it is ready to be released to the cloud for access and use by all within the project. The two Git systems used most frequently throughout this project were Github and Sourcetree. 
+
+Downloading a system such as Github or Sourcetree will allow any user to search for the repository $BiofilmModel$ and gain access to all the files outlined above. 
+  
+\section{Tank Environment}
+The environment is modeled in this function as a continuous stirred tank reactor (CSTR), with the existence of an inflow and outflow which carries substrate into the bulk liquid, where some initial concentration of biomass already exists.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=2in]{CSTR_model.jpg}
+\caption{Continuous Stirred Tank Reactor}
+\end{figure}
+
+The rates of the biomass and substrate are modeled by the following ordinary differential equations with initial conditions $x(t=0)=x_o$ and $S(t=0)=S_o$.
+\begin{equation} \label{eq: BiomassEquation}
+  \frac{dx}{dt}(x,t,S,v_\mathrm{det}) = \mu(S) x - \frac{Q x}{V} + \frac{ v_{\mathrm{det}} A X_b}{V}
+\end{equation}
+\begin{equation} \label{eq: SubstrateEquation}
+  \frac{dS}{dt}(x,t,S) = -\frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} - \frac{A B_{\mathrm{flux}}}{V}
+\end{equation}
+
+In order for these two differential equations to be solved by the following numerical methods, they must first be vectorized and packaged properly. This happens by first defining vector \textbf{y},
+\begin{equation}
+  \textbf{y} = [x;  S]
+\end{equation}
+
+By defining \textbf{y} in this way, it will eventually allow both ODE's to be packaged under a single function \textbf{f}. Intermediately, however, this allows for both ODE's to be rewritten as the following.
+\begin{equation} \label{eq: BiomassEquationVectorized}
+  \frac{dx}{dt}(\textbf{y}(1),t,\textbf{y}(2)) = \mu(S) x - \frac{Q x}{V} + \frac{ v_{\mathrm{det}} A X_b}{V}
+\end{equation}
+\begin{equation} \label{eq: SubstrateEquationVectorized}
+  \frac{dS}{dt}(\textbf{y}(1),t,\textbf{y}(2)) = -\frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} - \frac{A B_{\mathrm{flux}}}{V}
+\end{equation}
+
+The two now vectorized forms of the equations are packaged into a single new function \textbf{f}.
+\begin{equation} \label{eq: ODEpackagef}
+  \textbf{f}(t,\textbf{y}) = \left[\frac{dx}{dt}\left(\textbf{y}(1),t,\textbf{y}(2)\right) , 
+	      \frac{dS}{dt}\left(\textbf{y}(1),t,\textbf{y}(2)\right)\right]
+\end{equation}
+
+A low order Runge-Kutta Method based off the structure of ODE23, an intrinsic Matlab function, is used to discretize and solve the packaged differential equations in this function. The Runge-Kutta numerical method calculates the slope of function at three points between each step of the iteration process in order to boost the accuracy of the next-point estimation. The first of these three intermediate slope calculations is the most simple, and occurs at the beginning of the interval.
+\begin{equation} \label{eq: S_1}
+  S_1 = f(t^n,y^n)
+\end{equation}
+
+Note that $^n$ represents the state at the current time-step.
+
+The next slope estimation occurs at the midpoint of the iterative step, using the slope calculated at the beginning of the interval to increase its accuracy.
+\begin{equation} \label{eq: S_2}
+  S_2 = f(t^n + \frac{1}{2} dt,y^n + \frac{1}{2} dt S_1)
+\end{equation}
+
+The third calculation occurs at the 3/4  point of the step.
+\begin{equation} \label{eq: S_3}
+  S_3 = f(t^n + \frac{3}{4} dt,y^2+\frac{3}{4} dt S_2)
+\end{equation}
+
+The final calculation of the slope at the next step uses the previous three calculations to produce the most accurate estimation of the slope possible. Here $^{n+1}$ represents the state at the following time-step.
+\begin{equation} \label{eq: t_{new}}
+  t^{n+1} = t^n + dt
+\end{equation}
+
+\begin{equation} \label{eq: y_{new}}
+  y^{n+1} = y^n + \frac{1}{9} dt (2 S_1 + 3 S_2 + 4 S_3)
+\end{equation}
+
+\begin{equation} \label{eq: S_4}
+  S_4 = f(t^{n+1},y^{n+1})
+\end{equation}
+
+The final portion of each iterative step is to calculate the error of the step by comparing it to the Butcher Tableau coefficients produced by an adaptive Runge-Kutta Method.
+\begin{equation} \label{eq: errorfunction}
+  \mathrm{error} = \frac{1}{72} dt (-5 S_1 + 6 S_2 + 8 S_3 - 9 S_4)
+\end{equation}
+
+This error term allows for each variable time step to be analyzed and adjusted according to its deviation from the standard time-step. This occurs by establishing thresholds for error which keep it from getting too big or too small as given for an arbitrary tolerance 'tol'.
+
+For instance, when the time-step becomes too small, if $|$error$|$ $ \leq\ $ tol/100
+\begin{equation}
+  dt = 2 dt.
+\end{equation}
+
+When the time-step becomes too big, if $|$error$|$ $ \geq\ $ tol
+\begin{equation}
+  dt = \frac{1}{2} dt.
+\end{equation}
+
+This error term maintains the variable time-step within a reasonable range during the iteration process.
+
+\section{Growth Rate $\mu$}\label{sec:mu}
+$\mu$ represents the variable growth rate of the species within the biofilm. These equations are dependent on the substrate concentration and model their consumption within the biofilm. They are used in a variety of different equations, including the bulk liquid concentration rates, the biofilm thickness, and the diffusion within the biofilm.
+
+Different equations are required to represent different growth kinetics. The standard growth equation is the Monod Growth Rate.
+\begin{equation} \label{eq: MonodGrowthRate}
+  \mu=\mu_\mathrm{max} \frac{S}{K_m + S}
+\end{equation}
+
+Next is the Double Monod Growth Rate to model multiple substrates `x' and `y'.
+\begin{equation} \label{eq: DoubleMonodGrowthRate}
+  \mu=\mu_\mathrm{max} \frac{S_x}{K_\mathrm{m,x} + S_x} \frac{S_y}{K_\mathrm{m,y} + S_y}
+\end{equation}
+
+The final equation that may be used is an Inhibition Model.
+\begin{equation} \label{eq: Inhibition}
+  \mu=\mu_\mathrm{max} \frac{S_x}{K_\mathrm{m,x} + S_x} \frac{1}{1 + \frac{S_y}{K_{i,y}}}
+\end{equation}
+
+The Matlab $\mu$ function `mu.m' defines all these equations and allows for the desired growth rate to be called throughout the rest of the code when needed.
+  
+
+\section{Biofilm Diffusion}
+Substrates that exist within the tank will diffuse into the biofilm. The general expression for the substrate gradient inside the biofilm is defined by
+
+\begin{equation} \label{eq:substrate gradient}
+\frac{dS_b}{dt} = {D_e}\frac{d^2S_b}{dz^2} - \frac{\mu(S_b) X_b}{Y_{xs}},
+\end{equation}
+
+where the first term on the right hand side of the expression represents the diffusion of substrate into the biofilm, and the second term on the right hand side represents the substrate used throughout the biofilm for growth (or the flux).
+
+By considering the substrate concentration to be in a pseudo steady state condition at each time-step considered equation~\ref {eq:substrate gradient} simplifies to 
+
+\begin{equation} \label{eq:diffusion}
+  \frac{d^2 S_b}{dz^2} = \frac{\mu(S_b) X_b}{Y_{xs} D_e}.
+\end{equation}
+This differential equation is typically non-linear due the growth-rate $\mu$.
+
+\subsection{Discretization and Linearization}
+To solve it we use the direct, finite-difference method, which leads to the following discretized equation
+\begin{equation} \label{eq:diff_dis}
+  \frac{ S_{b,i-1} - 2 S_{b,i} + S_{b,i+1}}{dz^2} = \frac{\mu(S_{b,i}) X_b}{Y_{xs} D_e},
+\end{equation}
+which is valid at all the interior grid points, \ie, for $i=2,3,\dots,N_z-1$. 
+This non-linear equation is solved by linearizing and then iterating the solution from an initial guess until converged.
+The iterations are denoted by a superscript, \ie, $S_{b}^{(k)}$.  With this notation Equation~\ref{eq:diff_dis} becomes
+\begin{equation} \label{eq:diff_dis_iter}
+  \frac{ S_{b,i-1}^{(k)} - 2 S_{b,i}^{(k)} + S_{b,i+1}^{(k)}}{\Delta z^2} = \frac{\mu\left(S_{b,i}^{(k)}\right) X_b}{Y_{xs} D_e} =  g\left(S_{b,i}^{(k)}\right),
+\end{equation}
+where we have introduced $g$ as the right hand side of the equation.
+
+To linearize this equation, the Taylor series of $g$ is employed about the previous iteration $S_{b,i}^{(k-1)}$ which is
+\begin{equation}\label{eq:TaylorSeries}
+  g\left(S_{b,i}^{(k)}\right) =   g\left(S_{b,i}^{(k-1)}\right) + \left( S_{b,i}^{(k)} - S_{b,i}^{(k-1)}\right) \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} + \dots
+\end{equation}
+
+Combining Equations.~\ref{eq:diff_dis_iter} and~\ref{eq:TaylorSeries} and keeping only the linear terms in the Taylor series leads to
+\begin{equation} \label{eq:diff_linear}
+  \frac{ S_{b,i-1}^{(k)} - 2 S_{b,i}^{(k)} + S_{b,i+1}^{(k)}}{\Delta z^2} =  g\left(S_{b,i}^{(k-1)}\right) + \left( S_{b,i}^{(k)} - S_{b,i}^{(k-1)}\right) \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}},
+\end{equation}
+which is linear with-respect-to $S_{b,i}^{(k)}$ and can be rearranged to
+\begin{equation}
+  \label{eq:diff_final}
+  -S_{b,i-1}^{(k)} + \left( 2 +\Delta z^2\left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}}\right) S_{b,i}^{(k)} - S_{b,i+1}^{(k)}
+  = \Delta z^2\left( S_{b,i}^{(k-1)} \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} - g\left(S_{b,i}^{(k-1)}\right)\right) .
+\end{equation}
+
+The derivative $\left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}}$ needs to be approximated and we use
+\begin{equation}
+  \label{eq:dgds}
+  \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} = \frac{g\left(S_{b,i}^+\right) - g\left(S_{b,i}^{-}\right)}{\Delta S},
+\end{equation}
+where
+\begin{align*}
+  S_{b,i}^+&=S_{b,i}^{(k-1)}+\delta \text{\quad and} \\
+  S_{b,i}^-&=\max\left[S_{b,i}^{(k-1)}+\delta,0\right]
+\end{align*}
+and $\Delta S = S_{b,i}^+ - S_{b,i}^-$ and $\delta=1\times 10^{-3}$ is an specified constant.  The maximum on $S_{b,i}^-$ ensures the concentration remains non-negative.
+
+\subsection{Boundary Conditions} \label{Boundary Conditions}
+Eq.~\ref{eq:diff_final} for $i=2,3,\dots,N_z-1$ provides $N_z-2$ equations for $S_{b}^{(k)}$.  The remaining equations come from the boundary conditions.  At the bottom of the biofilm ($z=0$) there is a wall and a no-flux boundary condition is appropriate, \ie,
+\begin{equation}
+  \label{eq:BC1}
+  \left.\frac{d S_b}{dz}\right|_{z=0}= \frac{S_2 - S_1}{\Delta z} =0.
+\end{equation}
+
+At the top of the biofilm the substrate is diffusing from the tank into the biofilm.  Depending on the conditions in the tank, \eg, how well it is mixed, the flux of substrate into the biofilm may be controlled by the diffusion through the liquid in the tank.  This leads to a flux-matching condition that can be written as
+\begin{equation}
+  \label{eq:BC2}
+  D_e \left.\frac{d S_b}{dz}\right|_{z=L_f} = D_{\mathrm{aq}} \frac{S - S_b(L_f)}{L_L}.
+\end{equation}
+where a simple diffusion model through the liquid has been used.  Discretizing the derivative using a finite-difference operator leads to
+\begin{equation}
+  \label{eq:BC2_dis}
+  D_e \frac{S_{b,N_z} - S_{b,N_z-1}}{\Delta z} = D_{\mathrm{aq}} \frac{S - S_{b,N_z}}{L_L}.
+\end{equation}
+Rearranging leads to
+\begin{equation}
+  \label{eq:BC2_dis2}
+  \left(D_e L_l + D_{\mathrm{aq}} \Delta z\right) S_{b,N_z} - D_e L_l S_{b,N_z-1} = D_{\mathrm{aq}} \Delta z S
+\end{equation}
+which is a useful form because if $L_l=0$ it simplifies to $S_{b,N_z}=S$ as expected without dividing by zero.
+
+\subsection{Solution of System of Equations}
+The previous two section describe the equations used to solve the diffusion problem through
+the biofilm and apply appropriate boundary conditions.
+In summary, Eq.~\ref{eq:diff_linear} for $i=2,3,\dots,N_z-1$ provides $N_z-2$ equations with
+Eq.~\ref{eq:BC1} and Eq.~\ref{eq:BC2_dis2} providing the two other equations
+for a total of $N_z$ equations for the $N_z$ unknowns $S_{b,i}$ for $i=1,\dots,N_z$.
+
+The $N_z$ equations are solved by iteratively solving for $S_b$ using the matrices
+\begin{equation}
+  \label{eq:system}
+  \renewcommand*{\arraystretch}{1.5}
+  \begin{bmatrix}
+    1 &-1  &   &   &   & \\
+    L &  D & U &  &   & \\
+    ~ & L &  D & U &  & \\
+    ~ & ~ & \ddots &  \ddots & \ddots & \\
+    ~ & ~ & ~ & L &  D & U\\
+    ~ & ~ & ~ & ~ &  C_1 & C_2  
+  \end{bmatrix}
+  \begin{bmatrix}
+    S_{b,1}^{(k)}\\
+    S_{b,2}^{(k)}\\
+    S_{b,3}^{(k)}\\
+   \vdots\\
+    S_{b,N_z-1}^{(k)}\\
+    S_{b,N_z}^{(k)}
+  \end{bmatrix}
+  =
+    \begin{bmatrix}
+   0\\
+    R_{2}\\
+    R_{3}\\
+    \vdots\\
+    R_{N_z-1}\\
+    C_3
+  \end{bmatrix}
+\end{equation}
+The first row comes from Eq.~\ref{eq:BC1}.
+The second through $N_z-1$ rows are Eq.~\ref{eq:diff_final} written with $i=2,\dots,N_z-1$ and the constants are $L=U=-1$,
+\begin{align*}
+  D&=\left( 2 +\Delta z^2\left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}}\right)\text{\quad and}\\
+  R_i&=\Delta z^2\left( S_{b,i}^{(k-1)} \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} - g\left(S_{b,i}^{(k-1)}\right)\right) 
+\end{align*}
+The last row is Eq.~\ref{eq:BC2_dis2} with $C_1=D_e L_l$, $C_2=\left(D_e L_l + D_{\mathrm{aq}} \Delta z\right)$, and $C_3=D_{\mathrm{aq}} \Delta z S$.
+
+The right-hand-side depends $S_{b,i}^{(k-1)}$, which is the concentration at the previous iteration.  The solution process is started with a guess, e.g., $S_b=0$. Iteration continues until
+\begin{equation*}
+  \max\left| S_{b,i}^{(k)} - S_{b,i}^{(k-1)} \right| < \mathrm{tol},
+\end{equation*}
+for a specified tolerance $\mathrm{tol}$.
+
+\subsection{Flux of Substrate In Biofilm}
+The flux term referenced in the discussion of equation ~\ref{eq:substrate gradient} is named $B_\mathrm{flux}$ and represents the growth of biomass in the biofilm. The result is utilized in the substrate balance in the tank (equation~\ref{eq: SubstrateEquation}).
+
+\begin{equation} \label{eq:Bflux}
+  B_\mathrm{flux} = \int_0^{L_f} \frac{\mu(S_b) X_b}{Y_{xs}} \, dz = \frac{ X_b}{Y_{xs}}\int_0^{L_f} \mu(S_b) \, dz = \frac{ X_b}{Y_{xs}} L_f \bar{\mu}
+\end{equation}
+
+where $\bar{\mu}$ represents the average growth rate in the biofilm at a specific instant in time.
+
+\section{Biofilm Thickness}
+With the current time-step's substrate concentrations throughout the biofilm and thickness computed, the next time-step's thickness of the biofilm may now be computed by solving the first order differential equation
+
+\begin{equation}
+  \label{eq:dLfdt_1}
+  \frac{d L_f}{dt} = {\bar\mu(S_b) L_f}-{k_{\mathrm{det}}L_f^2},
+\end{equation}
+in which the first term of the right hand side is equal to the growth velocity ($v_g={\bar\mu(S_b) L_f}$) and the second term is equal to the detachment velocity of the biofilm's biomass ($v_{det}={k_{\mathrm{det}}L_f^2}$)
+
+Since the growth rate $\mu$ is specified as an average value within the biofilm in the growth velocity term of equation ~\ref{eq:dLfdt_1}, and the specifics of the growth rate at each point within the biofilm depends on $\mu$ and $S_b$ a result for the growth velocity within the biofilm is obtained by numerically evaluating the integral 
+
+\begin{equation}
+  \label{eq:vg_int}
+  {v_g}={\int_{0}^{L_f}\mu(S_b(z)) dz}.
+\end{equation}
+
+Eq.~\ref{eq:dLfdt_1} is discretized and a future time step's solution is obtained using Euler's method and the information known at the current time step. The resulting expression is as follows, where the superscript $\ie L_f^{n}$ denotes the biofilms state at the respective time-step $n$.
+
+\begin{equation}
+  \label{eq:dLfdt_2}
+  {L_f^{n+1}}={L_f^{n}} + {\Delta t}({v_g^{n}+v_{det}^{n}})
+\end{equation}
+
+\section{Results}
+This model produces data that provides an understanding of the entire biofilm environment, from the respective concentrations within the CSTR environment to the internal workings of the biofilm itself. Below are the plots produced by various test cases run by the model.
+
+This model produces five separate plots. The first two plots show the concentration profiles of both the biomass and substrate concentrations within the tank as they approach and reach steady states. The third plot shows the profile of flux into the biofilm from the greater tank environment as it also approaches and reaches its eventual steady state. The fourth plot shows the substrate concentration within the biofilm as a function of its depth. This concentration profile is distinguished into two distinct connected lines of which the blue segment shows the concentration within the biofilm and the red segment shows the concetration within the liquid layer. The fifth and final plot shows the growth profile of the biofilm thickness over time until it reaches an eventual steady state.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=4in]{Testcase1_figure.eps}
+  \caption{Case 1: Standard Conditions}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=4in]{Testcase3_figure.eps}
+  \caption{Case 3: Minimum Growth Rate Mumax}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=4in]{Testcase4_figure.eps}
+  \caption{Case 4: Elevated Inflow Q into CSTR}
+\end{figure}
+
+\section{Unit Tests for Validity}
+In order to determine the accuracy of the methods and equations used in this model, unit tests were created to verify results produced by this model. This almost always involved solving a portion of the problem with a certain set of parameters so that an analytical solution could be obtained for the same problem. The following is a collection of the tests created.
+
+\subsection{Test for when LL=0}
+The purpose of this test is to show that no error occurs in the code as the boundary layer thickness goes to zero ($L_L=0$), as well as to ensure that the physics of the problem perform as expected in this case scenario.
+
+When the boundary layer thickness goes to zero the substrate concentration at the top of the biofilm should match the substrate concentration in the tank at the given time-step. This is because without a concentration boundary layer at the top of the biofilm ($L_L=0$) diffusion of substrate into the biofilm occurs directly from the bulk fluid. In which case the flux matching boundary conditions at the top of the biofilm dealt with in section \ref{Boundary Conditions} simplify so that $S_{b,N_z}=S$ as can be seen by plugging in values to Eq.~\ref{eq:BC2_dis2}.
+
+Parameters from case 1 are utilized to create a set of variables sufficient to run the biofilm diffusion portion of the code with two exceptions, the bulk fluid concentration $S=10$ $g/m^3$ and $L_L=0$. A grid size $N_z=50$ is applied and a linear profile of substrate concentration. It is confirmed that $S_{b,N_z}=S$ in this test within an allowable tolerance of $1E-15$. Results are visualized in the figure below.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=3in]{BoundaryLayer_Figure1.eps}
+  \caption{Substrate concentration profile throughout the thickness of the biofilm.}
+\end{figure}
+
+\subsection{Test for Tank Biomass Concentration when no Inflow Q}
+This is the first of three tests created to establish the validity of the 4th Order Runge-Kutta Method used to solve for the tank biomass and substrate concentrations. This test focuses on the biomass concentration. It takes equation~\ref{eq: BiomassEquation} and sets $Q=0$, establishing no inflow of biomass or substrate and eliminating said term from the differential equation. 
+
+This test also sets $B_\mathrm{flux}=0$ in order to eliminate the diffusion of biomass into the biofilm. 
+When there is no inflow and no diffusion into the biofilm, the biomass within the tank is expected to remain at its initial state, $x_o$. This is verified by the following lines of code,
+
+\begin{lstlisting}
+[~,~,x,~,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+actSolution=x;
+expSolution=xo;
+tol=1e-1;
+verifyLessThan(testCase,abs(actSolution-expSolution),tol);
+\end{lstlisting}
+
+These lines of code verify that the result which the code produces matches the expected analytic result to a specified tolerance.
+
+\subsection{Test for Tank Substrate Concentration when no Inflow Q}
+This test aims to replicate the previous test for the substrate concentration within the tank. When there is no inflow $Q$ of substrate, nor any substrate diffusing into the biofilm, it is expected to remain at its initial value, $S_o$. This test is verified by the following lines of code, which look very similar to the previous test.
+
+\begin{lstlisting}
+[~,~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+actSolution=S; 
+expSolution=So;
+tol=1 E-1;
+verifyLessThan(testCase,abs(actSolution-expSolution),tol); 
+\end{lstlisting}
+
+Again, when the code is producing results which match the expected analytic solution to a tolerance, it can be verified that the low order Runge-Kutta Method is implemented correctly.
+
+\subsection{Test Diffusion}
+To ensure the biofilm diffusion function was operating properly with respect to the the physical situation at hand, a test was setup in which the analytical solution for substrate concentrations throughout the biofilm would be compared to those computed numerically in the biofilm diffusion function.
+
+An analytical solution was able to be created for the substrate concentration gradient within the biofilm by enlarging parameters $\mu$ and $K_m$ in the code simulation so that external mass transfer is essentially eliminated and the tank concentration $S$ is forced to a fixed value in the bulk fluid. This analytical solution for substrate concentrations within the biofilm was computed at each location z within the biofilm with the assumptions that $\mu={S}{\mu_\mathrm{max}}$ and the boundary layer thickness $L_L=0$ with the following expression.
+
+\begin{align}
+{S_{b,\mathrm{ana}}}=\frac{S{\cosh(\frac{{\phi}{z}}{Lf})}}{\cosh(\phi)}\\
+\text{where}{\quad} {\phi}=\frac{\mu_{max}{X_b}{L_f^{2}}}{{D_e}{K_m}{Y_{xs}}}
+\end{align}
+
+This test was completed for 5 different grid sizes of biofilm. Convergence of the substrate concentrations for the analytical and numerical methods can be seen as the grid size grows. The results are displayed in the figure below
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=3in]{BiofilmDiffusion_Figure1.eps}
+  \caption{Substrate concentration profiles within the biofilm for different biofilm grid sizes and the analytical expression.}
+\end{figure}
+
+\subsection{Test Steady-State with Large Diffusivities such that Substrate Concentration is Relatively Constant}
+
+Due to the complexity of the overall biofilm problem, it is impossible to come up with an analytical solution of many parameters to check the accuracy of the code. However, by altering certain parameters within the governing equations, a hypothetical situation can be created that can be solved analytically for.
+
+This was done by increasing the diffusion coefficients $D_e$ and $D_{aq}$ to unrealistically high levels. This in turn causes the readily available substrate present to diffuse rapidly into the biofilm, leading to a nearly uniform substrate concentration through the thickness of the biofilm at each points in time. An extremely small gradient is produced by the code in this situation as can be seen in the figure below.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=3in]{SteadyState_Figure1.eps}
+  \caption{A depiction of the very small substrate concentration gradient within the biofilm under the given conditions.}
+\end{figure}
+
+The equations used to solve for the steady state solutions of this problem are described in \ref{Steady State}. These equations were solved iteratively within the test. The solutions produced by the code were compared to the iterative solutions found by analyzing this steady state problem. The error between each parameter was confirmed to be less than $1\%$.
+
+\begin{center}
+\begin{tabular}{ | c | c | c | } 
+\hline
+ \textbf{Variable} & \textbf{Steady State Solution} & \textbf{Code Solution} \\ 
+ \hline
+ S [{$g/m^3$}]  & 0.162686253310 & 0.162726176774 \\ 
+ \hline
+ x  [{$g/m^3$}] & 12.418656873345 & 12.418635483884 \\
+ \hline
+ Lf  [{$\mu m$}] & 541.465937430183 & 541.457821739766 \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\subsection{Test Variable Time Dynamic of Tank Environment Calculations}
+The low order Runge-Kutta Method used in the Matlab 'tankenvironment' function utilizes an additional 'error' step which compares the coefficients calculated to the coefficients of the Butcher Tableau. This is done to ensure that the numerical method never varies from the analytic solution beyond a certain tolerance. This error term is coupled to the time-step size term $dt$ so that maximum accuracy is obtained. 
+
+This coupling establishes the boundaries of the allowable step size, so that that when the error is too large, the step size can shrink and reduce the inaccuracy. When the error is small, the step size can be increased to expedite the solving and improve efficiency. 
+
+This test analyzes this operation by comparing a simplified model of the substrate environment to its corresponding analytic solution. This simulated model eliminates the biomass within the tank as well as any initial substrate concentration and profiles the development of the substrate until it reaches steady state. The analytic solution used is,
+\begin{equation} \label{eq: S_ana}
+  S_\mathrm{ana}=S_\mathrm{in}{(1-e^{\frac{-Q}{V}t})} + S_o
+\end{equation}
+
+If the simulated and analytic methods converge, it can be determined that the time step is properly adjusting to the magnitude of the error calculated at each point. This convergence is determined by the following lines.
+
+\begin{lstlisting}
+maxError=max(abs(S-Sana));
+expTol=param.ttol;
+verifyLessThan(testCase,maxError,expTol);
+\end{lstlisting}
+
+If the simulated and analytic methods produce results which match according to an established tolerance, the test will pass. Below is the plot produced which shows the convergence of simulation to analytic.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[read=eps, width=3in]{TimeDynamics_Figure.eps}
+  \caption{Substrate concentration profile within tank vs. time to show time-step matching.}
+\end{figure}
+
+\section{Appendix A: Steady State Behavior Test Case}\label{Steady State}
+
+If the diffusion coefficients $D_e$ and $D_{aq}$ are considered to be very large, a steady state solution to the biofilm model can be created since full penetration of substrate into the biofilm can be assumed due to the rapid diffusion that would be occurring. In this case scenario the substrate concentration is a constant within the tank and biofilm.
+
+The governing expressions for the biofilm may now be modified and solved for steady state for each portion of the problem as follows.
+
+\subsection{Biofilm Thickness}
+The thickness of the biofilm described by equation~\ref{eq:dLfdt_1} at steady state reduces to 
+
+\begin{equation*}
+   {\bar\mu(S_b) L_f}={k_{\mathrm{det}}L_f^2}.
+\end{equation*}
+ 
+ or by simplifying further
+ 
+ \begin{equation}
+  \label{eq:Lfsteady}
+  {L_f}=\frac{\bar\mu(S_b)}{k_{\mathrm{det}}}
+\end{equation}
+
+\subsection{Biomass Concentration in Tank}
+Biomass in the tank described by equation~\ref{eq: BiomassEquation}. 
+
+\begin{equation*} 
+  Qx = \mu(S) xV +v_{\mathrm{det}} A X_b
+\end{equation*}
+and by plugging in $v_{\mathrm{det}}= K_\mathrm{det} L_f^2 = \mu(S) L_f$ from the description of equation~\ref{eq:dLfdt_1} the following is obtained
+\begin{equation}
+ \label{eq:biomass steady}
+  Qx = \mu(S) xV +\mu(S) L_f A X_b
+\end{equation}
+
+\subsection{Substrate Concentration}
+Using the definition of $B_{\mathrm{flux}}$ from equation~\ref{eq:Bflux}, the substrate concentration in the tank described by equation~\ref{eq: SubstrateEquation} can be written as
+
+\begin{equation}
+  \frac{dS}{dt} = -\frac{\mu(S) x }{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} -\frac{\bar\mu(S_b) X_b V_b}{Y_{xs}{V}}
+\end{equation}
+
+where $V_b=A L_f$ is the volume of the biofilm.  At steady-state this simplifies to 
+\begin{equation}
+ \label{eq:x steady}
+   x = \frac{Y_{xs}}{\mu V}\left(Q S_{\mathrm{in}} - Q S\right) -\frac{\bar{\mu} V_b}{\mu V}{X_b}
+\end{equation}
+
+\subsection{Solving for Steady State Parameters}
+Equation~\ref{eq:Lfsteady},~\ref{eq:biomass steady}, and~\ref{eq:x steady} were defined in Matlab. From here an initial guess of $S$ is made. $S$ is increased incrementally in a loop until the right hand side equals the left hand side of equation~\ref{eq:biomass steady} to within a tolerance of $1E-12$.
+
+\end{document}

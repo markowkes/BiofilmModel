@@ -8,6 +8,8 @@ subplot(2,3,1)
 plot(t,X)
 xlabel('Time')
 ylabel('Tank Particulate Concentrations')
+ylim([min(min(X))-0.3*(max((max(X))-min(min(X)))) ...
+    max(max(X))+0.3*(max(max(X))-min(min(X)))])
 set(gca,'Fontsize',16)
 
 % Tank substrates
@@ -15,6 +17,8 @@ subplot(2,3,2)
 plot(t,S)
 xlabel('Time')
 ylabel('Tank Substrate Concentrations')
+ylim([min(min(S))-0.3*(max(max(S))-min(min(S))) ...
+    max(max(S))+0.3*(max(max(S))-min(min(S)))])
 set(gca,'Fontsize',16)
 
 % Biofilm thickness
@@ -22,6 +26,8 @@ subplot(2,3,3)
 plot(t,Lf*1e6)
 xlabel('Time')
 ylabel('Biofilm Thickness (um)')
+ylim([min(Lf*1e6)-0.3*(max(Lf*1e6)-min(Lf*1e6)) ...
+    max(Lf*1e6)+0.3*(max(Lf*1e6)-min(Lf*1e6))])
 set(gca,'Fontsize',16)
 
 %% Variables in biofilm (vary spatially at last time)
@@ -38,7 +44,8 @@ for j=1:param.Nx
 end
 xlabel('Location in Biofilm')
 ylabel('Biofilm Particulate Vol. Fraction')
-ylim([0,1])
+ylim([min(min(Pb))-0.3*(max((max(Pb))-min(min(Pb)))) ...
+    max(max(Pb))+0.3*(max(max(Pb))-min(min(Pb)))])
 set(gca,'Fontsize',16)
 
 % Biofim substrates
@@ -52,4 +59,6 @@ for k=1:param.Ns
 end
 xlabel('Location in Biofilm')
 ylabel('Biofilm Substrate Concentrations')
+ylim([min(min(Sb))-0.3*(max((max(Sb))-min(min(Sb)))) ...
+    max(max(Sb))+0.3*(max(max(Sb))-min(min(Sb)))])
 set(gca,'Fontsize',16)

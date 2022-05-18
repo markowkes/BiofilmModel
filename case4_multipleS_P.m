@@ -28,10 +28,21 @@ param.Kdet = 1900;             % Particulate detachment coefficient
 param.Yxs  =[0.5,   inf        % [ dX1/dS1, dX1/dS2
              inf, 0.278];      %   dX2/dS1, dX2/dS2 ]
 
+b = 0;
+X_Source{1}=@(S,X,param) -b*X(1,:);
+X_Source{2}=@(S,X,param)  b*X(1,:);
+param.X_Source=X_Source;  
+
+% Light term
+param.I = 0.5;
+param.diss = 0.05;
+param.Ylight = 2;
+         
 % Growthrates for each particulate
-mu{1}=@(S,param) (2000*S(1,:))./(2500);
-mu{2}=@(S,param) (2000*S(2,:))./(2500);
-param.mu=mu;  
+mu{1}=@(S,X,param) (2000*S(1,:))./(2500);
+mu{2}=@(S,X,param) (2000*S(2,:))./(2500);
+param.mu=mu;
+
 
 % Computed parameters
 param.phi_tot = sum(param.phibo);

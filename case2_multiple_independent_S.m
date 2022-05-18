@@ -26,8 +26,11 @@ param.De   =[1.0E-5; 1.5E-5];  % Substrate diffusion through biofilm
 param.rho  =1.0E5;             % Particulate densities
 param.Kdet = 1900;             % Particulate detachment coefficient
 
+X_Source{1}=@(S,X,param) 0;
+param.X_Source=X_Source;
+
 % Growthrates for each particulate
-mu{1}=@(S,param) (20*S(1,:))./(3+S(1,:));
+mu{1}=@(S,X,param) (20*S(1,:))./(3+S(1,:));
 param.mu=mu; 
 
 % Computed parameters
