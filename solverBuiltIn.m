@@ -13,7 +13,7 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
 
     % Check parameters to provide more useful error messages
     % Need to move to cases files - can have default values. 
-    param.instantaneousDiffusion = true;
+    param.instantaneousDiffusion = false;
     param.sourceTerm             = true;
     param.Pulse                  = false;
     param = check_param(param);
@@ -119,7 +119,7 @@ function status=myOutputFcn(t,y,flag,param) %#ok<INUSL>
         N=Ns;     S =y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Tank substrates
         N=Nx*Nz;  Pb=y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm particulates
         if ~param.instantaneousDiffusion
-            N=Ns*Nz;  Sb=y(:,Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm substrates
+            N=Ns*Nz;  Sb=y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm substrates
         end
         N=1;      Lf=y(Nvar+1:Nvar+N,:);              % Biofilm thickness
 
@@ -179,7 +179,7 @@ function [f]=RHS(t,y,param)
     if param.instantaneousDiffusion
         [Sb,fluxS] = biofilmdiffusion_fd(t,S,Xb,param,grid); % Diffusion of substrates into biofilm
     else
-        fluxS = computeFluxS(S,Sb,param);  % Flux of substrate in biofilm
+        fluxS = computeFluxS(S,Sb,param,grid);  % Flux of substrate in biofilm
     end
     mu    = computeMu(Sb,Xb,t,param,grid);        % Growthrate in biofilm
     V     = computeVel  (mu,Pb,param,grid); % Velocity of particulates
@@ -194,7 +194,7 @@ function [f]=RHS(t,y,param)
     N=Ns;    f(Nrhs+1:Nrhs+N)=dSdt (t,X,S,Lf,param,fluxS);        Nrhs=Nrhs+N;  % Tank substrates
     N=Nx*Nz; f(Nrhs+1:Nrhs+N)=dPbdt(mu,Sb,Pb,fluxP,param,grid); Nrhs=Nrhs+N;  % Biofilm particulates
     if ~param.instantaneousDiffusion
-        N=Ns*Nz; f(Nrhs+1:Nrhs+N)=dSbdt(mu,Xb,fluxS,param); Nrhs=Nrhs+N;  % Biofilm substrates
+        N=Ns*Nz; f(Nrhs+1:Nrhs+N)=dSbdt(mu,Xb,fluxS,param,grid); Nrhs=Nrhs+N;  % Biofilm substrates
     end
     N=1;     f(Nrhs+1:Nrhs+N)=dLfdt(V,Vdet);                               % Biofilm thickness
 
@@ -213,16 +213,16 @@ function [mu]=computeMu(Sb,Xb,t,param,grid)
 end
 
 %% Fluxes of substrate due to diffusion: F=De*dSb/dz
-function [fluxS]=computeFluxS(S,Sb,param)
+function [fluxS]=computeFluxS(S,Sb,param,grid)
     fluxS = zeros(param.Ns,param.Nz+1); % Fluxes on faces of cells
     for i=2:param.Nz  % Interior faces
-        fluxS(:,i)= param.De(:).*(Sb(:,i)-Sb(:,i-1))/param.dz;
+        fluxS(:,i)= param.De(:).*(Sb(:,i)-Sb(:,i-1))/grid.dz;
     end
     % Bottom boundary - no flux condition -> nothing to do
     % Top boundary - flux matching between biofilm and boundary layer 
-    S_top=(param.Daq*param.dz/2.*S+param.De*param.LL.*Sb(:,param.Nz)) ...
-        ./(param.Daq*param.dz/2+param.De*param.LL); 
-    fluxS(:,param.Nz+1) = param.De.*(S_top-Sb(:,param.Nz))/(param.dz/2);
+    S_top=(param.Daq*grid.dz/2.*S+param.De*param.LL.*Sb(:,param.Nz)) ...
+        ./(param.Daq*grid.dz/2+param.De*param.LL); 
+    fluxS(:,param.Nz+1) = param.De.*(S_top-Sb(:,param.Nz))/(grid.dz/2);
 end
 
 %% Velocity due to growth in biofilm
@@ -286,8 +286,8 @@ function dPbdt = dPbdt(mu,Sb,Pb,fluxPb,param,grid)
 end
 
 %% RHS of biofilm substrates 
-function dSbdt = dSbdt(mu,Xb,fluxS,param)
-    netFlux= (fluxS(:,2:end)-fluxS(:,1:end-1))/param.dz; % Diffusion flux
+function dSbdt = dSbdt(mu,Xb,fluxS,param,grid)
+    netFlux= (fluxS(:,2:end)-fluxS(:,1:end-1))/grid.dz; % Diffusion flux
     growth = zeros(param.Ns,param.Nz);
     for k=1:param.Ns
         for j=1:param.Nx
