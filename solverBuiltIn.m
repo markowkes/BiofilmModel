@@ -100,10 +100,7 @@ function status=myOutputFcn(t,y,flag,param) %#ok<INUSL>
     if strcmp(flag,'init') || strcmp(flag,'done')
         % do nothing
     else
-        disp('1')
         fprintf('Time here = %5.5e \n',t)
-        disp([size(y),size(t)])
-        disp('2')
         %fprintf('%5.5e \n',param.light(t,max(param.z)))
         %param.light(t,max(param.z))
         
