@@ -1,4 +1,4 @@
-function [Sb,Sflux]=biofilmdiffusion_fd(S,Xb,param,grid)
+function [Sb,Sflux]=biofilmdiffusion_fd(t,S,Xb,param,grid)
 %% This function models the diffusion of a substrate within the biofilm
 %This Function will take tank conditions (So,Xb,LL) and various growth factors (Yxs,De,Km,Daq) model the diffusion of
 % substrates into the biofilm over the grid . The results of this uptake will be used to
@@ -24,7 +24,7 @@ L = -1;
 U = -1;
 
 % Define D = 2*kronecker + dz^2*dgds(j,i,m)
-D=@(k,i,m,Sb,Xb) (dz^2*dgds(k,i,m,Sb,Xb,param));
+D=@(k,i,m,Sb,Xb) (dz^2*dgds(t,k,i,m,Sb,Xb,param,grid));
 
 %Iterations
 for n=1:iter
@@ -39,7 +39,7 @@ for n=1:iter
         d=(k-1)*Nz+i; % Row for this substrate 
         A(d,d  ) = L + 2;  % Add lower diagonal to main diagonal (Neuman)
         A(d,d+1) = U; 
-        B(d,1  ) = R(k,i,Ns,dz,Sb,Xb,param); % RHS
+        B(d,1  ) = R(t,k,i,Ns,dz,Sb,Xb,param,grid); % RHS
         
         % Top of biofilm
         i=Nz; % Index
@@ -47,7 +47,7 @@ for n=1:iter
         % Top of biofilm - flux matching condition between biofilm and tank
         A(d,d  ) = ((3*Daq(k)*dz + 2*De(k)*LL))/(Daq(k)*dz + 2*De(k)*LL);
         A(d,d-1) = L; 
-        B(Nz*k) = R(k,i,Ns,dz,Sb,Xb,param) + (2*Daq(k)*S(k)*dz)/(Daq(k)*dz + 2*De(k)*LL);
+        B(Nz*k) = R(t,k,i,Ns,dz,Sb,Xb,param,grid) + (2*Daq(k)*S(k)*dz)/(Daq(k)*dz + 2*De(k)*LL);
 
         % Interior points
         for i=2:Nz-1
@@ -55,7 +55,7 @@ for n=1:iter
             A(d,d-1) = L;
             A(d,d+1) = U;
             A(d,d  ) = 2;
-            B(d,1  ) = R(k,i,Ns,dz,Sb,Xb,param);
+            B(d,1  ) = R(t,k,i,Ns,dz,Sb,Xb,param,grid);
         end
 
         % All points
@@ -97,29 +97,30 @@ end
 
 % k -> substrate
 % i -> location in biofilm
-function R = R(k,i,Ns,dz,Sb,Xb,param)
+function R = R(t,k,i,Ns,dz,Sb,Xb,param,grid)
     R = 0;
     for m = 1:Ns
-        R = R + dz^2*dgds(k,i,m,Sb,Xb,param).*Sb(m,i);
+        R = R + dz^2*dgds(t,k,i,m,Sb,Xb,param,grid).*Sb(m,i);
     end
-    R = R - dz^2*g(k,Sb(:,i),Xb(:,i),param);
+    R = R - dz^2*g(t,k,i,Sb(:,i),Xb(:,i),param,grid);
 end
 % Define RHS of ODE
-function g = g(k,S,Xb,param)
+function g = g(t,k,i,Sb,Xb,param,grid)
     g = 0;
+    theavi = mod(t, 1);
     for j = 1:param.Nx
-       g = g + param.mu{j}(S,Xb,param)*Xb(j)/(param.Yxs(j,k)*param.De(k));
+       g = g + param.mu{j}(Sb,Xb,theavi,grid.z(i),param)*Xb(j)/(param.Yxs(j,k)*param.De(k));
     end
 end
 % Define dgds = (g(Sb+)-g(Sb-))/dS
-function dgds = dgds(k,i,m,Sb,Xb,param) 
+function dgds = dgds(t,k,i,m,Sb,Xb,param,grid) 
     % Define Sb plus and Sb minus, delta is added/subtracted to Sb(i,m)
     delta=1e-3; 
     Sb_p =        Sb(:,i) + delta.*transpose(eq(1:param.Ns,m)) ;
     Sb_m = max(0, Sb(:,i) - delta.*transpose(eq(1:param.Ns,m)));
     % Compute g at plus and minus points
-    gp=g(k,Sb_p,Xb(:,i),param);
-    gm=g(k,Sb_m,Xb(:,i),param);
+    gp=g(t,k,i,Sb_p,Xb(:,i),param,grid);
+    gm=g(t,k,i,Sb_m,Xb(:,i),param,grid);
     % Compute derivative
     dgds=(gp-gm)/max(Sb_p-Sb_m);
 end

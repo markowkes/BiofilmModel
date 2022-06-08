@@ -85,7 +85,7 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
         % Solve for final substrate concentrations in biofilm
         grid.z  = linspace(0,Lf(end),param.Nz+1);
         grid.dz = grid.z(2) - grid.z(1);
-        Sb = biofilmdiffusion_fd(S(end,:),Xb,param,grid);
+        Sb = biofilmdiffusion_fd(t,S(end,:),Xb,param,grid);
     else
         Sb = reshape(Sb(end,:),Ns,Nz);
     end
@@ -128,7 +128,7 @@ function status=myOutputFcn(t,y,flag,param) %#ok<INUSL>
 %             % Solve for final substrate concentrations in biofilm
 %             grid.z  = linspace(0,Lf(end),param.Nz+1);
 %             grid.dz = grid.z(2) - grid.z(1);
-%             Sb = biofilmdiffusion_fd(S(:),Xb,param,grid);
+%             Sb = biofilmdiffusion_fd(t,S(:),Xb,param,grid);
 %         else
 %             Sb = reshape(Sb(:),Ns,Nz);
 %         end
@@ -152,8 +152,8 @@ function [f]=RHS(t,y,param)
     N=1;      Lf=y(Nvar+1:Nvar+N);              % Biofilm thickness
 
     % Update grid
-    param.z  = linspace(0,Lf,param.Nz);
-    param.dz = param.z(2) - param.z(1);
+    grid.z  = linspace(0,Lf,param.Nz);
+    grid.dz = grid.z(2) - grid.z(1);
     
     % Reshape biofilm variables Var(Nx/Ns, Nz)
     Pb = reshape(Pb,param.Nx,param.Nz);
@@ -169,12 +169,12 @@ function [f]=RHS(t,y,param)
     
     % Compute intermediate variables
     if param.instantaneousDiffusion
-        [Sb,fluxS] = biofilmdiffusion_fd(S,Xb,param,grid); % Diffusion of substrates into biofilm
+        [Sb,fluxS] = biofilmdiffusion_fd(t,S,Xb,param,grid); % Diffusion of substrates into biofilm
     else
         fluxS = computeFluxS(S,Sb,param);  % Flux of substrate in biofilm
     end
-    mu    = computeMu(Sb,Xb,t,param);        % Growthrate in biofilm
-    V     = computeVel  (mu,Pb,param); % Velocity of particulates
+    mu    = computeMu(Sb,Xb,t,param,grid);        % Growthrate in biofilm
+    V     = computeVel  (mu,Pb,param,grid); % Velocity of particulates
     fluxP = computeFluxP(Pb,V,param);       % Flux of particulates in biofilm
     Vdet  = param.Kdet*Lf^2;                % Detachment velocity
 
@@ -184,7 +184,7 @@ function [f]=RHS(t,y,param)
     Nrhs=0;
     N=Nx;    f(Nrhs+1:Nrhs+N)=dXdt (X,S,Xb,Vdet,t,Lf,param);      Nrhs=Nrhs+N;  % Tank particulates
     N=Ns;    f(Nrhs+1:Nrhs+N)=dSdt (t,X,S,Lf,param,fluxS);        Nrhs=Nrhs+N;  % Tank substrates
-    N=Nx*Nz; f(Nrhs+1:Nrhs+N)=dPbdt(mu,Sb,Pb,fluxP,param); Nrhs=Nrhs+N;  % Biofilm particulates
+    N=Nx*Nz; f(Nrhs+1:Nrhs+N)=dPbdt(mu,Sb,Pb,fluxP,param,grid); Nrhs=Nrhs+N;  % Biofilm particulates
     if ~param.instantaneousDiffusion
         N=Ns*Nz; f(Nrhs+1:Nrhs+N)=dSbdt(mu,Xb,fluxS,param); Nrhs=Nrhs+N;  % Biofilm substrates
     end
@@ -193,12 +193,12 @@ function [f]=RHS(t,y,param)
 end
 
 %% Growthrate for each particulate in biofilm
-function [mu]=computeMu(Sb,Xb,t,param)
+function [mu]=computeMu(Sb,Xb,t,param,grid)
     mu=zeros(param.Nx,param.Nz);
     theavi = mod(t, 1);
     % Loop over particulates
     for j=1:param.Nx
-        mu(j,:)=param.mu{j}(Sb,Xb,theavi,param.z,param);
+        mu(j,:)=param.mu{j}(Sb,Xb,theavi,grid.z,param);
     end
     %plot(param.z,param.light(t,param.z))
     %plot(t,param.light(t,max(param.z)))
@@ -218,13 +218,13 @@ function [fluxS]=computeFluxS(S,Sb,param)
 end
 
 %% Velocity due to growth in biofilm
-function [V]=computeVel(mu,Pb,param)
+function [V]=computeVel(mu,Pb,param,grid)
     % Velocities on faces of cells
     V=zeros(1,param.Nz+1); 
     % Start with zero velocity at wall -> integrate through the biofilm
     for i=1:param.Nz
         % Add growth of particulates in this cell to velocity
-        V(i+1)=V(i) + sum(mu(:,i).*Pb(:,i)*param.dz/param.phi_tot);
+        V(i+1)=V(i) + sum(mu(:,i).*Pb(:,i)*grid.dz/param.phi_tot);
     end
 end
 
@@ -265,8 +265,8 @@ function dSdt = dSdt(t,X,S,Lf,param,fluxS)
 end
 
 %% RHS of biofilm particulates 
-function dPbdt = dPbdt(mu,Sb,Pb,fluxPb,param) 
-    netFlux= (fluxPb(:,2:end)-fluxPb(:,1:end-1))/param.dz; % Flux in/out
+function dPbdt = dPbdt(mu,Sb,Pb,fluxPb,param,grid) 
+    netFlux= (fluxPb(:,2:end)-fluxPb(:,1:end-1))/grid.dz; % Flux in/out
     growth = mu.*Pb;                                      % Growth
     Source = zeros(param.Nx, param.Nz);
     for j = 1:param.Nx

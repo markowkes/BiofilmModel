@@ -30,7 +30,7 @@ X_Source{1}=@(S,X,param) 0;
 param.X_Source=X_Source;
 
 % Growthrates for each particulate
-mu{1}=@(S,X,param) (20*S(1,:))./(3+S(1,:));
+mu{1}=@(S,X,t,z,param) (20*S(1,:))./(3+S(1,:));
 param.mu=mu;  
 
 % Computed parameters

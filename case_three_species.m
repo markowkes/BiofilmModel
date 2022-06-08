@@ -22,8 +22,6 @@ param.Nz=10;          % Linear grid points to describe biofilm
 param.phibo= [0.2/3; 0.2/3;  0.2/3]    % Biofilm particulates initial condition(s)
 param.Sbo  = [0; 0; 0]     % Biofilm substrates initial condition(s)
 param.Lfo  = 1.0E-3;  % Biofilm initial thickness
-param.z  = linspace(0,param.Lfo,param.Nz);
-param.dz = param.z(2) - param.z(1);
 
 % Substance Constants
 param.Daq  = [1.51E-4; 8.00E-5; 1.21E-4;]          % Substrate diffusion through boundary layer
