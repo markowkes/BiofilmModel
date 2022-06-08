@@ -3,6 +3,7 @@ clear; clc;
 
 % Time
 param.tFin=30;   % Simulation time [days]
+param.outPeriod=1e-3; 
 
 param.SNames = {'Oxygen', 'Sulfate', 'Sulfide'};
 param.XNames = {'Phototroph', 'SOB', 'SRB'};

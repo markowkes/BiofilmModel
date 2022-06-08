@@ -24,7 +24,7 @@ param.Sbo  = 0;         % Biofilm substrates initial condition(s)
 param.Lfo  = 1.0E-5;    % Biofilm initial thickness
 
 % Substance Constants
-param.Yxs  = -2.646;       % Biomass yield coeffficient on substrate
+param.Yxs  = 2.646;       % Biomass yield coeffficient on substrate
 param.Daq  = 4.0E-5;    % Substrate diffusion through boundary layer
 param.De   = 6.9E-5;    % Substrate diffusion through biofilm     
 param.rho  = 2.0E4;     % Particulate densities
