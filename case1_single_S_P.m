@@ -3,6 +3,10 @@ clear; clc;
 
 % Time
 param.tFin=30;   % Simulation time [days]
+param.outPeriod=1e-3; 
+
+param.SNames = {'Oxygen'};
+param.XNames = {'Bug'};
 
 % Tank Geometry
 param.V   = 0.1;        % Volume of tank

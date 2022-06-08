@@ -8,8 +8,12 @@
 
 function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
 
+    % Clear figure
+    figure(1); clf(1)
+
     % Check parameters to provide more useful error messages
-    param.instantaneousDiffusion = false;
+    % Need to move to cases files - can have default values. 
+    param.instantaneousDiffusion = true;
     param.sourceTerm             = true;
     param.Pulse                  = false;
     param = check_param(param);
@@ -56,8 +60,8 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     %ops = odeset('OutputFcn',@odeplot,'AbsTol',1e-4);
     %ops = odeset('OutputFcn',@odeprog,'Events',@odeabort,'AbsTol',1e-4);
     %[t,y]=ode45  (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
-    [t,y]=ode23s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
-    %[t,y]=ode23s (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
+    %[t,y]=ode23s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
+    [t,y]=ode23s (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
     %[t,y]=ode15s (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
     %[t,y]=ode23t (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
     %[t,y]=ode23tb(@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
@@ -96,44 +100,48 @@ function status=myOutputFcn(t,y,flag,param) %#ok<INUSL>
     if strcmp(flag,'init') || strcmp(flag,'done')
         % do nothing
     else
-        fprintf('Time = %5.5e \n',t)
+        disp('1')
+        fprintf('Time here = %5.5e \n',t)
+        disp([size(y),size(t)])
+        disp('2')
         %fprintf('%5.5e \n',param.light(t,max(param.z)))
         %param.light(t,max(param.z))
         
-%         % Common parameters
-%         Nz = param.Nz;
-%         Nx = param.Nx;
-%         Ns = param.Ns;
-% 
-%         % Extract computed solution
-%         Nvar=0;
-%         N=Nx;     X =y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank particulates
-%         N=Ns;     S =y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank substrates
-%         N=Nx*Nz;  Pb=y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm particulates
-%         if ~param.instantaneousDiffusion
-%             N=Ns*Nz;  Sb=y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm substrates
-%         end
-%         N=1;      Lf=y(Nvar+1:Nvar+N);              % Biofilm thickness
-% 
-%         % Reshape and return last biofilm values: Var(Nx/Ns, Nz)
-%         Pb = reshape(Pb(:),Nx,Nz);
-% 
-%         % Substrate in biofilm
-%         if param.instantaneousDiffusion
-%             % Compute particulate concentration from volume fractions
-%             Xb=zeros(param.Nx,param.Nz);
-%             for j=1:param.Nx
-%                 Xb(j,:) = param.rho(j)*Pb(j,:);
-%             end
-%             % Solve for final substrate concentrations in biofilm
-%             grid.z  = linspace(0,Lf(end),param.Nz+1);
-%             grid.dz = grid.z(2) - grid.z(1);
-%             Sb = biofilmdiffusion_fd(t,S(:),Xb,param,grid);
-%         else
-%             Sb = reshape(Sb(:),Ns,Nz);
-%         end
-% 
-%         plotSolution(t,X,S,Pb,Sb,Lf,param)
+        % Common parameters
+        Nz = param.Nz;
+        Nx = param.Nx;
+        Ns = param.Ns;
+
+
+        % Extract computed solution
+        Nvar=0;
+        N=Nx;     X =y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Tank particulates
+        N=Ns;     S =y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Tank substrates
+        N=Nx*Nz;  Pb=y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm particulates
+        if ~param.instantaneousDiffusion
+            N=Ns*Nz;  Sb=y(:,Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm substrates
+        end
+        N=1;      Lf=y(Nvar+1:Nvar+N,:);              % Biofilm thickness
+
+        % Reshape and return last biofilm values: Var(Nx/Ns, Nz)
+        Pb = reshape(Pb(:,end),Nx,Nz);
+
+        % Substrate in biofilm
+        if param.instantaneousDiffusion
+            % Compute particulate concentration from volume fractions
+            Xb=zeros(param.Nx,param.Nz);
+            for j=1:param.Nx
+                Xb(j,:) = param.rho(j)*Pb(j,:);
+            end
+            % Solve for final substrate concentrations in biofilm
+            grid.z  = linspace(0,Lf(end),param.Nz+1);
+            grid.dz = grid.z(2) - grid.z(1);
+            Sb = biofilmdiffusion_fd(t,S(end,:),Xb,param,grid);
+        else
+            Sb = reshape(Sb(:,end),Ns,Nz);
+        end
+
+        plotSolution(t,X,S,Pb,Sb,Lf,param)
     end
     status=0;
 end
