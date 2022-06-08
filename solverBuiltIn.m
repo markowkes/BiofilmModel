@@ -52,13 +52,15 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     count = 0;
     %ops = odeset('OutputFcn',@odeprint,'AbsTol',1e-3);
     ops = odeset('OutputFcn',@myOutputFcn,'RelTol',param.tol,'AbsTol',param.tol);
+    %ops = odeset('OutputFcn',@odeprog,'RelTol',param.tol,'AbsTol',param.tol);
     %ops = odeset('OutputFcn',@odeplot,'AbsTol',1e-4);
     %ops = odeset('OutputFcn',@odeprog,'Events',@odeabort,'AbsTol',1e-4);
-    %[t,y]=ode45(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
-    %[t,y]=ode23s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
-    [t,y]=ode15s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
-    %[t,y]=ode23t(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
-    %[t,y]=ode23tb(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
+    %[t,y]=ode45  (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
+    [t,y]=ode23s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
+    %[t,y]=ode23s (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
+    %[t,y]=ode15s (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
+    %[t,y]=ode23t (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
+    %[t,y]=ode23tb(@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
     
     % Extract computed solution
     Nvar=0;
@@ -95,11 +97,43 @@ function status=myOutputFcn(t,y,flag,param) %#ok<INUSL>
         % do nothing
     else
         fprintf('Time = %5.5e \n',t)
-%         count=count+1;
-%         if count == 20
-%             plotSolution(t,X,S,Pb,Sb,Lf,param)
-%             count = 0;
+        %fprintf('%5.5e \n',param.light(t,max(param.z)))
+        %param.light(t,max(param.z))
+        
+%         % Common parameters
+%         Nz = param.Nz;
+%         Nx = param.Nx;
+%         Ns = param.Ns;
+% 
+%         % Extract computed solution
+%         Nvar=0;
+%         N=Nx;     X =y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank particulates
+%         N=Ns;     S =y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Tank substrates
+%         N=Nx*Nz;  Pb=y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm particulates
+%         if ~param.instantaneousDiffusion
+%             N=Ns*Nz;  Sb=y(Nvar+1:Nvar+N); Nvar=Nvar+N; % Biofilm substrates
 %         end
+%         N=1;      Lf=y(Nvar+1:Nvar+N);              % Biofilm thickness
+% 
+%         % Reshape and return last biofilm values: Var(Nx/Ns, Nz)
+%         Pb = reshape(Pb(:),Nx,Nz);
+% 
+%         % Substrate in biofilm
+%         if param.instantaneousDiffusion
+%             % Compute particulate concentration from volume fractions
+%             Xb=zeros(param.Nx,param.Nz);
+%             for j=1:param.Nx
+%                 Xb(j,:) = param.rho(j)*Pb(j,:);
+%             end
+%             % Solve for final substrate concentrations in biofilm
+%             grid.z  = linspace(0,Lf(end),param.Nz+1);
+%             grid.dz = grid.z(2) - grid.z(1);
+%             Sb = biofilmdiffusion_fd(S(:),Xb,param,grid);
+%         else
+%             Sb = reshape(Sb(:),Ns,Nz);
+%         end
+% 
+%         plotSolution(t,X,S,Pb,Sb,Lf,param)
     end
     status=0;
 end
@@ -161,11 +195,13 @@ end
 %% Growthrate for each particulate in biofilm
 function [mu]=computeMu(Sb,Xb,t,param)
     mu=zeros(param.Nx,param.Nz);
+    theavi = mod(t, 1);
     % Loop over particulates
     for j=1:param.Nx
-        mu(j,:)=param.mu{j}(Sb,Xb,t,param.z,param);
+        mu(j,:)=param.mu{j}(Sb,Xb,theavi,param.z,param);
     end
-    % plot(param.z,param.light(t,param.z))
+    %plot(param.z,param.light(t,param.z))
+    %plot(t,param.light(t,max(param.z)))
 end
 
 %% Fluxes of substrate due to diffusion: F=De*dSb/dz
@@ -219,7 +255,7 @@ end
 function dSdt = dSdt(t,X,S,Lf,param,fluxS) 
     dSdt = zeros(param.Ns,1); 
     for k=1:param.Ns                                 
-        dSdt(k) = param.Q.*param.Sin/param.V ...   % Flow in param.Q.*fSin(t,Sin{k})/param.V
+        dSdt(k) = param.Q.*param.Sin(k)/param.V ...   % Flow in param.Q.*fSin(t,Sin{k})/param.V
             -     param.Q.*      S(k)  /param.V ...   % Flow out
             -     param.A.*fluxS(k,end)/param.V;      % Flux into biofilm
         for j=1:param.Nx                              % Used by growth
@@ -233,10 +269,6 @@ function dPbdt = dPbdt(mu,Sb,Pb,fluxPb,param)
     netFlux= (fluxPb(:,2:end)-fluxPb(:,1:end-1))/param.dz; % Flux in/out
     growth = mu.*Pb;                                      % Growth
     Source = zeros(param.Nx, param.Nz);
-    %Light  = param.I-grid.z.*param.diss;
-    %light_growth = Light*param.Ylight;
-    %figure
-    %plot(grid.z, light_growth)
     for j = 1:param.Nx
         Source(j,:) = param.X_Source{j}(Sb,Pb*param.rho(j),param)/param.rho(j);
     end

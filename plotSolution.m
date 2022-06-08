@@ -8,6 +8,7 @@ subplot(2,3,1)
 plot(t,X)
 xlabel('Time')
 ylabel('Tank Particulate Concentrations')
+legend(param.XNames)
 ylim([min(min(X))-0.3*(max((max(X))-min(min(X)))) ...
     max(max(X))+0.3*(max(max(X))-min(min(X)))])
 set(gca,'Fontsize',16)
@@ -17,6 +18,7 @@ subplot(2,3,2)
 plot(t,S)
 xlabel('Time')
 ylabel('Tank Substrate Concentrations')
+legend(param.SNames)
 ylim([min(min(S))-0.3*(max(max(S))-min(min(S))) ...
     max(max(S))+0.3*(max(max(S))-min(min(S)))])
 set(gca,'Fontsize',16)
@@ -44,6 +46,7 @@ for j=1:param.Nx
 end
 xlabel('Location in Biofilm')
 ylabel('Biofilm Particulate Vol. Fraction')
+legend(param.XNames)
 ylim([min(min(Pb))-0.3*(max((max(Pb))-min(min(Pb)))) ...
     max(max(Pb))+0.3*(max(max(Pb))-min(min(Pb)))])
 set(gca,'Fontsize',16)
@@ -59,6 +62,7 @@ for k=1:param.Ns
 end
 xlabel('Location in Biofilm')
 ylabel('Biofilm Substrate Concentrations')
+legend(param.SNames)
 ylim([min(min(Sb))-0.3*(max((max(Sb))-min(min(Sb)))) ...
     max(max(Sb))+0.3*(max(max(Sb))-min(min(Sb)))])
 set(gca,'Fontsize',16)
