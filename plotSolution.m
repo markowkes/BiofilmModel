@@ -1,7 +1,5 @@
 function plotSolution(t,X,S,Pb,Sb,Lf,param)
-
-%% Time dependent outputs 
-
+    
 % Tank particulates
 figure(1)
 subplot(2,3,1)
@@ -21,8 +19,8 @@ plot(t,S,'.')
 xlabel('Time')
 ylabel('Tank Substrate Concentrations')
 legend(param.SNames)
-%ylim([min(S,[],'all')-0.3*max(0.1,(max(S,[],'all')-min(S,[],'all'))) ...
-%      max(S,[],'all')+0.3*max(0.1,(max(S,[],'all')-min(S,[],'all')))])
+ylim([min(S,[],'all')-0.3*max(0.1,(max(S,[],'all')-min(S,[],'all'))) ...
+    max(S,[],'all')+0.3*max(0.1,(max(S,[],'all')-min(S,[],'all')))])
 set(gca,'Fontsize',16)
 
 % Biofilm thickness
@@ -50,16 +48,16 @@ end
 xlabel('Location in Biofilm')
 ylabel('Biofilm Particulate Vol. Fraction')
 legend(param.XNames)
-ylim([min(min(Pb))-0.3*(max((max(Pb))-min(min(Pb)))) ...
-    max(max(Pb))+0.3*(max(max(Pb))-min(min(Pb)))])
+%ylim([min(min(Pb))-0.3*(max((max(Pb))-min(min(Pb)))) ...
+%    max(max(Pb))+0.3*(max(max(Pb))-min(min(Pb)))])
 set(gca,'Fontsize',16)
 
 % Biofim substrates
 subplot(2,3,5); cla()
 hold on
 % Add point at the top of biofilm (flux matching condition)
-S_top=(param.Daq*dz/2.*S(end,:)'+param.De*param.LL.*Sb(:,param.Nz)) ...
-        ./(param.Daq*dz/2+param.De*param.LL); 
+S_top=(param.Daq*dz/2.*S(:,end)'+param.De*param.LL.*Sb(:,param.Nz)) ...
+    ./(param.Daq*dz/2+param.De*param.LL);
 for k=1:param.Ns
     plot([zm,z(end)],[Sb(k,:),S_top(k)])
 end
@@ -69,3 +67,5 @@ legend(param.SNames)
 ylim([min(min(Sb))-0.3*(max((max(Sb))-min(min(Sb)))) ...
     max(max(Sb))+0.3*(max(max(Sb))-min(min(Sb)))])
 set(gca,'Fontsize',16)
+
+

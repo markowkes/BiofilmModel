@@ -1,9 +1,13 @@
 % Multiple substrates 
 clear; clc;
 
+param.instantaneousDiffusion = true;
+param.sourceTerm             = false;
+param.Pulse                  = false;
+
 % Time
-param.tFin=30;   % Simulation time [days]
-param.outPeriod=1e-3; 
+param.tFin=1;   % Simulation time [days]
+param.outPeriod=1e-1; 
 
 param.SNames = {'Oxygen'};
 param.XNames = {'Bug'};
@@ -34,7 +38,8 @@ X_Source{1}=@(S,X,param) 0;
 param.X_Source=X_Source;
 
 % Growthrates for each particulate
-mu{1}=@(S,X,t,z,param) (20*S(1,:))./(3+S(1,:));
+mumax = 20; KM = 3;
+mu{1}=@(S,X,t,z,param) (mumax*S(1,:))./(KM+S(1,:));
 param.mu=mu;  
 
 % Computed parameters

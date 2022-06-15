@@ -6,16 +6,13 @@
 % - test different ode solvers and tolerances 
 % - compare instantaneous or time dependent diffusion (param.instantaneousDiffusion)
 
-function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
+function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(Sin,param)
 
     % Clear figure
     figure(1); clf(1)
 
     % Check parameters to provide more useful error messages
     % Need to move to cases files - can have default values. 
-    param.instantaneousDiffusion = false;
-    param.sourceTerm             = true;
-    param.Pulse                  = false;
     param = check_param(param);
 
     % Common parameters
@@ -61,7 +58,7 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     %ops = odeset('OutputFcn',@odeprog,'Events',@odeabort,'AbsTol',1e-4);
     %[t,y]=ode45  (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
     %[t,y]=ode23s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
-    [t,y]=ode23s (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
+    [t,y]=ode23s (@(t,y,param) RHS(t,y,Sin,param),0:param.outPeriod:param.tFin,yo,ops,param);
     %[t,y]=ode15s (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
     %[t,y]=ode23t (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
     %[t,y]=ode23tb(@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
@@ -144,7 +141,7 @@ function status=myOutputFcn(t,y,flag,param) %#ok<INUSL>
 end
 
 %% RHS of all the ODEs
-function [f]=RHS(t,y,param)
+function [f]=RHS(t,y,Sin,param)
 
     % Extract variables
     Nvar=0;  Nx=param.Nx; Ns=param.Ns; Nz=param.Nz;
@@ -188,7 +185,7 @@ function [f]=RHS(t,y,param)
     f=zeros(size(y));
     Nrhs=0;
     N=Nx;    f(Nrhs+1:Nrhs+N)=dXdt (X,S,Xb,Vdet,t,Lf,param);      Nrhs=Nrhs+N;  % Tank particulates
-    N=Ns;    f(Nrhs+1:Nrhs+N)=dSdt (t,X,S,Lf,param,fluxS);        Nrhs=Nrhs+N;  % Tank substrates
+    N=Ns;    f(Nrhs+1:Nrhs+N)=dSdt (t,X,S,Lf,Sin,param,fluxS);        Nrhs=Nrhs+N;  % Tank substrates
     N=Nx*Nz; f(Nrhs+1:Nrhs+N)=dPbdt(mu,Sb,Pb,fluxP,param,grid); Nrhs=Nrhs+N;  % Biofilm particulates
     if ~param.instantaneousDiffusion
         N=Ns*Nz; f(Nrhs+1:Nrhs+N)=dSbdt(mu,Xb,fluxS,param,grid); Nrhs=Nrhs+N;  % Biofilm substrates
@@ -257,10 +254,10 @@ function dXdt = dXdt(X,S,Xb,Vdet,t,Lf,param)
 end
 
 %% RHS of tank substrates
-function dSdt = dSdt(t,X,S,Lf,param,fluxS) 
+function dSdt = dSdt(t,X,S,Lf,Sin,param,fluxS) 
     dSdt = zeros(param.Ns,1); 
     for k=1:param.Ns                                 
-        dSdt(k) = param.Q.*param.Sin(k)/param.V ...   % Flow in param.Q.*fSin(t,Sin{k})/param.V
+        dSdt(k) = param.Q.*fSin(t,Sin{k},param)/param.V...
             -     param.Q.*      S(k)  /param.V ...   % Flow out
             -     param.A.*fluxS(k,end)/param.V;      % Flux into biofilm
         for j=1:param.Nx                              % Used by growth
@@ -302,10 +299,16 @@ function dLfdt = dLfdt(V,Vdet)
     dLfdt = Vfilm - Vdet;     % Surface Velocity 
 end
 
-function Sin = fSin(t,Sin)
+function Sin = fSin(t,Sin,param)
     
     theavi = mod(t, Sin.period);
     Sin = Sin.f(theavi);
+    
+
+%     subplot(2,3,6)
+%     hold on
+%     plot(t, Sin,'*')
+
 
 %     for i = 1:param.SinRows(k)
 %         ind = 0;
@@ -335,6 +338,16 @@ end
 
 %% Check parameters
 function param = check_param(param)
+    if ~exist('param.instantaneousDiffusion')
+        param.instantaneousDiffusion = false;
+    end
+    if ~exist('param.sourceTerm')
+        param.sourceTerm = false;
+    end
+    if ~exist('param.Pulse')
+        param.Pulse = false;
+    end
+
     Nx=param.Nx;
     Ns=param.Ns;
     Nz=param.Nz;
@@ -388,7 +401,7 @@ function param = check_param(param)
     end
     
     if size(param.Yxs,1)~=Nx || size(param.Yxs,2)~=Ns
-        error(['param.Yxs should be of size', Nx,' x ',Ns])
+        error(['param.Yxs should be of size ', num2str(Nx),' x ',num2str(Ns)])
     end
 %     if any(param.Yxs<eps) 
 %         error('param.Yxs should have all non-zero entries')
