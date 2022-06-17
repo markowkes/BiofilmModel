@@ -57,11 +57,10 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     %ops = odeset('OutputFcn',@odeplot,'AbsTol',1e-4);
     %ops = odeset('OutputFcn',@odeprog,'Events',@odeabort,'AbsTol',1e-4);
     %[t,y]=ode45  (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
-    %[t,y]=ode23s(@(t,y) RHS(t,y,param),[0,param.tFin],yo,ops);
-    [t,y]=ode23s (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
-    %[t,y]=ode15s (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
-    %[t,y]=ode23t (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
-    %[t,y]=ode23tb(@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
+    %[t,y]=ode23s (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
+    [t,y]=ode15s (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
+    %[t,y]=ode23t (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
+    %[t,y]=ode23tb(@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
     
     % Extract computed solution
     Nvar=0;

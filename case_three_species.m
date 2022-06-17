@@ -6,8 +6,8 @@ param.sourceTerm             = false;
 param.Pulse                  = false;
 
 % Time
-param.tFin=30;   % Simulation time [days]
-param.outPeriod=2e-4; 
+param.tFin=3;   % Simulation time [days]
+param.outPeriod=0.1; 
 
 param.SNames = {'Oxygen', 'Sulfate', 'Sulfide'};
 param.XNames = {'Phototroph', 'SOB', 'SRB'};
@@ -51,13 +51,11 @@ param.Ylight = 2;
 % Growthrates for each particulate
 KmB1 = 1; KmB3 = 11;  KmC2 = 20;  KI = 10E6;
 mumaxA = 0.4;  mumaxB = 0.672;  mumaxC = 1.46;
-light=@(t,z) heaviside(t-0.5)*max(0,param.I-(max(z)-z)*param.diss);
+param.light=@(t,z) heaviside(t-0.5)*max(0,param.I-(max(z)-z)*param.diss);
 %light=@(t,z) (cos(2*t)+1)*max(0,param.I-(max(z)-z)*param.diss);
-mu{1}=@(S,X,t,z,param) (mumaxA.*light(t,z)./param.I);
-mu{2}=@(S,X,t,z,param) (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
-mu{3}=@(S,X,t,z,param) (mumaxC*S(2,:))./(KmC2+S(2,:)).*(1./(1+S(1,:)/KI));
-param.mu=mu;
-param.light=light;
+param.mu{1}=@(S,X,t,z,param) (mumaxA.*param.light(t,z)./param.I);
+param.mu{2}=@(S,X,t,z,param) (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
+param.mu{3}=@(S,X,t,z,param) (mumaxC*S(2,:))./(KmC2+S(2,:)).*(1./(1+S(1,:)/KI));
 
 % Computed parameters
 param.phi_tot = sum(param.phibo);
@@ -79,7 +77,7 @@ param.Sin{3}.f =@(theavi) 0;
 
 
 % Tolerance
-param.tol=1e-6;
+param.tol=1e-2;
 
 %% Solver
 
