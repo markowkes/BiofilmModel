@@ -1,10 +1,16 @@
 function plotSolution(t,X,S,Pb,Sb,Lf,param)
+
+% Colors
+Cdot = {'k.','b.','r.','g.','y.'};
+C = {'k','b','r','g','y'};
     
 % Tank particulates
 figure(1)
 subplot(2,3,1)
 hold on
-plot(t,X,'.')
+for i=1:param.Nx
+    plot(t,X(i,:),Cdot{i})
+end
 xlabel('Time')
 ylabel('Tank Particulate Concentrations')
 legend(param.XNames)
@@ -15,7 +21,9 @@ set(gca,'Fontsize',16)
 % Tank substrates
 subplot(2,3,2)
 hold on
-plot(t,S,'.')
+for j=1:param.Ns
+    plot(t,S(j,:),Cdot{j})
+end
 xlabel('Time')
 ylabel('Tank Substrate Concentrations')
 legend(param.SNames)
@@ -26,7 +34,7 @@ set(gca,'Fontsize',16)
 % Biofilm thickness
 subplot(2,3,3)
 hold on
-plot(t,Lf*1e6,'.')
+plot(t,Lf*1e6,'k.')
 xlabel('Time')
 ylabel('Biofilm Thickness (um)')
 %ylim(1e6*[min(Lf,[],'all')-0.3*max(0.1,(max(Lf,[],'all')-min(Lf,[],'all'))) ...
@@ -43,7 +51,7 @@ dz = z(2)-z(1);                % Grid spacing
 subplot(2,3,4); cla()
 hold on
 for j=1:param.Nx
-    plot(zm,Pb(j,:))
+    plot(zm,Pb(j,:),C{j})
 end
 xlabel('Location in Biofilm')
 ylabel('Biofilm Particulate Vol. Fraction')
@@ -59,7 +67,7 @@ hold on
 S_top=(param.Daq*dz/2.*S(:,end)'+param.De*param.LL.*Sb(:,param.Nz)) ...
     ./(param.Daq*dz/2+param.De*param.LL);
 for k=1:param.Ns
-    plot([zm,z(end)],[Sb(k,:),S_top(k)])
+    plot([zm,z(end)],[Sb(k,:),S_top(k)],C{k})
 end
 xlabel('Location in Biofilm')
 ylabel('Biofilm Substrate Concentrations')
