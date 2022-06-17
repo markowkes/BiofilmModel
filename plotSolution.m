@@ -1,7 +1,20 @@
-function plotSolution(t,X,S,Pb,Sb,Lf,param)
+function plotSolution(t,X,S,Pb,Sb,Lf,param,type)
+
+if ~exist('type','var')
+    type='final';
+end
 
 % Colors
-Cdot = {'k.','b.','r.','g.','y.'};
+switch type
+    case 'update'
+        Cline = {'k.','b.','r.','g.','y.'};
+    case 'final'
+        Cline = {'k-','b-','r-','g-','y-'};
+    otherwise 
+        error('Unknown type in plotSolution')
+end
+
+
 C = {'k','b','r','g','y'};
     
 % Tank particulates
@@ -9,7 +22,7 @@ figure(1)
 subplot(2,3,1)
 hold on
 for i=1:param.Nx
-    plot(t,X(i,:),Cdot{i})
+    plot(t,X(i,:),Cline{i})
 end
 xlabel('Time')
 ylabel('Tank Particulate Concentrations')
@@ -22,7 +35,7 @@ set(gca,'Fontsize',16)
 subplot(2,3,2)
 hold on
 for j=1:param.Ns
-    plot(t,S(j,:),Cdot{j})
+    plot(t,S(j,:),Cline{j})
 end
 xlabel('Time')
 ylabel('Tank Substrate Concentrations')
@@ -34,7 +47,7 @@ set(gca,'Fontsize',16)
 % Biofilm thickness
 subplot(2,3,3)
 hold on
-plot(t,Lf*1e6,'k.')
+plot(t,Lf*1e6,Cline{1})
 xlabel('Time')
 ylabel('Biofilm Thickness (um)')
 %ylim(1e6*[min(Lf,[],'all')-0.3*max(0.1,(max(Lf,[],'all')-min(Lf,[],'all'))) ...

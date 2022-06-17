@@ -87,4 +87,4 @@ param.tol=1e-6;
 [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param);
 
 % Plot solution
-plotSolution(t,X,S,Pb,Sb,Lf,param)
+plotSolution(t,X',S',Pb,Sb,Lf,param)
