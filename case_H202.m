@@ -58,23 +58,23 @@ param.phi_tot = sum(param.phibo);
 param.Ns = size(param.So, 1);  % Number of substrates
 param.Nx = size(param.Xo, 1);  % Number of substrates
 
-param.Sin = [53; 0]; % Substrates concentration(s) into tank
-Sin{1}.min   = 0;
-Sin{1}.max   = 53;
-Sin{1}.period= 4;
-Sin{1}.dur   = 2;
+%param.Sin = [53; 0]; % Substrates concentration(s) into tank
+param.Sin{1}.min   = 0;
+param.Sin{1}.max   = 53;
+param.Sin{1}.period= 4;
+param.Sin{1}.dur   = 2;
 
-Sin{2}.min   = 0;
-Sin{2}.max   = 53;
-Sin{2}.period= 4;
-Sin{2}.dur   = 2;
+param.Sin{2}.min   = 0;
+param.Sin{2}.max   = 53;
+param.Sin{2}.period= 4;
+param.Sin{2}.dur   = 2;
 
 k = 1;
-Sin{k}.f =@(theavi) 53;
+param.Sin{k}.f =@(theavi) 53;
 
 k = 2;
-Sin{k}.f =@(theavi) (Sin{k}.max-Sin{k}.min)*(sum(heaviside(theavi)) ...
-          -sum(heaviside(theavi-Sin{k}.period+Sin{k}.dur)))+Sin{k}.min;
+param.Sin{k}.f =@(theavi) (param.Sin{k}.max-param.Sin{k}.min)*(sum(heaviside(theavi)) ...
+          -sum(heaviside(theavi-param.Sin{k}.period+param.Sin{k}.dur)))+param.Sin{k}.min;
 
 
 % Tolerance
@@ -83,7 +83,7 @@ param.tol=1e-2;
 %% Solver
 
 % Call solver
-[t,X,S,Pb,Sb,Lf]=solverBuiltIn(Sin,param);
+[t,X,S,Pb,Sb,Lf]=solverBuiltIn(param);
 
 % Plot solution
 plotSolution(t,X,S,Pb,Sb,Lf,param)

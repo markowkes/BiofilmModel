@@ -8,7 +8,7 @@ Ns = param.Ns;
 Nz = param.Nz;
 
 Sbold=zeros(Ns,Nz);
-Sb   =zeros(Ns,Nz);
+Sb =S.*ones(Ns,Nz);
 
 % Get variables out of param
 De=param.De;
@@ -82,7 +82,7 @@ for n=1:iter
     if max(abs(Sb-Sbold))<tol
         break
     else
-        if i==iter
+        if n==iter
              fprintf('Diffusion Unable to Converge at time %3.8f\n',t)
         end
     end

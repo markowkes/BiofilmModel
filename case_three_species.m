@@ -1,9 +1,13 @@
 % Multiple substrates 
 clear; clc;
 
+param.instantaneousDiffusion = true;
+param.sourceTerm             = false;
+param.Pulse                  = false;
+
 % Time
 param.tFin=30;   % Simulation time [days]
-param.outPeriod=1e-3; 
+param.outPeriod=1; 
 
 param.SNames = {'Oxygen', 'Sulfate', 'Sulfide'};
 param.XNames = {'Phototroph', 'SOB', 'SRB'};
@@ -60,17 +64,19 @@ param.phi_tot = sum(param.phibo);
 param.Ns = size(param.So, 1);  % Number of substrates
 param.Nx = size(param.Xo, 1);  % Number of substrates
 
-param.Sin = [8.6; 48; 0];         % Substrates concentration(s) into tank
+% param.Sin = [8.6; 48; 0];         % Substrates concentration(s) into tank
 % Sin{1}.min   = 0;
 % Sin{1}.max   = 50;
-% Sin{1}.period= 15;
+param.Sin{1}.period= 0;
+param.Sin{2}.period= 0;
+param.Sin{3}.period= 0;
 % Sin{1}.dur   = 10;
 % % Sin{2}.max   = 0;
-% 
-% for k = 1:param.Ns
-%     Sin{k}.f =@(theavi) (Sin{k}.max-Sin{k}.min)*(sum(heaviside(theavi)) ...
-%     -sum(heaviside(theavi-Sin{k}.period+Sin{k}.dur)))+Sin{k}.min;
-% end
+
+param.Sin{1}.f =@(theavi) 8.6;
+param.Sin{2}.f =@(theavi) 48;
+param.Sin{3}.f =@(theavi) 0;
+
 
 % Tolerance
 param.tol=1e-6;
