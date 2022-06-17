@@ -19,7 +19,7 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     Nz = param.Nz;
     Nx = param.Nx;
     Ns = param.Ns;
-    
+
     % Initializ Pulse Function
 
     
@@ -100,43 +100,43 @@ function status=myOutputFcn(t,y,flag,param) %#ok<INUSL>
         fprintf('Time here = %5.5e \n',t)
         %fprintf('%5.5e \n',param.light(t,max(param.z)))
         %param.light(t,max(param.z))
-        
-        % Common parameters
-        Nz = param.Nz;
-        Nx = param.Nx;
-        Ns = param.Ns;
+
+            % Common parameters
+            Nz = param.Nz;
+            Nx = param.Nx;
+            Ns = param.Ns;
 
 
-        % Extract computed solution
-        Nvar=0;
-        N=Nx;     X =y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Tank particulates
-        N=Ns;     S =y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Tank substrates
-        N=Nx*Nz;  Pb=y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm particulates
-        if ~param.instantaneousDiffusion
-            N=Ns*Nz;  Sb=y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm substrates
-        end
-        N=1;      Lf=y(Nvar+1:Nvar+N,:);              % Biofilm thickness
-
-        % Reshape and return last biofilm values: Var(Nx/Ns, Nz)
-        Pb = reshape(Pb(:,end),Nx,Nz);
-
-        % Substrate in biofilm
-        if param.instantaneousDiffusion
-            % Compute particulate concentration from volume fractions
-            Xb=zeros(param.Nx,param.Nz);
-            for j=1:param.Nx
-                Xb(j,:) = param.rho(j)*Pb(j,:);
+            % Extract computed solution
+            Nvar=0;
+            N=Nx;     X =y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Tank particulates
+            N=Ns;     S =y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Tank substrates
+            N=Nx*Nz;  Pb=y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm particulates
+            if ~param.instantaneousDiffusion
+                N=Ns*Nz;  Sb=y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm substrates
             end
-            % Solve for final substrate concentrations in biofilm
-            grid.z  = linspace(0,Lf(end),param.Nz+1);
-            grid.dz = grid.z(2) - grid.z(1);
-            Sb = biofilmdiffusion_fd(t,S(end,:),Xb,param,grid);
-        else
-            Sb = reshape(Sb(:,end),Ns,Nz);
-        end
+            N=1;      Lf=y(Nvar+1:Nvar+N,:);              % Biofilm thickness
 
-        plotSolution(t,X,S,Pb,Sb,Lf,param)
-    end
+            % Reshape and return last biofilm values: Var(Nx/Ns, Nz)
+            Pb = reshape(Pb(:,end),Nx,Nz);
+
+            % Substrate in biofilm
+            if param.instantaneousDiffusion
+                % Compute particulate concentration from volume fractions
+                Xb=zeros(param.Nx,param.Nz);
+                for j=1:param.Nx
+                    Xb(j,:) = param.rho(j)*Pb(j,:);
+                end
+                % Solve for final substrate concentrations in biofilm
+                grid.z  = linspace(0,Lf(end),param.Nz+1);
+                grid.dz = grid.z(2) - grid.z(1);
+                Sb = biofilmdiffusion_fd(t(end),S(:,end),Xb,param,grid);
+            else
+                Sb = reshape(Sb(:,end),Ns,Nz);
+            end
+
+            plotSolution(t,X,S,Pb,Sb,Lf,param)
+        end
     status=0;
 end
 

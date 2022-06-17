@@ -7,7 +7,7 @@ param.Pulse                  = false;
 
 % Time
 param.tFin=30;   % Simulation time [days]
-param.outPeriod=1; 
+param.outPeriod=2e-4; 
 
 param.SNames = {'Oxygen', 'Sulfate', 'Sulfide'};
 param.XNames = {'Phototroph', 'SOB', 'SRB'};
