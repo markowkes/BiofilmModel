@@ -50,15 +50,14 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
     N=1;     yo(Nvar+1:Nvar+N)=Lf;                   % Biofilm thicknes
 
     % Call ODE solver
-    count = 0;
     %ops = odeset('OutputFcn',@odeprint,'AbsTol',1e-3);
     ops = odeset('OutputFcn',@myOutputFcn,'RelTol',param.tol,'AbsTol',param.tol);
     %ops = odeset('OutputFcn',@odeprog,'RelTol',param.tol,'AbsTol',param.tol);
     %ops = odeset('OutputFcn',@odeplot,'AbsTol',1e-4);
     %ops = odeset('OutputFcn',@odeprog,'Events',@odeabort,'AbsTol',1e-4);
-    %[t,y]=ode45  (@(t,y,param) RHS(t,y,param),[0,param.tFin],yo,ops,param);
     %[t,y]=ode23s (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
     [t,y]=ode15s (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
+    %[t,y]=ode45  (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
     %[t,y]=ode23t (@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
     %[t,y]=ode23tb(@(t,y,param) RHS(t,y,param),0:param.outPeriod:param.tFin,yo,ops,param);
     
@@ -92,50 +91,50 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
 end
 
 %% Status of ODE solver
-function status=myOutputFcn(t,y,flag,param) %#ok<INUSL> 
+function status=myOutputFcn(t,y,flag,param)
     if strcmp(flag,'init') || strcmp(flag,'done')
         % do nothing
     else
         fprintf('Time here = %5.5e \n',t)
         %fprintf('%5.5e \n',param.light(t,max(param.z)))
         %param.light(t,max(param.z))
-
-            % Common parameters
-            Nz = param.Nz;
-            Nx = param.Nx;
-            Ns = param.Ns;
-
-
-            % Extract computed solution
-            Nvar=0;
-            N=Nx;     X =y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Tank particulates
-            N=Ns;     S =y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Tank substrates
-            N=Nx*Nz;  Pb=y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm particulates
-            if ~param.instantaneousDiffusion
-                N=Ns*Nz;  Sb=y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm substrates
-            end
-            N=1;      Lf=y(Nvar+1:Nvar+N,:);              % Biofilm thickness
-
-            % Reshape and return last biofilm values: Var(Nx/Ns, Nz)
-            Pb = reshape(Pb(:,end),Nx,Nz);
-
-            % Substrate in biofilm
-            if param.instantaneousDiffusion
-                % Compute particulate concentration from volume fractions
-                Xb=zeros(param.Nx,param.Nz);
-                for j=1:param.Nx
-                    Xb(j,:) = param.rho(j)*Pb(j,:);
-                end
-                % Solve for final substrate concentrations in biofilm
-                grid.z  = linspace(0,Lf(end),param.Nz+1);
-                grid.dz = grid.z(2) - grid.z(1);
-                Sb = biofilmdiffusion_fd(t(end),S(:,end),Xb,param,grid);
-            else
-                Sb = reshape(Sb(:,end),Ns,Nz);
-            end
-
-            plotSolution(t,X,S,Pb,Sb,Lf,param,'update')
+    
+        % Common parameters
+        Nz = param.Nz;
+        Nx = param.Nx;
+        Ns = param.Ns;
+    
+    
+        % Extract computed solution
+        Nvar=0;
+        N=Nx;     X =y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Tank particulates
+        N=Ns;     S =y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Tank substrates
+        N=Nx*Nz;  Pb=y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm particulates
+        if ~param.instantaneousDiffusion
+            N=Ns*Nz;  Sb=y(Nvar+1:Nvar+N,:); Nvar=Nvar+N; % Biofilm substrates
         end
+        N=1;      Lf=y(Nvar+1:Nvar+N,:);              % Biofilm thickness
+    
+        % Reshape and return last biofilm values: Var(Nx/Ns, Nz)
+        Pb = reshape(Pb(:,end),Nx,Nz);
+    
+        % Substrate in biofilm
+        if param.instantaneousDiffusion
+            % Compute particulate concentration from volume fractions
+            Xb=zeros(param.Nx,param.Nz);
+            for j=1:param.Nx
+                Xb(j,:) = param.rho(j)*Pb(j,:);
+            end
+            % Solve for final substrate concentrations in biofilm
+            grid.z  = linspace(0,Lf(end),param.Nz+1);
+            grid.dz = grid.z(2) - grid.z(1);
+            Sb = biofilmdiffusion_fd(t(end),S(:,end),Xb,param,grid);
+        else
+            Sb = reshape(Sb(:,end),Ns,Nz);
+        end
+    
+        plotSolution(t,X,S,Pb,Sb,Lf,param,'update')
+    end
     status=0;
 end
 
@@ -195,12 +194,8 @@ end
 
 %% Growthrate for each particulate in biofilm
 function [mu]=computeMu(Sb,Xb,t,param,grid)
-    mu=zeros(param.Nx,param.Nz);
     theavi = mod(t, 1);
-    % Loop over particulates
-    for j=1:param.Nx
-        mu(j,:)=param.mu{j}(Sb,Xb,theavi,grid.z,param);
-    end
+    mu=param.mu(Sb,Xb,theavi,grid.z,param);
     %plot(param.z,param.light(t,param.z))
     %plot(t,param.light(t,max(param.z)))
 end
@@ -244,8 +239,9 @@ end
 %% RHS of tank particulates
 function dXdt = dXdt(X,S,Xb,Vdet,t,Lf,param) 
     dXdt = zeros(param.Nx,1);
+    mu=param.mu(S,X,t,Lf,param);
     for j=1:param.Nx
-        dXdt(j) = param.mu{j}(S,X,t,Lf,param)*X(j) ...      % Growth
+        dXdt(j) = mu(j)*X(j) ...      % Growth
             -     param.Q*X(j)/param.V ...             % Flow out
             +     Vdet*param.A*Xb(j,end)/param.V...    % From biofilm
             +     param.X_Source{j}(S,X,param);        % Source term
@@ -258,10 +254,8 @@ function dSdt = dSdt(t,X,S,Lf,param,fluxS)
     for k=1:param.Ns                                 
         dSdt(k) = param.Q.*fSin(t,k,param)/param.V...
             -     param.Q.*      S(k)  /param.V ...   % Flow out
-            -     param.A.*fluxS(k,end)/param.V;      % Flux into biofilm
-        for j=1:param.Nx                              % Used by growth
-            dSdt(k) = dSdt(k) - param.mu{j}(S,X,t,Lf,param)*X(j)/param.Yxs(j,k); 
-        end
+            -     param.A.*fluxS(k,end)/param.V ...   % Flux into biofilm
+            - sum(param.mu(S,X,t,Lf,param).*X./param.Yxs(:,k)); % Used by growth
     end
 end
 
@@ -424,20 +418,14 @@ function param = check_param(param)
     
     param.Yxs(param.Yxs==0) = inf;
 
-    if length(param.mu) ~= Nx
-        error(['param.mu should have Nx=',num2str(Ns),' growthrate equations'])
-    end
-
     Stest=rand(Ns,Nz);
     Xtest=rand(Nx,Nz);
     ttest=0;
     ztest=rand(1,Nz);
-    for j=1:Nx
-        if ~isequal(size(param.mu{j}(Stest,Xtest,ttest,ztest,param)),[1 Nz])
-            error(['mu{',num2str(j),'}(Sb,param) returns a matrix of size '...
-                ,num2str(size(param.mu{j}(Stest,Xtest,ttest,ztest,param))),[', ' ...
-                'it should return a matrix of size 1 x '],num2str(Nz)])
-        end
+    if ~isequal(size(param.mu(Stest,Xtest,ttest,ztest,param)),[3 Nz])
+        error(['mu(Sb,Xb,t,z,param) returns a matrix of size '...
+            ,num2str(size(param.mu{j}(Stest,Xtest,ttest,ztest,param))),', ' ...
+            'it should return a matrix of size ',num2str(Ns),' x ',num2str(Nz)])
     end
 
 

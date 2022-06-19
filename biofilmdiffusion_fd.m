@@ -23,15 +23,33 @@ iter=100; %maximum iterations
 L = -1;
 U = -1;
 
-% Define D = 2*kronecker + dz^2*dgds(j,i,m)
-D=@(k,i,m,Sb,Xb) (dz^2*dgds(t,k,i,m,Sb,Xb,param,grid));
-
 %Iterations
 for n=1:iter
+
     % Preallocate solution array
     A = zeros(Nz*Ns, Nz*Ns);
     B = zeros(Nz*Ns,1);
 
+    % Precompute g(k) at z(i)  %%%% Need to vectoriz %%%%
+    g=zeros(Nz,Ns);
+    for k=1:Ns
+        for i=1:Nz
+            g(i,k)=compute_g(t,k,i,Sb(:,i),Xb(:,i),param,grid);
+        end
+    end
+
+    % Precompute dg(k)/ds(m) at z(i)
+    dgds=zeros(Ns,Nz,Ns);
+    for k=1:Ns
+        for i=1:Nz
+            for m=1:Ns
+                dgds(m,i,k)=compute_dgds(t,k,i,m,Sb,Xb,g,param,grid);
+            end
+        end
+    end
+    
+
+    % Loop over substrates
     for k=1:Ns
         
         % Bottom of biofilm
@@ -39,7 +57,7 @@ for n=1:iter
         d=(k-1)*Nz+i; % Row for this substrate 
         A(d,d  ) = L + 2;  % Add lower diagonal to main diagonal (Neuman)
         A(d,d+1) = U; 
-        B(d,1  ) = R(t,k,i,Ns,dz,Sb,Xb,param,grid); % RHS
+        B(d,1  ) = R(k,i,Ns,dz,Sb,g,dgds); % RHS
         
         % Top of biofilm
         i=Nz; % Index
@@ -47,7 +65,7 @@ for n=1:iter
         % Top of biofilm - flux matching condition between biofilm and tank
         A(d,d  ) = ((3*Daq(k)*dz + 2*De(k)*LL))/(Daq(k)*dz + 2*De(k)*LL);
         A(d,d-1) = L; 
-        B(Nz*k) = R(t,k,i,Ns,dz,Sb,Xb,param,grid) + (2*Daq(k)*S(k)*dz)/(Daq(k)*dz + 2*De(k)*LL);
+        B(Nz*k) = R(k,i,Ns,dz,Sb,g,dgds) + (2*Daq(k)*S(k)*dz)/(Daq(k)*dz + 2*De(k)*LL);
 
         % Interior points
         for i=2:Nz-1
@@ -55,15 +73,16 @@ for n=1:iter
             A(d,d-1) = L;
             A(d,d+1) = U;
             A(d,d  ) = 2;
-            B(d,1  ) = R(t,k,i,Ns,dz,Sb,Xb,param,grid);
+            B(d,1  ) = R(k,i,Ns,dz,Sb,g,dgds);
         end
 
         % All points
         for i=1:Nz
             d=(k-1)*Nz+i; % Row for this substrate 
             for m=1:Ns               
-                % D, populates dia. and off dia. interior points (2:Nz-1)
-                A(d,(m-1)*Nz+i) = A(d,(m-1)*Nz+i) + D(k,i,m,Sb,Xb);
+                % D, populates dia. and off dia. interior points
+                A(d,(m-1)*Nz+i) = A(d,(m-1)*Nz+i) ...
+                    + dz^2*dgds(m,i,k);
             end
         end
     end
@@ -97,32 +116,28 @@ end
 
 % k -> substrate
 % i -> location in biofilm
-function R = R(t,k,i,Ns,dz,Sb,Xb,param,grid)
+function R = R(k,i,Ns,dz,Sb,g,dgds)
     R = 0;
     for m = 1:Ns
-        R = R + dz^2*dgds(t,k,i,m,Sb,Xb,param,grid).*Sb(m,i);
+        R = R + dz^2*dgds(m,i,k).*Sb(m,i);
     end
-    R = R - dz^2*g(t,k,i,Sb(:,i),Xb(:,i),param,grid);
+    R = R - dz^2*g(i,k);
 end
 % Define RHS of ODE
-function g = g(t,k,i,Sb,Xb,param,grid)
-    g = 0;
+function g = compute_g(t,k,i,Sb,Xb,param,grid)
     theavi = mod(t, 1);
-    for j = 1:param.Nx
-       g = g + param.mu{j}(Sb,Xb,theavi,grid.z(i),param)*Xb(j)/(param.Yxs(j,k)*param.De(k));
-    end
+    g = sum(param.mu(Sb,Xb,theavi,grid.z(i),param).*Xb./(param.Yxs(:,k)*param.De(k)));
 end
 % Define dgds = (g(Sb+)-g(Sb-))/dS
-function dgds = dgds(t,k,i,m,Sb,Xb,param,grid) 
+function dgds = compute_dgds(t,k,i,m,Sb,Xb,g,param,grid) 
     % Define Sb plus and Sb minus, delta is added/subtracted to Sb(i,m)
     delta=1e-3; 
-    Sb_p =        Sb(:,i) + delta.*transpose(eq(1:param.Ns,m)) ;
-    Sb_m = max(0, Sb(:,i) - delta.*transpose(eq(1:param.Ns,m)));
+    Sb_p = Sb(:,i); Sb_p(m)=Sb_p(m)+delta;
     % Compute g at plus and minus points
-    gp=g(t,k,i,Sb_p,Xb(:,i),param,grid);
-    gm=g(t,k,i,Sb_m,Xb(:,i),param,grid);
+    gp=compute_g(t,k,i,Sb_p   ,Xb(:,i),param,grid);
+    gm=g(i,k);
     % Compute derivative
-    dgds=(gp-gm)/max(Sb_p-Sb_m);
+    dgds=(gp-gm)/delta;
 end
 
 

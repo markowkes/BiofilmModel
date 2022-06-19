@@ -7,7 +7,7 @@ param.Pulse                  = false;
 
 % Time
 param.tFin=3;   % Simulation time [days]
-param.outPeriod=0.1; 
+param.outPeriod=0.05; 
 
 param.SNames = {'Oxygen', 'Sulfate', 'Sulfide'};
 param.XNames = {'Phototroph', 'SOB', 'SRB'};
@@ -23,7 +23,7 @@ param.So  = [8.6; 48; 0]        % Tank substrate initial condition(s)
 param.LL  = 2.00E-4;    % Boundary layer thickness
 
 % Biofilm
-param.Nz=10;          % Linear grid points to describe biofilm
+param.Nz=20;          % Linear grid points to describe biofilm
 param.phibo= [0.2/3; 0.2/3;  0.2/3]    % Biofilm particulates initial condition(s)
 param.Sbo  = [0; 0; 0]     % Biofilm substrates initial condition(s)
 param.Lfo  = 1.0E-3;  % Biofilm initial thickness
@@ -53,9 +53,15 @@ KmB1 = 1; KmB3 = 11;  KmC2 = 20;  KI = 10E6;
 mumaxA = 0.4;  mumaxB = 0.672;  mumaxC = 1.46;
 param.light=@(t,z) heaviside(t-0.5)*max(0,param.I-(max(z)-z)*param.diss);
 %light=@(t,z) (cos(2*t)+1)*max(0,param.I-(max(z)-z)*param.diss);
-param.mu{1}=@(S,X,t,z,param) (mumaxA.*param.light(t,z)./param.I);
-param.mu{2}=@(S,X,t,z,param) (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
-param.mu{3}=@(S,X,t,z,param) (mumaxC*S(2,:))./(KmC2+S(2,:)).*(1./(1+S(1,:)/KI));
+% param.mu{1}=@(S,X,t,z,param) (mumaxA.*param.light(t,z)./param.I);
+% param.mu{2}=@(S,X,t,z,param) (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
+% param.mu{3}=@(S,X,t,z,param) (mumaxC*S(2,:))./(KmC2+S(2,:)).*(1./(1+S(1,:)/KI));
+
+param.mu=@(S,X,t,z,param) [
+    (mumaxA.*param.light(t,z)./param.I);
+    (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
+    (mumaxC*S(2,:))./(KmC2+S(2,:)).*(1./(1+S(1,:)/KI));
+];
 
 % Computed parameters
 param.phi_tot = sum(param.phibo);
@@ -77,7 +83,7 @@ param.Sin{3}.f =@(theavi) 0;
 
 
 % Tolerance
-param.tol=1e-2;
+param.tol=1e-4;
 
 %% Solver
 
