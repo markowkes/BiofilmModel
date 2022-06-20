@@ -1,8 +1,13 @@
 % Multiple substrates 
 clear; clc;
 
+param.instantaneousDiffusion = true;
+param.sourceTerm             = false;
+param.Pulse                  = false;
+
 % Time
 param.tFin=29;   % Simulation time [days]
+param.outPeriod=0.05; 
 
 param.SNames = {'Oxygen', 'Sulfate', 'Sulfide'};
 param.XNames = {'Phototroph', 'SOB'};
@@ -46,13 +51,18 @@ param.Ylight = 2;
          
 % Growthrates for each particulate
 KmB1 = 200; KmB3 = 11; mumaxA = 0.4;  mumaxB = 6.72;
-light=@(t,z) heaviside(t-0.5)*max(0,param.I-(max(z)-z)*param.diss);
+param.light=@(t,z) heaviside(t-0.5)*max(0,param.I-(max(z)-z)*param.diss);
 %light=@(t,z) (cos(2*t)+1)*max(0,param.I-(max(z)-z)*param.diss);
-mu{1}=@(S,X,t,z,param) (mumaxA*light(t,z)/param.I);
-mu{2}=@(S,X,t,z,param) (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
-param.mu=mu;
-param.light = light;
-param.light=light;
+% mu{1}=@(S,X,t,z,param) (mumaxA*light(t,z)/param.I);
+% mu{2}=@(S,X,t,z,param) (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
+% param.mu=mu;
+% param.light = light;
+% param.light=light;
+
+param.mu=@(S,X,t,z,param) [
+    (mumaxA.*param.light(t,z)./param.I);
+    (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
+];
 
 % Computed parameters
 param.phi_tot = sum(param.phibo);

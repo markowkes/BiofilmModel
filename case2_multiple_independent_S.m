@@ -1,8 +1,16 @@
 % Multiple substrates 
 clear; clc;
 
+param.instantaneousDiffusion = true;
+param.sourceTerm             = false;
+param.Pulse                  = false;
+
 % Time
 param.tFin=30;   % Simulation time [days]
+param.outPeriod=1e-1;
+
+param.SNames = {'Substrate 1','Substrate 2'};
+param.XNames = {'Bug'};
 
 % Tank Geometry
 param.V   = 0.1;        % Volume of tank
@@ -29,9 +37,14 @@ param.Kdet = 1900;             % Particulate detachment coefficient
 X_Source{1}=@(S,X,param) 0;
 param.X_Source=X_Source;
 
+mumax = 20; KM = 3;
 % Growthrates for each particulate
-mu{1}=@(S,X,param) (20*S(1,:))./(3+S(1,:));
-param.mu=mu; 
+% mu{1}=@(S,X,param) (20*S(1,:))./(3+S(1,:));
+% param.mu=mu; 
+
+param.mu=@(S,X,t,z,param) [
+    (mumax*S(1,:))./(KM+S(1,:));
+];
 
 % Computed parameters
 param.phi_tot = sum(param.phibo);

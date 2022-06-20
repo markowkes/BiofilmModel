@@ -293,9 +293,13 @@ function dLfdt = dLfdt(V,Vdet)
 end
 
 function Sin = fSin(t,k,param)
-    
-    theavi = mod(t, param.Sin{k}.period);
-    Sin = param.Sin{k}.f(theavi);
+    switch param.Pulse
+        case 1
+            theavi = mod(t, param.Sin{k}.period);
+            Sin = param.Sin{k}.f(theavi);
+        case 0
+            Sin = param.Sin(k);
+    end
     
 
 %     subplot(2,3,6)
@@ -422,7 +426,7 @@ function param = check_param(param)
     Xtest=rand(Nx,Nz);
     ttest=0;
     ztest=rand(1,Nz);
-    if ~isequal(size(param.mu(Stest,Xtest,ttest,ztest,param)),[3 Nz])
+    if ~isequal(size(param.mu(Stest,Xtest,ttest,ztest,param)),[Nx Nz])
         error(['mu(Sb,Xb,t,z,param) returns a matrix of size '...
             ,num2str(size(param.mu{j}(Stest,Xtest,ttest,ztest,param))),', ' ...
             'it should return a matrix of size ',num2str(Ns),' x ',num2str(Nz)])

@@ -1,8 +1,16 @@
 % Multiple substrates 
 clear; clc;
 
+param.instantaneousDiffusion = true;
+param.sourceTerm             = false;
+param.Pulse                  = false;
+
+param.SNames = {'Substrate 1', 'Substrate 2'};
+param.XNames = {'Bug 1', 'Bug 2'};
+
 % Time
 param.tFin=5;   % Simulation time [days]
+param.outPeriod=1e-1;
 
 % Tank Geometry
 param.V   = 0.1;        % Volume of tank
@@ -39,10 +47,15 @@ param.diss = 0.05;
 param.Ylight = 2;
          
 % Growthrates for each particulate
-mu{1}=@(S,X,param) (2000*S(1,:))./(2500);
-mu{2}=@(S,X,param) (2000*S(2,:))./(2500);
-param.mu=mu;
+mumax = 2000; Km = 2500;
+% mu{1}=@(S,X,param) (2000*S(1,:))./(2500);
+% mu{2}=@(S,X,param) (2000*S(2,:))./(2500);
+% param.mu=mu;
 
+param.mu=@(S,X,t,z,param) [
+    (mumax*S(1,:))./(Km);
+    (mumax*S(2,:))./(Km);
+];
 
 % Computed parameters
 param.phi_tot = sum(param.phibo);
