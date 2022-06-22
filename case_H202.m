@@ -7,7 +7,7 @@ param.Pulse                  = true;
 
 % Time
 param.tFin=5;   % Simulation time [days]
-param.outPeriod=2.5;
+param.outPeriod=0.1;
 
 param.SNames = {'Substrate','H2O2'};
 param.XNames = {'Live Particulate','Dead Particulate'};
@@ -35,9 +35,9 @@ param.Kdet =1.5E4;             % Particulate detachment coefficient
 param.Yxs  =[0.5 0;        % [ dX1/dS1, dX1/dS2
              0   0];      %   dX2/dS1, dX2/dS2 ]
 
-b = 0.5;
-X_Source{1}=@(S,X,param) -b*X(1,:);
-X_Source{2}=@(S,X,param)  b*X(1,:);
+b = 0.5; kdis = 2; kB = 5;
+X_Source{1}=@(S,X,Pb,param) -kB*kdis*param.rho(1)*Pb(1,end);
+X_Source{2}=@(S,X,Pb,param)  kB*kdis*param.rho(1)*Pb(1,end);
 param.X_Source=X_Source;  
 
 % Light term
@@ -48,9 +48,14 @@ param.Ylight = 2;
 KM = 2.55;
 mumaxA = 7.5;
 % Growthrates for each particulate
-mu{1}=@(S,X,t,z,param) (mumaxA*S(1,:))./(KM + S(1,:));
-mu{2}=@(S,X,t,z,param) 0*S(1,:);
-param.mu=mu;
+% mu{1}=@(S,X,t,z,param) (mumaxA*S(1,:))./(KM + S(1,:));
+% mu{2}=@(S,X,t,z,param) 0*S(1,:);
+% param.mu=mu;
+
+param.mu=@(S,X,t,z,param) [
+    (mumaxA*S(1,:))./(KM + S(1,:));
+    0*S(1,:);
+];
 
 
 % Computed parameters
@@ -74,7 +79,8 @@ param.Sin{k}.f =@(theavi) 53;
 
 k = 2;
 param.Sin{k}.f =@(theavi) (param.Sin{k}.max-param.Sin{k}.min)*(sum(heaviside(theavi)) ...
-          -sum(heaviside(theavi-param.Sin{k}.period+param.Sin{k}.dur)))+param.Sin{k}.min;
+          -sum(heaviside(theavi-param.Sin{k}.period+param.Sin{k}.dur)))+param.Sin{k}.min...
+          -kB*kdis*param.rho(1)*Pb(1,end);
 
 
 % Tolerance

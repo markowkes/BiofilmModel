@@ -1,6 +1,10 @@
 % Multiple substrates 
 clear; clc;
 
+param.instantaneousDiffusion = true;
+param.sourceTerm             = false;
+param.Pulse                  = false;
+
 % Time
 param.tFin=30;   % Simulation time [days]
 param.outPeriod=0.5; % Output period [days]
@@ -45,12 +49,16 @@ param.diss = 1000;
 param.Ylight = 2;
          
 % Growthrates for each particulate
-KmC2 = 20; KI = 1; mumax = 1.46;
-light=@(t,z) heaviside(t-0.5)*max(0,param.I-(max(z)-z)*param.diss);
-light=@(t,z) (cos(2*t)+1)*max(0,param.I-(max(z)-z)*param.diss); 
-mu{1}=@(S,X,t,z,param) (mumax*S(2,:))./(KmC2+S(2,:)).*(1./(1+S(1,:)/KI));
-param.mu=mu;
-param.light=light;
+KmC2 = 20; KI = 1; mumaxC = 1.46;
+param.light=@(t,z) heaviside(t-0.5)*max(0,param.I-(max(z)-z)*param.diss);
+param.light=@(t,z) (cos(2*t)+1)*max(0,param.I-(max(z)-z)*param.diss); 
+% mu{1}=@(S,X,t,z,param) (mumax*S(2,:))./(KmC2+S(2,:)).*(1./(1+S(1,:)/KI));
+% param.mu=mu;
+% param.light=light;
+
+param.mu=@(S,X,t,z,param) [
+    (mumaxC*S(2,:))./(KmC2+S(2,:)).*(1./(1+S(1,:)/KI));
+];
 
 % Computed parameters
 param.phi_tot = sum(param.phibo);
