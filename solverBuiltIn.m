@@ -130,7 +130,7 @@ function status=myOutputFcn(t,y,flag,param)
             grid.z  = linspace(0,Lf(end),param.Nz+1);
             grid.zm = 0.5*(grid.z(1:param.Nz)+grid.z(2:param.Nz+1));
             grid.dz = grid.z(2) - grid.z(1);
-            Sb = biofilmdiffusion_fd(t(end),S(:,end),Xb,Lf,param,grid);
+            Sb = biofilmdiffusion_fd(t(end),S(:,end),Xb,Lf(end),param,grid);
         else
             Sb = reshape(Sb(:,end),Ns,Nz);
         end
