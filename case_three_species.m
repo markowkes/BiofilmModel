@@ -7,7 +7,7 @@ param.Pulse                  = false;
 
 % Time
 param.tFin=3;   % Simulation time [days]
-param.outPeriod=0.05; 
+param.outPeriod=0.1; 
 
 param.SNames = {'Oxygen', 'Sulfate', 'Sulfide'};
 param.XNames = {'Phototroph', 'SOB', 'SRB'};
@@ -38,9 +38,9 @@ param.Yxs  = [-0.52  0  0; 0.0581 0 0.09; 0 0.584 -1.645]                % dX2/d
 
 % Source term
 param.b = 0.1;
-X_Source{1}=@(S,X,param) 0;
-X_Source{2}=@(S,X,param) 0;
-X_Source{3}=@(S,X,param) 0;
+X_Source{1}=@(S,X,Pb,param) 0;
+X_Source{2}=@(S,X,Pb,param) 0;
+X_Source{3}=@(S,X,Pb,param) 0;
 param.X_Source=X_Source;
 
 % Light term
@@ -77,10 +77,10 @@ param.Sin{3}.period= 0;
 % Sin{1}.dur   = 10;
 % % Sin{2}.max   = 0;
 
-param.Sin{1}.f =@(theavi) 8.6;
-param.Sin{2}.f =@(theavi) 48;
-param.Sin{3}.f =@(theavi) 0;
-
+% param.Sin{1}.f =@(theavi) 8.6;
+% param.Sin{2}.f =@(theavi) 48;
+% param.Sin{3}.f =@(theavi) 0;
+param.Sin = [8.6; 48; 0]
 
 % Tolerance
 param.tol=1e-4;
