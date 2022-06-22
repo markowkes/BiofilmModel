@@ -1,12 +1,12 @@
 % Multiple substrates 
 clear; clc;
 
-param.instantaneousDiffusion = true;
+param.instantaneousDiffusion = false;
 param.sourceTerm             = false;
 param.Pulse                  = false;
 
 % Time
-param.tFin=3;   % Simulation time [days]
+param.tFin=10;   % Simulation time [days]
 param.outPeriod=0.05; 
 
 param.SNames = {'Oxygen', 'Sulfate', 'Sulfide'};
@@ -34,7 +34,9 @@ param.De   = [6.8E-5;  4.00E-5; 6.04E-5;]        % Substrate diffusion through b
 param.rho  = [2.5E5;  2.5E5;  2.5E5]            % Particulate densities
 param.Kdet = 50;               % Particulates detachment coefficient
 % Yield coeffficient
-param.Yxs  = [-0.52  0  0; 0.0581 0 0.09; 0 0.584 -1.645]                % dX2/dS1  - Production of Oxygen
+param.Yxs  = [-0.52  0  0; 
+              0.0581 0 0.09; 
+              0 0.584 -1.645]                % dX2/dS1  - Production of Oxygen
 
 % Source term
 param.b = 0.1;
@@ -51,14 +53,15 @@ param.Ylight = 2;
 % Growthrates for each particulate
 KmB1 = 1; KmB3 = 11;  KmC2 = 20;  KI = 10E6;
 mumaxA = 0.4;  mumaxB = 0.672;  mumaxC = 1.46;
-param.light=@(t,z) heaviside(t-0.5)*max(0,param.I-(max(z)-z)*param.diss);
+param.light=@(t,z,Lf) heaviside(t-0.5)*max(0,param.I-(Lf-z)*param.diss);
+%param.light=@(t,z) max(0,param.I-(Lf - z)*param.diss);
 %light=@(t,z) (cos(2*t)+1)*max(0,param.I-(max(z)-z)*param.diss);
 % param.mu{1}=@(S,X,t,z,param) (mumaxA.*param.light(t,z)./param.I);
 % param.mu{2}=@(S,X,t,z,param) (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
 % param.mu{3}=@(S,X,t,z,param) (mumaxC*S(2,:))./(KmC2+S(2,:)).*(1./(1+S(1,:)/KI));
 
-param.mu=@(S,X,t,z,param) [
-    (mumaxA.*param.light(t,z)./param.I);
+param.mu=@(S,X,Lf,t,z,param) [
+    (mumaxA.*param.light(t,z,Lf)./param.I);
     (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
     (mumaxC*S(2,:))./(KmC2+S(2,:)).*(1./(1+S(1,:)/KI));
 ];

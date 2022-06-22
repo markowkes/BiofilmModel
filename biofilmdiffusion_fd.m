@@ -1,4 +1,4 @@
-function [Sb,Sflux]=biofilmdiffusion_fd(t,S,Xb,param,grid)
+function [Sb,Sflux]=biofilmdiffusion_fd(t,S,Xb,Lf,param,grid)
 %% This function models the diffusion of a substrate within the biofilm
 %This Function will take tank conditions (So,Xb,LL) and various growth factors (Yxs,De,Km,Daq) model the diffusion of
 % substrates into the biofilm over the grid . The results of this uptake will be used to
@@ -34,7 +34,7 @@ for n=1:iter
     g=zeros(Nz,Ns);
     for k=1:Ns
         for i=1:Nz
-            g(i,k)=compute_g(t,k,i,Sb(:,i),Xb(:,i),param,grid);
+            g(i,k)=compute_g(t,k,i,Sb(:,i),Xb(:,i),Lf,param,grid);
         end
     end
 
@@ -43,7 +43,7 @@ for n=1:iter
     for k=1:Ns
         for i=1:Nz
             for m=1:Ns
-                dgds(m,i,k)=compute_dgds(t,k,i,m,Sb,Xb,g,param,grid);
+                dgds(m,i,k)=compute_dgds(t,k,i,m,Sb,Xb,Lf,g,param,grid);
             end
         end
     end
@@ -124,17 +124,17 @@ function R = R(k,i,Ns,dz,Sb,g,dgds)
     R = R - dz^2*g(i,k);
 end
 % Define RHS of ODE
-function g = compute_g(t,k,i,Sb,Xb,param,grid)
+function g = compute_g(t,k,i,Sb,Xb,Lf,param,grid)
     theavi = mod(t, 1);
-    g = sum(param.mu(Sb,Xb,theavi,grid.z(i),param).*Xb./(param.Yxs(:,k)*param.De(k)));
+    g = sum(param.mu(Sb,Xb,Lf,theavi,grid.z(i),param).*Xb./(param.Yxs(:,k)*param.De(k)));
 end
 % Define dgds = (g(Sb+)-g(Sb-))/dS
-function dgds = compute_dgds(t,k,i,m,Sb,Xb,g,param,grid) 
+function dgds = compute_dgds(t,k,i,m,Sb,Xb,Lf,g,param,grid) 
     % Define Sb plus and Sb minus, delta is added/subtracted to Sb(i,m)
     delta=1e-3; 
     Sb_p = Sb(:,i); Sb_p(m)=Sb_p(m)+delta;
     % Compute g at plus and minus points
-    gp=compute_g(t,k,i,Sb_p   ,Xb(:,i),param,grid);
+    gp=compute_g(t,k,i,Sb_p   ,Xb(:,i),Lf,param,grid);
     gm=g(i,k);
     % Compute derivative
     dgds=(gp-gm)/delta;

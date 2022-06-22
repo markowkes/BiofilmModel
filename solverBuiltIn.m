@@ -128,7 +128,7 @@ function status=myOutputFcn(t,y,flag,param)
             % Solve for final substrate concentrations in biofilm
             grid.z  = linspace(0,Lf(end),param.Nz+1);
             grid.dz = grid.z(2) - grid.z(1);
-            Sb = biofilmdiffusion_fd(t(end),S(:,end),Xb,param,grid);
+            Sb = biofilmdiffusion_fd(t(end),S(:,end),Xb,Lf,param,grid);
         else
             Sb = reshape(Sb(:,end),Ns,Nz);
         end
@@ -169,11 +169,11 @@ function [f]=RHS(t,y,param)
     
     % Compute intermediate variables
     if param.instantaneousDiffusion
-        [Sb,fluxS] = biofilmdiffusion_fd(t,S,Xb,param,grid); % Diffusion of substrates into biofilm
+        [Sb,fluxS] = biofilmdiffusion_fd(t,S,Xb,Lf,param,grid); % Diffusion of substrates into biofilm
     else
         fluxS = computeFluxS(S,Sb,param,grid);  % Flux of substrate in biofilm
     end
-    mu    = computeMu(Sb,Xb,t,param,grid);        % Growthrate in biofilm
+    mu    = computeMu(Sb,Xb,Lf,t,param,grid);        % Growthrate in biofilm
     V     = computeVel  (mu,Pb,param,grid); % Velocity of particulates
     fluxP = computeFluxP(Pb,V,param);       % Flux of particulates in biofilm
     Vdet  = param.Kdet*Lf^2;                % Detachment velocity
@@ -193,9 +193,9 @@ function [f]=RHS(t,y,param)
 end
 
 %% Growthrate for each particulate in biofilm
-function [mu]=computeMu(Sb,Xb,t,param,grid)
+function [mu]=computeMu(Sb,Xb,Lf,t,param,grid)
     theavi = mod(t, 1);
-    mu=param.mu(Sb,Xb,theavi,grid.z,param);
+    mu=param.mu(Sb,Xb,Lf,theavi,grid.z,param);
     %plot(param.z,param.light(t,param.z))
     %plot(t,param.light(t,max(param.z)))
 end
@@ -239,7 +239,7 @@ end
 %% RHS of tank particulates
 function dXdt = dXdt(X,S,Xb,Vdet,t,Lf,param) 
     dXdt = zeros(param.Nx,1);
-    mu=param.mu(S,X,t,Lf,param);
+    mu=param.mu(S,X,Lf,t,Lf,param);
     for j=1:param.Nx
         dXdt(j) = mu(j)*X(j) ...      % Growth
             -     param.Q*X(j)/param.V ...             % Flow out
@@ -255,7 +255,7 @@ function dSdt = dSdt(t,X,S,Lf,param,fluxS)
         dSdt(k) = param.Q.*fSin(t,k,param)/param.V...
             -     param.Q.*      S(k)  /param.V ...   % Flow out
             -     param.A.*fluxS(k,end)/param.V ...   % Flux into biofilm
-            - sum(param.mu(S,X,t,Lf,param).*X./param.Yxs(:,k)); % Used by growth
+            - sum(param.mu(S,X,Lf,t,Lf,param).*X./param.Yxs(:,k)); % Used by growth
     end
 end
 
@@ -420,9 +420,10 @@ function param = check_param(param)
 
     Stest=rand(Ns,Nz);
     Xtest=rand(Nx,Nz);
+    Lftest=1e-3;
     ttest=0;
     ztest=rand(1,Nz);
-    if ~isequal(size(param.mu(Stest,Xtest,ttest,ztest,param)),[3 Nz])
+    if ~isequal(size(param.mu(Stest,Xtest,Lftest,ttest,ztest,param)),[3 Nz])
         error(['mu(Sb,Xb,t,z,param) returns a matrix of size '...
             ,num2str(size(param.mu{j}(Stest,Xtest,ttest,ztest,param))),', ' ...
             'it should return a matrix of size ',num2str(Ns),' x ',num2str(Nz)])
