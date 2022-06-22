@@ -77,7 +77,7 @@ set(gca,'Fontsize',16)
 subplot(2,3,5); cla()
 hold on
 % Add point at the top of biofilm (flux matching condition)
-S_top=(param.Daq*dz/2.*S(:,end)'+param.De*param.LL.*Sb(:,param.Nz)) ...
+S_top=(param.Daq*dz/2.*S(:,end)+param.De*param.LL.*Sb(:,param.Nz)) ...
     ./(param.Daq*dz/2+param.De*param.LL);
 for k=1:param.Ns
     plot([zm,z(end)],[Sb(k,:),S_top(k)],C{k})
