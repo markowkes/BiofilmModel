@@ -52,7 +52,7 @@ mumax = 2000; Km = 2500;
 % mu{2}=@(S,X,param) (2000*S(2,:))./(2500);
 % param.mu=mu;
 
-param.mu=@(S,X,t,z,param) [
+param.mu=@(S,X,Lf,t,z,param) [
     (mumax*S(1,:))./(Km);
     (mumax*S(2,:))./(Km);
 ];

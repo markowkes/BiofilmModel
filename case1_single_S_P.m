@@ -42,7 +42,7 @@ mumax = 20; KM = 3;
 % mu{1}=@(S,X,t,z,param) (mumax*S(1,:))./(KM+S(1,:));
 % param.mu=mu;  
 
-param.mu=@(S,X,t,z,param) [
+param.mu=@(S,X,Lf,t,z,param) [
     (mumax*S(1,:))./(KM+S(1,:));
 ];
 

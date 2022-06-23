@@ -1,7 +1,7 @@
 % Multiple substrates 
 clear; clc;
 
-param.instantaneousDiffusion = false;
+param.instantaneousDiffusion = true;
 param.sourceTerm             = false;
 param.Pulse                  = false;
 

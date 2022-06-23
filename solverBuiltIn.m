@@ -188,7 +188,7 @@ function [f]=RHS(t,y,param)
     if ~param.instantaneousDiffusion
         N=Ns*Nz; f(Nrhs+1:Nrhs+N)=dSbdt(mu,Xb,fluxS,param,grid); Nrhs=Nrhs+N;  % Biofilm substrates
     end
-    N=1;     f(Nrhs+1:Nrhs+N)=dLfdt(V,Vdet);                               % Biofilm thickness
+    N=1;     f(Nrhs+1:Nrhs+N)=dLfdt(V,Vdet,t);                               % Biofilm thickness
 
 end
 
@@ -220,7 +220,7 @@ function [V]=computeVel(mu,Pb,param,grid)
     % Start with zero velocity at wall -> integrate through the biofilm
     for i=1:param.Nz
         % Add growth of particulates in this cell to velocity
-        V(i+1)=V(i) + sum(mu(:,i).*Pb(:,i)*grid.dz/param.phi_tot);
+        V(1,i+1)=V(1,i) + sum(mu(:,i).*Pb(:,i)*grid.dz/param.phi_tot);
     end
 end
 
@@ -287,7 +287,7 @@ function dSbdt = dSbdt(mu,Xb,fluxS,param,grid)
 end
 
 %% RHS of biofilm thickness
-function dLfdt = dLfdt(V,Vdet)
+function dLfdt = dLfdt(V,Vdet,t)
     Vfilm = V(end);    % Growth velocity at top of biofilm
     dLfdt = Vfilm - Vdet;     % Surface Velocity 
 end
@@ -425,7 +425,7 @@ function param = check_param(param)
     ztest=rand(1,Nz);
     if ~isequal(size(param.mu(Stest,Xtest,Lftest,ttest,ztest,param)),[3 Nz])
         error(['mu(Sb,Xb,t,z,param) returns a matrix of size '...
-            ,num2str(size(param.mu{j}(Stest,Xtest,ttest,ztest,param))),', ' ...
+            ,num2str(size(param.mu{j}(Stest,Xtest,Lftest,ttest,ztest,param))),', ' ...
             'it should return a matrix of size ',num2str(Ns),' x ',num2str(Nz)])
     end
 

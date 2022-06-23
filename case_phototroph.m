@@ -45,8 +45,8 @@ param.Ylight = 2;
          
 % Growthrates for each particulate
 Km = 1; mumax = 0.4;
-light=@(t,z) (cos(2*t)+1)*max(0,param.I-(max(z)-z)*param.diss); 
-mu{1}=@(S,X,t,z,param) (mumax*light(t,z)/param.I);
+light=@(t,z,Lf) (cos(2*t)+1)*max(0,param.I-(Lf-z)*param.diss); 
+mu=@(S,X,t,z,param) [(mumax*light(t,z,Lf)/param.I);]
 param.mu=mu;
 param.light=light;
 

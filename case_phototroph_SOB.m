@@ -51,7 +51,7 @@ param.Ylight = 2;
          
 % Growthrates for each particulate
 KmB1 = 200; KmB3 = 11; mumaxA = 0.4;  mumaxB = 6.72;
-param.light=@(t,z) heaviside(t-0.5)*max(0,param.I-(max(z)-z)*param.diss);
+param.light=@(t,z,Lf) heaviside(t-0.5)*max(0,param.I-(Lf-z)*param.diss);
 %light=@(t,z) (cos(2*t)+1)*max(0,param.I-(max(z)-z)*param.diss);
 % mu{1}=@(S,X,t,z,param) (mumaxA*light(t,z)/param.I);
 % mu{2}=@(S,X,t,z,param) (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
@@ -59,8 +59,8 @@ param.light=@(t,z) heaviside(t-0.5)*max(0,param.I-(max(z)-z)*param.diss);
 % param.light = light;
 % param.light=light;
 
-param.mu=@(S,X,t,z,param) [
-    (mumaxA.*param.light(t,z)./param.I);
+param.mu=@(S,X,Lf,t,z,param) [
+    (mumaxA.*param.light(t,z,Lf)./param.I);
     (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
 ];
 
