@@ -426,9 +426,9 @@ function param = check_param(param)
     Lftest=1e-3;
     ttest=0;
     ztest=rand(1,Nz);
-    if ~isequal(size(param.mu(Stest,Xtest,Lftest,ttest,ztest,param)),[3 Nz])
+    if ~isequal(size(param.mu(Stest,Xtest,Lftest,ttest,ztest,param)),[Nx Nz])
         error(['mu(Sb,Xb,t,z,param) returns a matrix of size '...
-            ,num2str(size(param.mu{j}(Stest,Xtest,Lftest,ttest,ztest,param))),', ' ...
+            ,num2str(size(param.mu(Stest,Xtest,Lftest,ttest,ztest,param))),', ' ...
             'it should return a matrix of size ',num2str(Ns),' x ',num2str(Nz)])
     end
 
