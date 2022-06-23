@@ -83,8 +83,9 @@ function [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param)
         end
         % Solve for final substrate concentrations in biofilm
         grid.z  = linspace(0,Lf(end),param.Nz+1);
+        grid.zm = 0.5*(grid.z(1:param.Nz)+grid.z(2:param.Nz+1));
         grid.dz = grid.z(2) - grid.z(1);
-        Sb = biofilmdiffusion_fd(t(end),S(end,:)',Xb,param,grid);
+        Sb = biofilmdiffusion_fd(t(end),S(end,:)',Xb,Lf(end),param,grid);
     else
         Sb = reshape(Sb(end,:),Ns,Nz);
     end
@@ -127,8 +128,9 @@ function status=myOutputFcn(t,y,flag,param)
             end
             % Solve for final substrate concentrations in biofilm
             grid.z  = linspace(0,Lf(end),param.Nz+1);
+            grid.zm = 0.5*(grid.z(1:param.Nz)+grid.z(2:param.Nz+1));
             grid.dz = grid.z(2) - grid.z(1);
-            Sb = biofilmdiffusion_fd(t(end),S(:,end),Xb,Lf,param,grid);
+            Sb = biofilmdiffusion_fd(t(end),S(:,end),Xb,Lf(end),param,grid);
         else
             Sb = reshape(Sb(:,end),Ns,Nz);
         end
@@ -152,7 +154,8 @@ function [f]=RHS(t,y,param)
     N=1;      Lf=y(Nvar+1:Nvar+N);              % Biofilm thickness
 
     % Update grid
-    grid.z  = linspace(0,Lf,param.Nz);
+    grid.z  = linspace(0,Lf,param.Nz+1);
+    grid.zm = 0.5*(grid.z(1:param.Nz)+grid.z(2:param.Nz+1));
     grid.dz = grid.z(2) - grid.z(1);
     
     % Reshape biofilm variables Var(Nx/Ns, Nz)
@@ -195,7 +198,7 @@ end
 %% Growthrate for each particulate in biofilm
 function [mu]=computeMu(Sb,Xb,Lf,t,param,grid)
     theavi = mod(t, 1);
-    mu=param.mu(Sb,Xb,Lf,theavi,grid.z,param);
+    mu=param.mu(Sb,Xb,Lf,theavi,grid.zm,param);
     %plot(param.z,param.light(t,param.z))
     %plot(t,param.light(t,max(param.z)))
 end
