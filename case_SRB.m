@@ -65,17 +65,11 @@ param.phi_tot = sum(param.phibo);
 param.Ns = size(param.So, 1);  % Number of substrates
 param.Nx = size(param.Xo, 1);  % Number of substrates
 
-param.Sin = [1; 48; 0];         % Substrates concentration(s) into tank
-% Sin{1}.min   = 0;
-% Sin{1}.max   = 50;
-% Sin{1}.period= 15;
-% Sin{1}.dur   = 10;
-% % Sin{2}.max   = 0;
-% 
-% for k = 1:param.Ns
-%     Sin{k}.f =@(theavi) (Sin{k}.max-Sin{k}.min)*(sum(heaviside(theavi)) ...
-%     -sum(heaviside(theavi-Sin{k}.period+Sin{k}.dur)))+Sin{k}.min;
-% end
+param.Sin.period = [0; 0; 0];         % Substrates concentration(s) into tank
+param.Sin.f{1}= @(theavi) 1;
+param.Sin.f{2}= @(theavi) 48;
+param.Sin.f{3}= @(theavi) 0;
+
 
 % Tolerance
 param.tol=1e-10;
