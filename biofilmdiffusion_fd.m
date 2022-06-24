@@ -126,7 +126,7 @@ end
 % Define RHS of ODE
 function g = compute_g(t,k,i,Sb,Xb,Lf,param,grid)
     theavi = mod(t, 1);
-    g = sum(param.mu(Sb,Xb,Lf(end),theavi,grid.z(i),param).*Xb./(param.Yxs(:,k)*param.De(k)));
+    g = sum(param.mu(Sb,Xb,Lf,theavi,grid.z(i),param).*Xb./(param.Yxs(:,k)*param.De(k)));
 end
 % Define dgds = (g(Sb+)-g(Sb-))/dS
 function dgds = compute_dgds(t,k,i,m,Sb,Xb,Lf,g,param,grid) 
