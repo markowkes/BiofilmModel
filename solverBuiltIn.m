@@ -185,8 +185,8 @@ function [f]=RHS(t,y,param)
     % Compute RHS's
     f=zeros(size(y));
     Nrhs=0;
-    N=Nx;    f(Nrhs+1:Nrhs+N)=dXdt (X,S,Xb,Vdet,t,Lf,param);      Nrhs=Nrhs+N;  % Tank particulates
-    N=Ns;    f(Nrhs+1:Nrhs+N)=dSdt (t,X,S,Lf,param,fluxS);        Nrhs=Nrhs+N;  % Tank substrates
+    N=Nx;    f(Nrhs+1:Nrhs+N)=dXdt (X,S,Xb,Vdet,t,Lf,Pb,param);      Nrhs=Nrhs+N;  % Tank particulates
+    N=Ns;    f(Nrhs+1:Nrhs+N)=dSdt (t,X,S,Lf,Pb,param,fluxS);        Nrhs=Nrhs+N;  % Tank substrates
     N=Nx*Nz; f(Nrhs+1:Nrhs+N)=dPbdt(mu,Sb,Pb,fluxP,param,grid); Nrhs=Nrhs+N;  % Biofilm particulates
     if ~param.instantaneousDiffusion
         N=Ns*Nz; f(Nrhs+1:Nrhs+N)=dSbdt(mu,Xb,fluxS,param,grid); Nrhs=Nrhs+N;  % Biofilm substrates
@@ -240,25 +240,26 @@ function [fluxP]=computeFluxP(Pb,V,param)
 end
 
 %% RHS of tank particulates
-function dXdt = dXdt(X,S,Xb,Vdet,t,Lf,param) 
+function dXdt = dXdt(X,S,Xb,Vdet,t,Lf,Pb,param) 
     dXdt = zeros(param.Nx,1);
     mu=param.mu(S,X,Lf,t,Lf,param);
     for j=1:param.Nx
         dXdt(j) = mu(j)*X(j) ...      % Growth
             -     param.Q*X(j)/param.V ...             % Flow out
             +     Vdet*param.A*Xb(j,end)/param.V...    % From biofilm
-            +     param.X_Source{j}(S,X,param);        % Source term
+            +     param.X_Source{j}(S,X,Pb,param);        % Source term
     end
 end
 
 %% RHS of tank substrates
-function dSdt = dSdt(t,X,S,Lf,param,fluxS) 
+function dSdt = dSdt(t,X,S,Lf,Pb,param,fluxS) 
     dSdt = zeros(param.Ns,1); 
     for k=1:param.Ns                                 
         dSdt(k) = param.Q.*fSin(t,k,param)/param.V...
             -     param.Q.*      S(k)  /param.V ...   % Flow out
             -     param.A.*fluxS(k,end)/param.V ...   % Flux into biofilm
-            - sum(param.mu(S,X,Lf,t,Lf,param).*X./param.Yxs(:,k)); % Used by growth
+            - sum(param.mu(S,X,Lf,t,Lf,param).*X./param.Yxs(:,k))... % Used by growth
+            - param.kB(k)*param.kdis(k)*param.rho(1)*Pb(1,end);        % Neutralization
     end
 end
 
@@ -268,7 +269,7 @@ function dPbdt = dPbdt(mu,Sb,Pb,fluxPb,param,grid)
     growth = mu.*Pb;                                      % Growth
     Source = zeros(param.Nx, param.Nz);
     for j = 1:param.Nx
-        Source(j,:) = param.X_Source{j}(Sb,Pb*param.rho(j),param)/param.rho(j);
+        Source(j,:) = param.X_Source{j}(Sb,Pb*param.rho(j),Pb,param)/param.rho(j);
     end
     dPbdt  = growth - netFlux + Source;
     % Return RHS as a column vector
