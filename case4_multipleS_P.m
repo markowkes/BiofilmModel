@@ -5,6 +5,7 @@ param.instantaneousDiffusion = true;
 param.sourceTerm             = false;
 param.Pulse                  = false;
 
+param.Title  = {'Multiple S P Case'};
 param.SNames = {'Substrate 1', 'Substrate 2'};
 param.XNames = {'Bug 1', 'Bug 2'};
 
@@ -18,7 +19,6 @@ param.A   = 1;          % Surface area of biofilm
 param.Q   = 1;          % Flowrate through tank
 param.Xo  = [10; 10];   % Tank particulate initial condition(s)
 param.So  = [25; 25];   % Tank substrate initial condition(s)
-param.Sin = [25; 25];   % Substrates concentration(s) into tank
 param.LL  = 1.00E-4;    % Boundary layer thickness
 
 % Biofilm
@@ -37,8 +37,8 @@ param.Yxs  =[0.5,   inf        % [ dX1/dS1, dX1/dS2
              inf, 0.278];      %   dX2/dS1, dX2/dS2 ]
 
 b = 0;
-X_Source{1}=@(S,X,param) -b*X(1,:);
-X_Source{2}=@(S,X,param)  b*X(1,:);
+X_Source{1}=@(S,X,Pb,param) -b*X(1,:);
+X_Source{2}=@(S,X,Pb,param)  b*X(1,:);
 param.X_Source=X_Source;  
 
 % Light term
@@ -61,6 +61,10 @@ param.mu=@(S,X,Lf,t,z,param) [
 param.phi_tot = sum(param.phibo);
 param.Ns = size(param.So, 1);  % Number of substrates
 param.Nx = size(param.Xo, 1);  % Number of substrates
+
+param.Sin.f{1}= @(theavi) 25;
+param.Sin.f{2}= @(theavi) 25;
+param.Sin.period = [0; 0];
 
 % Tolerance
 param.tol=1e-2;

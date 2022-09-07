@@ -4,11 +4,13 @@ clear; clc;
 param.instantaneousDiffusion = true;
 param.sourceTerm             = true;
 param.Pulse                  = true;
+param.neutralization         = true;
 
 % Time
 param.tFin=5;   % Simulation time [days]
 param.outPeriod=0.1;
 
+param.Title  = {'H2O2 Case'};
 param.SNames = {'Substrate','H2O2'};
 param.XNames = {'Live Particulate','Dead Particulate'};
 
@@ -76,7 +78,7 @@ param.Nx = size(param.Xo, 1);  % Number of substrates
 
 param.Sin.period = [4; 4];
 param.Sin.min    = [0; 0];
-param.Sin.max    = [53; 53];
+param.Sin.max    = [53; 0];
 param.Sin.dur    = [2; 2];
 
 k = 1;

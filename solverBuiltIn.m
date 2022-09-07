@@ -178,8 +178,9 @@ function [f]=RHS(t,y,param)
     end
     mu    = computeMu(Sb,Xb,Lf,t,param,grid);        % Growthrate in biofilm
     V     = computeVel  (mu,Pb,param,grid); % Velocity of particulates
-    fluxP = computeFluxP(Pb,V,param);       % Flux of particulates in biofilm
     Vdet  = param.Kdet*Lf^2;                % Detachment velocity
+    fluxP = computeFluxP(Pb,V,Vdet,param);       % Flux of particulates in biofilm
+    
 
     
     % Compute RHS's
@@ -197,8 +198,8 @@ end
 
 %% Growthrate for each particulate in biofilm
 function [mu]=computeMu(Sb,Xb,Lf,t,param,grid)
-    theavi = mod(t, 1);
-    mu=param.mu(Sb,Xb,Lf,theavi,grid.zm,param);
+    %theavi = mod(t, 1);
+    mu=param.mu(Sb,Xb,Lf,t,grid.zm,param);
     %plot(param.z,param.light(t,param.z))
     %plot(t,param.light(t,max(param.z)))
 end
@@ -227,8 +228,8 @@ function [V]=computeVel(mu,Pb,param,grid)
     end
 end
 
-%% Fluxes of particulate due to diffusion: F=V*phi;
-function [fluxP]=computeFluxP(Pb,V,param)
+%% Fluxes of particulate due to advection: F=V*phi;
+function [fluxP]=computeFluxP(Pb,V,Vdet,param)
     % Fluxes
     fluxP = zeros(param.Nx,param.Nz+1); % Fluxes on faces of cells
     for i=2:param.Nz  % Interior faces
@@ -236,7 +237,7 @@ function [fluxP]=computeFluxP(Pb,V,param)
     end
     % Bottom boundary - no flux condition -> nothing to do
     % Top boundary - use phi in top cell
-    fluxP(:,param.Nz+1) = V(param.Nz+1)*(Pb(:,param.Nz));
+    fluxP(:,param.Nz+1) = V(param.Nz+1)*(Pb(:,param.Nz)); %- Vdet*Pb(:,end);
 end
 
 %% RHS of tank particulates
@@ -258,8 +259,10 @@ function dSdt = dSdt(t,X,S,Lf,Pb,param,fluxS)
         dSdt(k) = param.Q.*fSin(t,k,param)/param.V...
             -     param.Q.*      S(k)  /param.V ...   % Flow out
             -     param.A.*fluxS(k,end)/param.V ...   % Flux into biofilm
-            - sum(param.mu(S,X,Lf,t,Lf,param).*X./param.Yxs(:,k))... % Used by growth
-            - param.kB(k)*param.kdis(k)*param.rho(1)*Pb(1,end);        % Neutralization
+            - sum(param.mu(S,X,Lf,t,Lf,param).*X./param.Yxs(:,k)); % Used by growth
+        if param.neutralization == true
+            dSdt(k) = dSdt(k) - param.kB(k)*param.kdis(k)*param.rho(1)*Pb(1,end); % Neutralization
+        end
     end
 end
 
@@ -344,6 +347,9 @@ function param = check_param(param)
 %     if ~exist('param.Pulse')
 %         param.Pulse = false;
 %     end
+    if ~exist ('param.neutralization')
+        param.neutralization = false
+    end
 
     Nx=param.Nx;
     Ns=param.Ns;

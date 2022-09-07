@@ -9,6 +9,7 @@ param.Pulse                  = false;
 param.tFin=30;   % Simulation time [days]
 param.outPeriod=0.5; % Output period [days]
 
+param.Title  = {'SRB Case'};
 param.SNames = {'Oxygen', 'Sulfate', 'Sulfide'};
 param.XNames = {'SRB'};
 
@@ -40,7 +41,7 @@ param.Yxs  = [0 0.584 -1.645]                % dX2/dS1  - Production of Oxygen
 
 % Source term
 param.b = 0.1;
-X_Source{1}=@(S,X,param) 0;
+X_Source{1}=@(S,X,Pb,param) 0;
 param.X_Source=X_Source;
 
 % Light term
@@ -68,7 +69,7 @@ param.Nx = size(param.Xo, 1);  % Number of substrates
 param.Sin.period = [0; 0; 0];         % Substrates concentration(s) into tank
 param.Sin.f{1}= @(theavi) 1;
 param.Sin.f{2}= @(theavi) 48;
-param.Sin.f{3}= @(theavi) 0;
+param.Sin.f{3}= @(theavi) 2;
 
 
 % Tolerance
@@ -78,6 +79,3 @@ param.tol=1e-10;
 
 % Call solver
 [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param);
-
-% Plot solution
-plotSolution(t,X,S,Pb,Sb,Lf,param)

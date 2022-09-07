@@ -1,14 +1,15 @@
 % Multiple substrates 
 clear; clc;
 
-param.instantaneousDiffusion = true;
+param.instantaneousDiffusion = false;
 param.sourceTerm             = false;
 param.Pulse                  = false;
 
 % Time
 param.tFin=30;   % Simulation time [days]
-param.outPeriod=0.05; 
+param.outPeriod=0.5; 
 
+param.Title  = {'SOB Case'};
 param.SNames = {'Oxygen', 'Sulfate', 'Sulfide'};
 param.XNames = {'SOB'};
 
@@ -23,7 +24,7 @@ param.So  = [8.6; 0; 20]        % Tank substrate initial condition(s)
 param.LL  = 2.00E-4;    % Boundary layer thickness
 
 % Biofilm
-param.Nz=100;          % Linear grid points to describe biofilm
+param.Nz=10;          % Linear grid points to describe biofilm
 param.phibo= 0.2;     % Biofilm particulates initial condition(s)
 param.Sbo  = [8.6; 0; 20]     % Biofilm substrates initial condition(s)
 param.Lfo  = 5.0E-6;  % Biofilm initial thickness
@@ -40,7 +41,7 @@ param.Yxs  = [0.0581 0 0.09];                % dX2/dS1  - Production of Oxygen
 
 % Source term
 param.b = 0.1;
-X_Source{1}=@(S,X,param) 0;
+X_Source{1}=@(S,X,Pb,param) 0;
 param.X_Source=X_Source;
 
 % Light term
@@ -50,10 +51,8 @@ param.Ylight = 2;
          
 % Growthrates for each particulate
 KmB1 = 2; KmB3 = 11; mumaxB = 0.672;
-param.light=@(t,z,Lf) (cos(2*t)+1)*max(0,param.I-(Lf-z)*param.diss); 
-% mu{1}=@(S,X,t,z,param) (mumax*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
-% param.mu=mu;
-% param.light=light;
+param.light=@(t,z,Lf) max(min((cos(2*pi*t)+0.5),1),0)*max(0,param.I*(z-Lf+param.diss)./param.diss);
+
 
 param.mu=@(S,X,Lf,t,z,param) [
     (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
@@ -78,5 +77,3 @@ param.tol=1e-10;
 % Call solver
 [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param);
 
-% Plot solution
-plotSolution(t,X,S,Pb,Sb,Lf,param)

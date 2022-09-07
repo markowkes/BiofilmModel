@@ -19,6 +19,7 @@ C = {'k','b','r','g','y'};
     
 % Tank particulates
 figure(1)
+sgtitle(param.Title)
 subplot(2,3,1)
 hold on
 for i=1:param.Nx
@@ -40,8 +41,8 @@ end
 xlabel('Time')
 ylabel('Tank Substrate Concentrations')
 legend(param.SNames)
-ylim([min(S,[],'all')-0.3*max(0.1,(max(S,[],'all')-min(S,[],'all'))) ...
-    max(S,[],'all')+0.3*max(0.1,(max(S,[],'all')-min(S,[],'all')))])
+%ylim([min(S,[],'all')-0.3*max(0.1,(max(S,[],'all')-min(S,[],'all'))) ...
+%    max(S,[],'all')+0.3*max(0.1,(max(S,[],'all')-min(S,[],'all')))])
 set(gca,'Fontsize',16)
 
 % Biofilm thickness
@@ -75,6 +76,15 @@ set(gca,'Fontsize',16)
 
 % Biofim substrates
 subplot(2,3,5); cla()
+
+if param.instantaneousDiffusion == true
+    annotation('textbox',[.75 .15 0.2 .2], ...
+        'String','Instantaneous Diffusion:  ON','EdgeColor','none')
+else
+    annotation('textbox',[.75 .15 .2 .2], ...
+        'String','Instantaneous Diffusion:  OFF','EdgeColor','none')
+end
+
 hold on
 % Add point at the top of biofilm (flux matching condition)
 S_top=(param.Daq*dz/2.*S(:,end)+param.De*param.LL.*Sb(:,param.Nz)) ...
@@ -85,8 +95,8 @@ end
 xlabel('Location in Biofilm')
 ylabel('Biofilm Substrate Concentrations')
 legend(param.SNames)
-ylim([min(min(Sb))-0.3*(max((max(Sb))-min(min(Sb)))) ...
-    max(max(Sb))+0.3*(max(max(Sb))-min(min(Sb)))])
+%ylim([min(min(Sb))-0.3*(max((max(Sb))-min(min(Sb)))) ...
+%    max(max(Sb))+0.3*(max(max(Sb))-min(min(Sb)))])
 set(gca,'Fontsize',16)
 
 

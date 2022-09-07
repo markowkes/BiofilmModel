@@ -9,6 +9,7 @@ param.Pulse                  = false;
 param.tFin=30;   % Simulation time [days]
 param.outPeriod=0.05; 
 
+param.Title  = {'SOB SRB Case'};
 param.SNames = {'Oxygen', 'Sulfate', 'Sulfide'};
 param.XNames = {'SOB', 'SRB'};
 
@@ -40,8 +41,8 @@ param.Yxs  = [0.0581 0 0.09; 0 0.584 -1.645]                % dX2/dS1  - Product
 
 % Source term
 param.b = 0.1;
-X_Source{1}=@(S,X,param) 0;
-X_Source{2}=@(S,X,param) 0;
+X_Source{1}=@(S,X,Pb,param) 0;
+X_Source{2}=@(S,X,Pb,param) 0;
 param.X_Source=X_Source;
 
 % Light term
@@ -52,7 +53,7 @@ param.Ylight = 2;
 % Growthrates for each particulate
 KmB1 = 1; KmB3 = 11;  KmC2 = 20;  KI = 10;
 mumaxB = 6.72;  mumaxC = 1.46;
-param.light=@(t,z,Lf) (cos(2*t)+1)*max(0,param.I-(Lf-z)*param.diss);
+param.light=@(t,z,Lf) max(min((cos(2*pi*t)+0.5),1),0)*max(0,param.I*(z-Lf+param.diss)./param.diss);
 % mu{1}=@(S,X,t,z,param) (mumaxB*S(1,:))./(KmB1+S(1,:)).*(S(3,:))./(KmB3+S(3,:));
 % mu{2}=@(S,X,t,z,param) (mumaxC*S(2,:))./(KmC2+S(2,:)).*(1./(1+S(1,:)/KI));
 % param.mu=mu;
@@ -83,5 +84,3 @@ param.tol=1e-10;
 % Call solver
 [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param);
 
-% Plot solution
-plotSolution(t,X,S,Pb,Sb,Lf,param)

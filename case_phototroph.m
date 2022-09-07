@@ -1,10 +1,16 @@
 % Multiple substrates 
 clear; clc;
 
+param.instantaneousDiffusion = true;
+param.sourceTerm             = false;
+param.Pulse                  = false;
+
 % Time
 param.tFin=30;   % Simulation time [days]
+param.outPeriod=0.5;
 
-param.SNames = {'Oxygen', 'Sulfate', 'Sulfide'};
+param.Title  = {'Phototroph Case'};
+param.SNames = {'Oxygen'};
 param.XNames = {'Phototroph'};
 
 % Tank Geometry
@@ -35,7 +41,7 @@ param.Yxs  = 0;                % dX2/dS1  - Production of Oxygen
 
 % Source term
 param.b = 0.1;
-X_Source{1}=@(S,X,param) 0;
+X_Source{1}=@(S,X,Pb,param) 0;
 param.X_Source=X_Source;
 
 % Light term
@@ -45,27 +51,17 @@ param.Ylight = 2;
          
 % Growthrates for each particulate
 Km = 1; mumax = 0.4;
-light=@(t,z,Lf) (cos(2*t)+1)*max(0,param.I-(Lf-z)*param.diss); 
-mu=@(S,X,t,z,param) [(mumax*light(t,z,Lf)/param.I);]
-param.mu=mu;
-param.light=light;
+param.light=@(t,z,Lf) max(min((cos(2*pi*t)+0.5),1),0)*max(0,param.I*(z-Lf+param.diss)./param.diss); 
+param.mu=@(S,X,Lf,t,z,param) [(mumax*param.light(t,z,Lf)/param.I);]
+
 
 % Computed parameters
 param.phi_tot = sum(param.phibo);
 param.Ns = size(param.So, 1);  % Number of substrates
 param.Nx = size(param.Xo, 1);  % Number of substrates
 
-param.Sin = [8.6];         % Substrates concentration(s) into tank
-% Sin{1}.min   = 0;
-% Sin{1}.max   = 50;
-% Sin{1}.period= 15;
-% Sin{1}.dur   = 10;
-% % Sin{2}.max   = 0;
-% 
-% for k = 1:param.Ns
-%     Sin{k}.f =@(theavi) (Sin{k}.max-Sin{k}.min)*(sum(heaviside(theavi)) ...
-%     -sum(heaviside(theavi-Sin{k}.period+Sin{k}.dur)))+Sin{k}.min;
-% end
+param.Sin.f{1}= @(theavi) 8.6;
+param.Sin.period = [0];         % Substrates concentration(s) into tank
 
 % Tolerance
 param.tol=1e-10;
@@ -74,7 +70,4 @@ param.tol=1e-10;
 
 % Call solver
 [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param);
-
-% Plot solution
-plotSolution(t,X,S,Pb,Sb,Lf,param)
 

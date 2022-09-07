@@ -9,6 +9,7 @@ param.Pulse                  = false;
 param.tFin=1;   % Simulation time [days]
 param.outPeriod=1e-1; 
 
+param.Title  = {'Single S P Case'};
 param.SNames = {'Oxygen'};
 param.XNames = {'Bug'};
 
@@ -18,7 +19,6 @@ param.A   = 1;          % Surface area of biofilm
 param.Q   = 1;          % Flowrate through tank
 param.Xo  = 10;         % Tank particulate initial condition(s)
 param.So  = 100;         % Tank substrate initial condition(s)
-param.Sin = 100;         % Substrates concentration(s) into tank
 param.LL  = 1.00E-7;    % Boundary layer thickness
 
 % Biofilm
@@ -34,7 +34,7 @@ param.De   = 6.9E-5;    % Substrate diffusion through biofilm
 param.rho  = 2.0E4;     % Particulate densities
 param.Kdet = 20000;      % Particulate detachment coefficient
 
-X_Source{1}=@(S,X,param) 0;
+X_Source{1}=@(S,X,Pb,param) 0;
 param.X_Source=X_Source;
 
 % Growthrates for each particulate
@@ -51,6 +51,9 @@ param.phi_tot = sum(param.phibo);
 param.Ns = size(param.So, 1);  % Number of substrates
 param.Nx = size(param.Xo, 1);  % Number of substrates
 
+param.Sin.f{1}= @(theavi) 100;
+param.Sin.period = [0];         % Substrates concentration(s) into tank
+
 % Tolerance
 param.tol=1e-2;
 
@@ -59,5 +62,3 @@ param.tol=1e-2;
 % Call solver
 [t,X,S,Pb,Sb,Lf]=solverBuiltIn(param);
 
-% Plot solution
-plotSolution(t,X,S,Pb,Sb,Lf,param)

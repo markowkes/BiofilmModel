@@ -33,18 +33,14 @@ for n=1:iter
     % Precompute g(k) at z(i)  %%%% Need to vectoriz %%%%
     g=zeros(Nz,Ns);
     for k=1:Ns
-        for i=1:Nz
-            g(i,k)=compute_g(t,k,i,Sb(:,i),Xb(:,i),Lf,param,grid);
-        end
+        g(:,k)=compute_g(t,k,Sb,Xb,Lf,param,grid);
     end
 
     % Precompute dg(k)/ds(m) at z(i)
     dgds=zeros(Ns,Nz,Ns);
     for k=1:Ns
-        for i=1:Nz
-            for m=1:Ns
-                dgds(m,i,k)=compute_dgds(t,k,i,m,Sb,Xb,Lf,g,param,grid);
-            end
+        for m=1:Ns
+            dgds(m,:,k)=compute_dgds(t,k,m,Sb,Xb,Lf,g,param,grid);
         end
     end
     
@@ -124,18 +120,18 @@ function R = R(k,i,Ns,dz,Sb,g,dgds)
     R = R - dz^2*g(i,k);
 end
 % Define RHS of ODE
-function g = compute_g(t,k,i,Sb,Xb,Lf,param,grid)
+function g = compute_g(t,k,Sb,Xb,Lf,param,grid)
     theavi = mod(t, 1);
-    g = sum(param.mu(Sb,Xb,Lf,theavi,grid.z(i),param).*Xb./(param.Yxs(:,k)*param.De(k)));
+    g = sum(param.mu(Sb,Xb,Lf,theavi,grid.z(1:end-1),param).*Xb./(param.Yxs(:,k)*param.De(k)),1);
 end
 % Define dgds = (g(Sb+)-g(Sb-))/dS
-function dgds = compute_dgds(t,k,i,m,Sb,Xb,Lf,g,param,grid) 
+function dgds = compute_dgds(t,k,m,Sb,Xb,Lf,g,param,grid) 
     % Define Sb plus and Sb minus, delta is added/subtracted to Sb(i,m)
     delta=1e-3; 
-    Sb_p = Sb(:,i); Sb_p(m)=Sb_p(m)+delta;
+    Sb_p = Sb; Sb_p(m,:)=Sb_p(m,:)+delta;
     % Compute g at plus and minus points
-    gp=compute_g(t,k,i,Sb_p   ,Xb(:,i),Lf,param,grid);
-    gm=g(i,k);
+    gp=compute_g(t,k,Sb_p,Xb,Lf,param,grid);
+    gm=g(:,k)';
     % Compute derivative
     dgds=(gp-gm)/delta;
 end

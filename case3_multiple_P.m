@@ -5,6 +5,7 @@ param.instantaneousDiffusion = true;
 param.sourceTerm             = false;
 param.Pulse                  = false;
 
+param.Title  = {'Multiple P Case'};
 param.SNames = {'Substrate'};
 param.XNames = {'Bug 1', 'Bug 2'};
 
@@ -39,8 +40,8 @@ param.Yxs  =[0.378                % dX1/dS1
 
 % Source term
 param.b = 0.1;
-X_Source{1}=@(S,X,param) -param.b*X(1,:);
-X_Source{2}=@(S,X,param)  param.b*X(1,:);
+X_Source{1}=@(S,X,Pb,param) -param.b*X(1,:);
+X_Source{2}=@(S,X,Pb,param)  param.b*X(1,:);
 param.X_Source=X_Source;
 
 % Light term
@@ -64,10 +65,10 @@ param.phi_tot = sum(param.phibo);
 param.Ns = size(param.So, 1);  % Number of substrates
 param.Nx = size(param.Xo, 1);  % Number of substrates
 
-param.Sin = [25];         % Substrates concentration(s) into tank
 Sin{1}.min   = 0;
 Sin{1}.max   = 50;
-Sin{1}.period= inf;
+param.Sin.period = [inf];
+param.Sin.f{1}= @(theavi) 25;
 Sin{1}.dur   = 10;
 % Sin{2}.max   = 0;
 
