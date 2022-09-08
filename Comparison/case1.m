@@ -1,4 +1,4 @@
-function [param]=cases(tc)
+function [param]=case1()
 %% This function outputs a set of constant parameters
 % Each constant will have its own array of values for each case
 % (A,B,C,D,E,F based on chronological order in the array).
@@ -37,8 +37,8 @@ function [param]=cases(tc)
 % tc=7;
 
 %% Time Constraints
-tFin=2;   %[days]
-dt  =1e-4; %time interval between calculations
+tFin=5;   %[days]
+dt  =1e-2; %time interval between calculations
 ttol=1e-8; %tolerance for timestep conversion
 
 %% Growth Rate Models
@@ -60,7 +60,7 @@ W=0.5; %[m]
 H=0.5; %[m]
 
 %% Frequency of Plots
-outFreq=100; %Number of steps between plot updates.
+outFreq=2000; %Number of steps between plot updates.
 
 %% Substrate Dependant Properties
 %model = [1 1; 1 1]; % j, k growth model for jth particulate based on kth substrate 
@@ -69,21 +69,21 @@ outFreq=100; %Number of steps between plot updates.
 %mumax=[2000 2000];
 %Km   =[2500 2; 2500 3]; %[3 3 3 3 3 3000 3 2500 3; 3 3 3 3 3 3000 3 2500 3];
 %Km(:,:,2)=[3 1; 3 3];
-Yxs  =[0.5; -0.278];
+Yxs  =[0.5];
 V    =[0.1];
 Q    =[1];
-A    =(V(tc)/H)+2*((V(tc)/L)+(V(tc)/W));
-Sin  =[25; 25];
-So   =[25; 2];
+A    =(V/H)+2*((V/L)+(V/W));
+Sin  =[25];
+So   =[25];
 Ns   =size(So, 1);
-phio =[.2; .2];
-xo   =[10; 10];
-Daq  =[4.0E-5; 6.0E-5];
-De   =[1.0E-5; 1.5E-5];
-Xb   =[20000, 20000];
-rho  =[3.0E5 3.0E5];
+phio =[0.2];
+xo   =[10];
+Daq  =[4.0E-5];
+De   =[1.0E-5];
+Xb   =[20000];
+rho  =[1.0E5];
 Lfo  =[5.0E-6];
-LL   =[1.00E-7];
+LL   =[1.00E-4];
 Kdet =[1900];
 
 
@@ -92,8 +92,7 @@ Kdet =[1900];
 %     (2000*S(1))./(2500)
 %     (2000*S(2))./(2500)
 %     ];
-mu{1}=@(S,param) (2000*S(1))./(2500);
-mu{2}=@(S,param) (2000*S(2))./(2500);
+mu{1}=@(S,param) (20*S(1))./(3+S(1));
 
 param.mu=mu;
 
@@ -113,21 +112,21 @@ param.outFreq=outFreq;
 
 %param.mumax  =mumax;
 %param.Km     =Km;
-param.Yxs    =Yxs(:,tc);
-param.V      =V(tc);
-param.Q      =Q(tc);
+param.Yxs    =Yxs(:);
+param.V      =V;
+param.Q      =Q;
 param.A      =A;
-param.Sin    =Sin(:,tc);
-param.So     =So(:,tc);
+param.Sin    =Sin(:);
+param.So     =So(:);
 param.Ns     =Ns;
 param.phio   =phio;
 param.phi_tot=sum(phio);
-param.xo     =xo(tc);
-param.Daq    =Daq(:,tc);
-param.De     =De(:,tc);
+param.xo     =xo;
+param.Daq    =Daq(:);
+param.De     =De(:);
 param.Xb     =Xb;
 param.rho    =rho;
-param.Lfo    =Lfo(tc);
-param.LL     =LL(tc);
-param.Kdet   =Kdet(tc);
+param.Lfo    =Lfo;
+param.LL     =LL;
+param.Kdet   =Kdet;
 end 

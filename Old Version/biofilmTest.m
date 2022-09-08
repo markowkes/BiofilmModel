@@ -8,43 +8,21 @@ end
 %% Test when LL=0 
 function test_diffusion_zeroLL(testCase)
 % Run test
-param.Daq  = 4.0E-5;    % Substrate diffusion through boundary layer
-param.De   = 1.0E-3;    % Substrate diffusion through biofilm     
-param.Yxs  = 0.5;       % Biomass yield coeffficient on substrate
-param.LL=1e-2;
-param.Ns=1;
-param.Nx=1;
-param.Nz=50;
-param.tol=1e-2;
-param.Lfo=50e-6;
-mu{1}=@(S,param) (20*S(1,:))./(3+S(1,:));
-param.mu=mu;  
-
+param=cases(1);
+param.LL=0;
+Nz=50;
+Sbold=linspace(0,5,Nz);
 S=10;
-Xb=zeros(1,param.Nz)+20000;
-param.dtol=1e-2;
-
-grid.z=linspace(0,param.Lfo,param.Nz); %specify for plot
-grid.dz = grid.z(2)-grid.z(1);
-% Old method
-[Sbold,~]=biofilmdiffusion_fd_old(S,Xb,param,grid);
+dz=1e-7;
+t=0;
+[Sb,~]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
+% Analyze result
 figure(1); clf(1)
-plot(grid.z(end),Sbold(end),'r*','Markersize',16)
+z=linspace(0,param.Lfo,Nz); %specify for plot
+plot(z(end),Sb(end),'r*','Markersize',16)
 hold on
-plot(grid.z,Sbold,'r--')
-
-% New method
-grid.z=linspace(0,param.Lfo,param.Nz+1); %specify for plot
-grid.zm=0.5*(grid.z(1:end-1)+grid.z(2:end));
-grid.dz = grid.z(2)-grid.z(1);
-[Sb,~]=biofilmdiffusion_fd(S,Xb,param,grid);
-Stop = ((param.Daq*S)*grid.dz + (2*param.De*Sb(:,end))*param.LL) ...
-    /(param.Daq*grid.dz + (2*param.De)*param.LL);
-plot(grid.zm,Sb,'black')
-plot(grid.z(end),Stop,'bo','Markersize',16)
-
-% Annotate
-xl=xline(grid.z(end),'--b','Biofilm Thickness','Fontsize',16);
+plot(z,Sb,'black')
+xl=xline(z(end),'--b','Biofilm Thickness','Fontsize',16);
 xl.LabelVerticalAlignment = 'middle';
 xl.LabelHorizontalAlignment = 'center';
 title('Substrate Concentration Profile')
@@ -53,11 +31,10 @@ ylabel('Sb(z)')
 legend(sprintf('Sb = %3.3f [g/m^3]',Sb(end)),'Concentration Profile','location','Northwest','Fontsize',16)
 set(gca,'Fontsize',20)
 
-actSolution = Stop;
+actSolution = Sb(end);
 expSolution = S;
-error=abs(actSolution-expSolution);
 tol=1e-15;
-verifyLessThan(testCase,error,tol)
+verifyLessThan(testCase,abs(actSolution-expSolution),tol)
 end
 
 %% Test tank biomass concentration when no inflow Q
@@ -74,7 +51,7 @@ x=param.xo;
 S=param.So;
 bflux=0;
 Vdet=0;
-[~,x,~,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
+[~,~,x,~,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
 % Analyze result
 figure(1); clf(1)
 plot(x)
@@ -98,12 +75,12 @@ x=param.xo;
 S=param.So;
 bflux=0;
 Vdet=0;
-[~,~,~,S,~]=tankenvironment(t,x,S,Vdet,Xb,dt,bflux,param);
+[~,~,~,S,~]=tankenvironment(t,x,S,Vdet,dt,bflux,param);
 %Analyze Result
 figure(1);clf(1);
-plot(S(1))
-actSolution=S(1);
-expSolution=So(1);
+plot(S)
+actSolution=S;
+expSolution=So;
 tol=1e-1;
 verifyLessThan(testCase,abs(actSolution-expSolution),tol)
 end
@@ -124,11 +101,6 @@ param.LL=0;
 param.Xb=20000;
 param.dtol=1e-12;
 param.model=1;
-param.Ns=1;
-param.Nx=1;
-
-% Growthrates for each biomass species 
-param.mu{1}=@(S,param) (param.mumax*S(1))./(param.Km);
 
 figure(1); clf(1); hold on
 Nzs=[10,50,100,1000,2000]; %Grid sizes to test
@@ -136,16 +108,11 @@ error=zeros(1,length(Nzs)); %Preallocate
 
 for i=1:length(Nzs)
     Nz=Nzs(i);
-    param.Nz=Nz;
-    
-    % Define Xb
-    Xb=zeros(1,Nz)+param.Xb;
-    
     z=linspace(0,Lf,Nz); %[m] Grid of Biofilm Depth
     dz=z(2)-z(1); %[m]
     Sbold=linspace(0,S,Nz);
     t=0;
-    [Sb,~]=biofilmdiffusion_fd(Sbold,S,Xb,dz,t,param);
+    [Sb,~]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param);
     plot(z,Sb)
     
     % Analyze Result
@@ -199,19 +166,19 @@ V=param.V;
 A=param.A;
 Q=param.Q;
 Xb=param.Xb;
-S=[0,0]; % Initial guess
+S=1; % Initial guess
 
 tol=1e-12;
 error=1;
 while abs(error)>tol
-    Lf=mu(1,S(1,:),param)/Kdet;
-    Vdet=mu(1,S(1,:),param)*Lf;
-    x=Yxs(1)*(Sin(1,:)-S(1,:));
+    Lf=mu(S,param)/Kdet;
+    Vdet=mu(S,param)*Lf;
+    x=Yxs*(Sin-S);
     LHS=Q*x;
-    RHS=Vdet*A*Xb+mu(1,S(1,:),param)*x*V;
+    RHS=Vdet*A*Xb+mu(S,param)*x*V;
     
     error=LHS-RHS;
-    S(1,:)=S(1,:)+0.001*error(1);
+    S=S+0.001*error;
 end
 % Compare solution
 fprintf('S      =%16.12f, %16.12f g/m^3 \n',S,Ssim(end))
@@ -250,7 +217,7 @@ ylabel('Output')
 xlabel('Time Iteration')
 
 %Analyze Result
-maxError=max(abs(S(1,:)-S_anal(1,:)));  % Maximum Error
+maxError=max(abs(S-S_anal));  % Maximum Error
 expTol=param.ttol;            % Expected Maximum Error
 verifyLessThan(testCase,maxError,expTol)
 end

@@ -14,10 +14,6 @@
 \newcommand{\eg}{e.g.}
 \newcommand{\ie}{i.e.}
 
-% Math
-\def\bm#1{\mbox{\boldmath{$#1$}}}
-
-
 \title{Biofilm Model Theory}
 \author{Austen, Takumi, Mark, Phil}
 \date{}
@@ -95,74 +91,78 @@ The environment is modeled in this function as a continuous stirred tank reactor
 \caption{Continuous Stirred Tank Reactor}
 \end{figure}
 
-The rates of the biomass and substrate are modeled by the following ordinary differential equations with initial conditions $x_j(t=0)=x_{o,j}$ and $S_k(t=0)=S_{o,k}$.
+The rates of the biomass and substrate are modeled by the following ordinary differential equations with initial conditions $x(t=0)=x_o$ and $S(t=0)=S_o$.
 \begin{equation} \label{eq: BiomassEquation}
-  \frac{dx_j}{dt} = \mu_j(\bm{S}) x_j - \frac{Q x_j}{V} + \frac{ v_{\mathrm{det}j} A X_{b,j}}{V}
+  \frac{dx}{dt}(x,t,S,v_\mathrm{det}) = \mu(S) x - \frac{Q x}{V} + \frac{ v_{\mathrm{det}} A X_b}{V}
 \end{equation}
-for $j=1,\dots,N_x$ and 
 \begin{equation} \label{eq: SubstrateEquation}
-  \frac{dS_k}{dt} = -\sum_{j=1}^{N_x} \frac{\mu_j(\bm{S}) x_j}{Y_{j,k}} + \frac{Q S_{\mathrm{in},k}}{V} - \frac{Q S_k}{V} - \frac{A B_{\mathrm{flux},k}}{V}
+  \frac{dS}{dt}(x,t,S) = -\frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} - \frac{A B_{\mathrm{flux}}}{V}
 \end{equation}
-for $k=1,\dots,N_s$.
 
-In order for these differential equations to be solved, they are first into a single vector differential equation
+In order for these two differential equations to be solved by the following numerical methods, they must first be vectorized and packaged properly. This happens by first defining vector \textbf{y},
 \begin{equation}
-  \frac{d \bm{y}}{dt} = \bm{f}(t,\bm{y})
+  \textbf{y} = [x;  S]
 \end{equation}
-where 
-\begin{equation}
-  \bm{y} = [x_1,\dots,x_{N_x}, S_1,\dots,S_{N_S}]^\mathsf{T}
+
+By defining \textbf{y} in this way, it will eventually allow both ODE's to be packaged under a single function \textbf{f}. Intermediately, however, this allows for both ODE's to be rewritten as the following.
+\begin{equation} \label{eq: BiomassEquationVectorized}
+  \frac{dx}{dt}(\textbf{y}(1),t,\textbf{y}(2)) = \mu(S) x - \frac{Q x}{V} + \frac{ v_{\mathrm{det}} A X_b}{V}
 \end{equation}
-and 
+\begin{equation} \label{eq: SubstrateEquationVectorized}
+  \frac{dS}{dt}(\textbf{y}(1),t,\textbf{y}(2)) = -\frac{\mu(S) x}{Y_{xs}} + \frac{Q S_{\mathrm{in}}}{V} - \frac{Q S}{V} - \frac{A B_{\mathrm{flux}}}{V}
+\end{equation}
+
+The two now vectorized forms of the equations are packaged into a single new function \textbf{f}.
 \begin{equation} \label{eq: ODEpackagef}
-  \bm{f}(t,\bm{y}) =\left[ R_{x,1}, \dots, R_{x,N_x},  R_{S,1}, ,\dots, R_{S,N_S}\right]^\mathsf{T}
+  \textbf{f}(t,\textbf{y}) = \left[\frac{dx}{dt}\left(\textbf{y}(1),t,\textbf{y}(2)\right) , 
+	      \frac{dS}{dt}\left(\textbf{y}(1),t,\textbf{y}(2)\right)\right]
 \end{equation}
-where $R_{x,j}$ is the right-hand-side (RHS) of Eq.~\ref{eq: BiomassEquation} and $R_{S,k}$ is the right-hand-side (RHS) of Eq.~\ref{eq: SubstrateEquation}.
 
 A low order Runge-Kutta Method based off the structure of ODE23, an intrinsic Matlab function, is used to discretize and solve the packaged differential equations in this function. The Runge-Kutta numerical method calculates the slope of function at three points between each step of the iteration process in order to boost the accuracy of the next-point estimation. The first of these three intermediate slope calculations is the most simple, and occurs at the beginning of the interval.
 \begin{equation} \label{eq: S_1}
-  \mathcal{\bm{S}}_1 = \bm{f}(t^n,\bm{y}^n)
+  S_1 = f(t^n,y^n)
 \end{equation}
-where the superscript $\cdot^n$ represents the state at the current timestep.
 
-The next slope estimation occurs at the midpoint of the timestep, using the slope calculated at the beginning of the interval to increase its accuracy.
+Note that $^n$ represents the state at the current time-step.
+
+The next slope estimation occurs at the midpoint of the iterative step, using the slope calculated at the beginning of the interval to increase its accuracy.
 \begin{equation} \label{eq: S_2}
-  \mathcal{\bm{S}}_2 = \bm{f}\left(t^n + \frac{1}{2} \Delta t,\bm{y}^n + \frac{1}{2} \Delta t \mathcal{\bm{S}}_1\right)
+  S_2 = f(t^n + \frac{1}{2} dt,y^n + \frac{1}{2} dt S_1)
 \end{equation}
 
 The third calculation occurs at the 3/4  point of the step.
 \begin{equation} \label{eq: S_3}
-  \mathcal{\bm{S}}_3 = \bm{f}\left(t^n + \frac{3}{4} \Delta t,\bm{y}^2+\frac{3}{4} \Delta t \mathcal{\bm{S}}_2\right)
+  S_3 = f(t^n + \frac{3}{4} dt,y^2+\frac{3}{4} dt S_2)
 \end{equation}
 
-The final calculation of the slope at the next step uses the previous three calculations to produce the most accurate estimation of the slope possible. Here the superscript $^{n+1}$ represents the state at the following time-step.
+The final calculation of the slope at the next step uses the previous three calculations to produce the most accurate estimation of the slope possible. Here $^{n+1}$ represents the state at the following time-step.
 \begin{equation} \label{eq: t_{new}}
-  t^{n+1} = t^n + \Delta t
+  t^{n+1} = t^n + dt
 \end{equation}
 
 \begin{equation} \label{eq: y_{new}}
-  \bm{y}^{n+1} = \bm{y}^n + \frac{1}{9} \Delta t \left(2 \mathcal{\bm{S}}_1 + 3 \mathcal{\bm{S}}_2 + 4 \mathcal{\bm{S}}_3\right)
+  y^{n+1} = y^n + \frac{1}{9} dt (2 S_1 + 3 S_2 + 4 S_3)
 \end{equation}
 
 \begin{equation} \label{eq: S_4}
-  \bm{S}_4 = \bm{f}(t^{n+1},\bm{y}^{n+1})
+  S_4 = f(t^{n+1},y^{n+1})
 \end{equation}
 
 The final portion of each iterative step is to calculate the error of the step by comparing it to the Butcher Tableau coefficients produced by an adaptive Runge-Kutta Method.
 \begin{equation} \label{eq: errorfunction}
-  \mathrm{\textbf{error}} = \frac{\Delta t}{72} \left(-5 \bm{S}_1 + 6 \bm{S}_2 + 8 \bm{S}_3 - 9 \bm{S}_4\right)
+  \mathrm{error} = \frac{1}{72} dt (-5 S_1 + 6 S_2 + 8 S_3 - 9 S_4)
 \end{equation}
 
 This error term allows for each variable time step to be analyzed and adjusted according to its deviation from the standard time-step. This occurs by establishing thresholds for error which keep it from getting too big or too small as given for an arbitrary tolerance 'tol'.
 
-For instance, when the time-step becomes too small, if $\max\left|\mathrm{\textbf{error}}\right| \leq \mathrm{tol}/100$
+For instance, when the time-step becomes too small, if $|$error$|$ $ \leq\ $ tol/100
 \begin{equation}
-  \Delta t = 2 \Delta t.
+  dt = 2 dt.
 \end{equation}
 
-When the time-step becomes too big, if $\max\left|\mathrm{\textbf{error}}\right| \geq  \mathrm{tol}$
+When the time-step becomes too big, if $|$error$|$ $ \geq\ $ tol
 \begin{equation}
-  \Delta t = \frac{1}{2} \Delta t.
+  dt = \frac{1}{2} dt.
 \end{equation}
 
 This error term maintains the variable time-step within a reasonable range during the iteration process.
@@ -172,198 +172,149 @@ $\mu$ represents the variable growth rate of the species within the biofilm. The
 
 Different equations are required to represent different growth kinetics. The standard growth equation is the Monod Growth Rate.
 \begin{equation} \label{eq: MonodGrowthRate}
-  \mu_j(\bm{S})=\mu_{\mathrm{max},j} \frac{S_k}{K_{m,j} + S_k}
+  \mu=\mu_\mathrm{max} \frac{S}{K_m + S}
 \end{equation}
-which provides the growth rate for the $j^\mathrm{th}$ biomass species that depends on the concentration of the $k^\mathrm{th}$ substrate.
 
-Next is the Double Monod Growth Rate to model multiple substrates
+Next is the Double Monod Growth Rate to model multiple substrates `x' and `y'.
 \begin{equation} \label{eq: DoubleMonodGrowthRate}
-  \mu_j(\bm{S})=\mu_{\mathrm{max},j} \frac{S_k}{K_\mathrm{m,k} + S_k} \frac{S_n}{K_\mathrm{m,n} + S_n}
+  \mu=\mu_\mathrm{max} \frac{S_x}{K_\mathrm{m,x} + S_x} \frac{S_y}{K_\mathrm{m,y} + S_y}
 \end{equation}
-which provides the growth rate for the $j^\mathrm{th}$ biomass species that depends on the concentration of the $k^\mathrm{th}$ and $n^\mathrm{th}$ substrates.
-
 
 The final equation that may be used is an Inhibition Model.
 \begin{equation} \label{eq: Inhibition}
-  \mu_j(\bm{S})=\mu_{\mathrm{max},j} \frac{S_k}{K_\mathrm{m,k} + S_k} \frac{1}{1 + \frac{S_n}{K_{i,n}}}
+  \mu=\mu_\mathrm{max} \frac{S_x}{K_\mathrm{m,x} + S_x} \frac{1}{1 + \frac{S_y}{K_{i,y}}}
 \end{equation}
-which provides the growth rate for the $j^\mathrm{th}$ biomass species that depends on the concentration of the $k^\mathrm{th}$ and $n^\mathrm{th}$ substrates.
 
-The Matlab function in `mu.m' defines all these equations and allows for the desired growth rate to be called throughout the rest of the code when needed.
+The Matlab $\mu$ function `mu.m' defines all these equations and allows for the desired growth rate to be called throughout the rest of the code when needed.
   
 
 \section{Biofilm Diffusion}
 Substrates that exist within the tank will diffuse into the biofilm. The general expression for the substrate gradient inside the biofilm is defined by
 
 \begin{equation} \label{eq:substrate gradient}
-\frac{dS_{B,k}}{dt} = D_{e,k} \frac{d^2S_{B,k}}{dz^2} - \sum_{j=1}^{N_x}\frac{\mu_j(\bm{S}_B) x_{B,j}}{Y_{j,k}},
+\frac{dS_b}{dt} = {D_e}\frac{d^2S_b}{dz^2} - \frac{\mu(S_b) X_b}{Y_{xs}},
 \end{equation}
+
 where the first term on the right hand side of the expression represents the diffusion of substrate into the biofilm, and the second term on the right hand side represents the substrate used throughout the biofilm for growth (or the flux).
 
 By considering the substrate concentration to be in a pseudo steady state condition at each time-step considered equation~\ref {eq:substrate gradient} simplifies to 
+
 \begin{equation} \label{eq:diffusion}
-  \frac{d^2 S_{B,k}}{dz^2} = \sum_{j=1}^{N_x}\frac{\mu_j(\bm{S}_B) x_{B,j}}{Y_{j,k} D_{e,k}}.
+  \frac{d^2 S_b}{dz^2} = \frac{\mu(S_b) X_b}{Y_{xs} D_e}.
 \end{equation}
 This differential equation is typically non-linear due the growth-rate $\mu$.
 
 \subsection{Discretization and Linearization}
 To solve it we use the direct, finite-difference method, which leads to the following discretized equation
 \begin{equation} \label{eq:diff_dis}
-  \frac{ S_{B,k,i-1} - 2 S_{B,k,i} + S_{B,k,i+1}}{dz^2} = \sum_{j=1}^{N_x}\frac{\mu_j(\bm{S}_{B,i}) x_{B,j}}{Y_{j,k} D_{e,k}},
+  \frac{ S_{b,i-1} - 2 S_{b,i} + S_{b,i+1}}{dz^2} = \frac{\mu(S_{b,i}) X_b}{Y_{xs} D_e},
 \end{equation}
-which is valid at all the interior grid points, \ie, for $i=2,3,\dots,N_z-1$ and for all substrates $k=1,2,\dots,N_S$.
-Note that $\mu_j$, the growth-rate for the $j^\mathrm{th}$ biomass species may depend on the other substrates and is thus written as a function of the array of substrates at the $i^\mathrm{th}$ grid point $\bm{S}_{B,i}$.
+which is valid at all the interior grid points, \ie, for $i=2,3,\dots,N_z-1$. 
 This non-linear equation is solved by linearizing and then iterating the solution from an initial guess until converged.
-The iterations are denoted by a superscript, \ie, $S_{b,j}^{(p)}$.  With this notation Equation~\ref{eq:diff_dis} becomes
+The iterations are denoted by a superscript, \ie, $S_{b}^{(k)}$.  With this notation Equation~\ref{eq:diff_dis} becomes
 \begin{equation} \label{eq:diff_dis_iter}
-  \frac{ S_{B,k,i-1}^{(p)} - 2 S_{B,k,i}^{(p)} + S_{B,k,i+1}^{(p)}}{\Delta z^2} = \sum_{j=1}^{N_x} \frac{\mu_j\left(\bm{S}_{B,i}^{(p)}\right) x_{B,j}}{Y_{j,k} D_{e,k}} =  g_k\left(\bm{S}_{B,i}^{(p)}\right),
+  \frac{ S_{b,i-1}^{(k)} - 2 S_{b,i}^{(k)} + S_{b,i+1}^{(k)}}{\Delta z^2} = \frac{\mu\left(S_{b,i}^{(k)}\right) X_b}{Y_{xs} D_e} =  g\left(S_{b,i}^{(k)}\right),
 \end{equation}
-where we have introduced $g_k$ as the right hand side of the equation.
+where we have introduced $g$ as the right hand side of the equation.
 
-To linearize this equation, the Taylor series of $g$ is employed about the previous iteration $S_{B,i}^{(p-1)}$ which is
+To linearize this equation, the Taylor series of $g$ is employed about the previous iteration $S_{b,i}^{(k-1)}$ which is
 \begin{equation}\label{eq:TaylorSeries}
-  g_k\left(\bm{S}_{B,i}^{(p)}\right) =   g_k\left(\bm{S}_{B,i}^{(p-1)}\right) + \sum_{m=1}^{N_S} \left( S_{B,m,i}^{(p)} - S_{B,m,i}^{(p-1)}\right) \frac{d g_k\left(\bm{S}_{B,i}^{(p-1)}\right)}{d S_{B,m}} + H.O.T.
+  g\left(S_{b,i}^{(k)}\right) =   g\left(S_{b,i}^{(k-1)}\right) + \left( S_{b,i}^{(k)} - S_{b,i}^{(k-1)}\right) \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} + \dots
 \end{equation}
 
 Combining Equations.~\ref{eq:diff_dis_iter} and~\ref{eq:TaylorSeries} and keeping only the linear terms in the Taylor series leads to
 \begin{equation} \label{eq:diff_linear}
-  \frac{ S_{B,k,i-1}^{(p)} - 2 S_{B,k,i}^{(p)} + S_{B,k,i+1}^{(p)}}{\Delta z^2} = g_k\left(\bm{S}_{B,i}^{(p-1)}\right) + \sum_{m=1}^{N_S} \left( S_{B,m,i}^{(p)} - S_{B,m,i}^{(p-1)}\right)  \frac{d g_k\left(\bm{S}_{B,i}^{(p-1)}\right)}{d S_{B,m}} 
+  \frac{ S_{b,i-1}^{(k)} - 2 S_{b,i}^{(k)} + S_{b,i+1}^{(k)}}{\Delta z^2} =  g\left(S_{b,i}^{(k-1)}\right) + \left( S_{b,i}^{(k)} - S_{b,i}^{(k-1)}\right) \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}},
 \end{equation}
-which is linear with-respect-to $S_{B,k,i}^{(p)}$ for $k=1,\dots,N_S$ and can be rearranged to
+which is linear with-respect-to $S_{b,i}^{(k)}$ and can be rearranged to
 \begin{equation}
   \label{eq:diff_final}
-  \begin{split}
-    -S_{B,k,i-1}^{(p)} + 2 S_{B,k,i}^{(p)} - S_{B,k,i+1}^{(p)}
-    &+  \Delta z^2\sum_{m=1}^{N_S} \left( \frac{d g_k\left(\bm{S}_{B,i}^{(p-1)}\right)}{d S_{B,m}}  S_{B,m,i}^{(p  )}\right)\\
-    &=  \Delta z^2\sum_{m=1}^{N_S} \left( \frac{d g_k\left(\bm{S}_{B,i}^{(p-1)}\right)}{d S_{B,m}}  S_{B,m,i}^{(p-1)}\right) - \Delta z^2 g_k\left(\bm{S}_{B,i}^{(p-1)}\right) .
-  \end{split}
+  -S_{b,i-1}^{(k)} + \left( 2 +\Delta z^2\left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}}\right) S_{b,i}^{(k)} - S_{b,i+1}^{(k)}
+  = \Delta z^2\left( S_{b,i}^{(k-1)} \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} - g\left(S_{b,i}^{(k-1)}\right)\right) .
 \end{equation}
 
-The derivatives $\frac{d g_k\left(\bm{S}_{B,i}^{(p-1)}\right)}{d S_{B,m}}$  for $m=1,\dots,N_S$ at this $i$ location and for the $k^\mathrm{th}$ substrate need to be approximated and we use
+The derivative $\left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}}$ needs to be approximated and we use
 \begin{equation}
   \label{eq:dgds}
-  \frac{d g_k\left(\bm{S}_{B,i}^{(p-1)}\right)}{d S_{B,m}} = \frac{g_k\left(\bm{S}_{B,m,i}^+\right) - g_k\left(\bm{S}_{B,m,i}^{-}\right)}{ dS},
+  \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} = \frac{g\left(S_{b,i}^+\right) - g\left(S_{b,i}^{-}\right)}{\Delta S},
 \end{equation}
 where
-\begin{alignat*}{3}
-  \bm{S}_{B,m,i}^+&=          &&\bm{S}_{B,i}^{(p-1)}+ \Delta \left[\delta_{1,m},\delta_{2,m},\dots,\delta_{N_S,m}\right]^\mathsf{T} \text{\quad and} \\
-  \bm{S}_{B,m,i}^-&=\max \bigg ( 0, &&\bm{S}_{B,i}^{(p-1)}- \Delta \left[\delta_{1,m},\delta_{2,m},\dots,\delta_{N_S,m}\right]^\mathsf{T} \bigg )
-\end{alignat*}
-where $\Delta=1\times 10^{-3}$ is an specified constant, $\delta_{k,m}$ is the Kronecker delta and applies $\Delta$ to only the $m^\mathrm{th}$ term in $\bm{S}_{B,i}^{(p-1)}$, and $dS = \max\left(\bm{S}_{B,m,i}^+ - \bm{S}_{B,m,i}^-\right)$.  The maximum on $\bm{S}_{B,m,i}^-$ ensures the concentration remains non-negative.
+\begin{align*}
+  S_{b,i}^+&=S_{b,i}^{(k-1)}+\delta \text{\quad and} \\
+  S_{b,i}^-&=\max\left[S_{b,i}^{(k-1)}+\delta,0\right]
+\end{align*}
+and $\Delta S = S_{b,i}^+ - S_{b,i}^-$ and $\delta=1\times 10^{-3}$ is an specified constant.  The maximum on $S_{b,i}^-$ ensures the concentration remains non-negative.
 
 \subsection{Boundary Conditions} \label{Boundary Conditions}
-Eq.~\ref{eq:diff_final} for $i=2,3,\dots,N_z-1$ and $K=1,2,\dots,N_S$ provides $N_z-2 \times N_S$ equations for $S_{B,k,i}^{(p)}$.  The remaining equations come from the boundary conditions.  At the bottom of the biofilm ($z=0$) there is a wall and a no-flux boundary condition is appropriate, \ie,
+Eq.~\ref{eq:diff_final} for $i=2,3,\dots,N_z-1$ provides $N_z-2$ equations for $S_{b}^{(k)}$.  The remaining equations come from the boundary conditions.  At the bottom of the biofilm ($z=0$) there is a wall and a no-flux boundary condition is appropriate, \ie,
 \begin{equation}
   \label{eq:BC1}
-  \left.\frac{d S_{B,k}}{dz}\right|_{z=0}= \frac{S_{B,k,2} - S_{B,k,1}}{\Delta z} =0,
+  \left.\frac{d S_b}{dz}\right|_{z=0}= \frac{S_2 - S_1}{\Delta z} =0.
 \end{equation}
-for $k=1,2,\dots,N_S$.
 
-At the top of the biofilm the substrate is diffusing from the tank into (or out of) the biofilm.  Depending on the conditions in the tank, \eg, how well it is mixed, the flux of substrate into the biofilm may be controlled by the diffusion through the liquid in the tank.  This leads to a flux-matching condition that can be written as
+At the top of the biofilm the substrate is diffusing from the tank into the biofilm.  Depending on the conditions in the tank, \eg, how well it is mixed, the flux of substrate into the biofilm may be controlled by the diffusion through the liquid in the tank.  This leads to a flux-matching condition that can be written as
 \begin{equation}
   \label{eq:BC2}
-  D_{e,k} \left.\frac{d S_{B,k}}{dz}\right|_{z=L_f} = D_{\mathrm{aq},k} \frac{S_k - S_{B,k}(L_f)}{L_L}.
+  D_e \left.\frac{d S_b}{dz}\right|_{z=L_f} = D_{\mathrm{aq}} \frac{S - S_b(L_f)}{L_L}.
 \end{equation}
-for $k=1,2,\dots,N_S$, where a simple diffusion model through the liquid has been used on the RHS.  Discretizing the derivative using a finite-difference operator leads to
+where a simple diffusion model through the liquid has been used.  Discretizing the derivative using a finite-difference operator leads to
 \begin{equation}
   \label{eq:BC2_dis}
-  D_{e,k} \frac{S_{B,k,N_z} - S_{B,k,N_z-1}}{\Delta z} = D_{\mathrm{aq},k} \frac{S_k - S_{B,k,N_z}}{L_L}.
+  D_e \frac{S_{b,N_z} - S_{b,N_z-1}}{\Delta z} = D_{\mathrm{aq}} \frac{S - S_{b,N_z}}{L_L}.
 \end{equation}
 Rearranging leads to
 \begin{equation}
   \label{eq:BC2_dis2}
-  \left(D_{e,k} L_l + D_{\mathrm{aq},k} \Delta z\right) S_{B,k,N_z} - D_{e,k} L_l S_{B,k,N_z-1} = D_{\mathrm{aq},k} \Delta z S_k
+  \left(D_e L_l + D_{\mathrm{aq}} \Delta z\right) S_{b,N_z} - D_e L_l S_{b,N_z-1} = D_{\mathrm{aq}} \Delta z S
 \end{equation}
-for $k=1,2,\dots,N_S$, which is a useful form because if $L_l=0$ it simplifies to $S_{B,k, N_z}=S_k$ as expected without dividing by zero.
+which is a useful form because if $L_l=0$ it simplifies to $S_{b,N_z}=S$ as expected without dividing by zero.
 
 \subsection{Solution of System of Equations}
 The previous two section describe the equations used to solve the diffusion problem through
 the biofilm and apply appropriate boundary conditions.
-In summary, Eq.~\ref{eq:diff_linear} for $i=2,3,\dots,N_z-1$ and for $k=1,2,\dots,N_S$ provides $N_z-2 \times N_S$ equations with
-Eq.~\ref{eq:BC1} and Eq.~\ref{eq:BC2_dis2} each providing $N_S$ other equations
-for a total of $N_z\times N_S$ equations for the $N_z\times N_S$ unknowns $S_{B,k,i}$ for $i=1,\dots,N_z$ and for $k=1,2,\dots,N_S$.
+In summary, Eq.~\ref{eq:diff_linear} for $i=2,3,\dots,N_z-1$ provides $N_z-2$ equations with
+Eq.~\ref{eq:BC1} and Eq.~\ref{eq:BC2_dis2} providing the two other equations
+for a total of $N_z$ equations for the $N_z$ unknowns $S_{b,i}$ for $i=1,\dots,N_z$.
 
-The $N_z\times N_s$ equations are solved by iteratively solving for $S_{B,k,i}^{(p)}$ using the matrices
+The $N_z$ equations are solved by iteratively solving for $S_b$ using the matrices
 \begin{equation}
-  \small
   \label{eq:system}
   \renewcommand*{\arraystretch}{1.5}
-  \setcounter{MaxMatrixCols}{20}
-  % \rotatebox{90}{$%
-  \resizebox{.9\hsize}{!}{$
+  \begin{bmatrix}
+    1 &-1  &   &   &   & \\
+    L &  D & U &  &   & \\
+    ~ & L &  D & U &  & \\
+    ~ & ~ & \ddots &  \ddots & \ddots & \\
+    ~ & ~ & ~ & L &  D & U\\
+    ~ & ~ & ~ & ~ &  C_1 & C_2  
+  \end{bmatrix}
+  \begin{bmatrix}
+    S_{b,1}^{(k)}\\
+    S_{b,2}^{(k)}\\
+    S_{b,3}^{(k)}\\
+   \vdots\\
+    S_{b,N_z-1}^{(k)}\\
+    S_{b,N_z}^{(k)}
+  \end{bmatrix}
+  =
     \begin{bmatrix}
-      1 &-1  &   &   &  \\
-      L &  D_{1,2,1} & U &  & & & D_{1,2,2} &  & & & &  D_{1,2,3} \\
-      & \ddots &  \ddots & \ddots & \\
-      &   & L &  D_{1,N_z-1,1} & U &  & & & D_{1,N_z-1,2} &  & & & D_{1,N_z-1,3}\\
-      &   &   &  E_1 & F_1  \\
-      &    &    &    &    &  1 &-1  &   &   &  \\
-      &    D_{2,2,1} &    &    &    &  L &  D_{2,2,2} & U &  & &  & D_{2,2,3}  \\
-      &    &    &    &    &        & \ddots &  \ddots & \ddots &   \\
-      &    &    &   D_{2,N_z-1,2}  &    &        &   & L &  D_{2,N_z-1,2} & U &  & & D_{2,N_z-1,3}\\
-      &    &    &    &    &        &   &   &  E_2 & F_2  \\
-      &    &    &    &    &    &    &    &    &    &  1 & -1  &   &   &  \\
-      &   D_{3,2,1} &    &    &    &     & D_{3,2,2}    &    &    &    &  L &  D_{3,2,3} & U &  &  \\
-      &    &    &    &    &    &    &    &    &    &        & \ddots &  \ddots & \ddots &   \\
-      &    &     &   D_{3,N_z-1,1} &  &    &    &    &  D_{3,N_z-1,2}    &        &   & L &  D_{3,N_z-1,3} & U\\
-      &    &    &    &    &    &    &    &    &        &   &   &  E_2 & F_2  \\
-    \end{bmatrix}
-    \begin{bmatrix}
-      S_{B,1,1}^{(k)}\\
-      S_{B,1,2}^{(k)}\\
-      \vdots\\
-      S_{B,1,N_z-1}^{(k)}\\
-      S_{B,1,N_z}^{(k)}\\
-      S_{B,2,1}^{(k)}\\
-      S_{B,2,2}^{(k)}\\
-      \vdots\\
-      S_{B,2,N_z-1}^{(k)}\\
-      S_{B,2,N_z}^{(k)}\\
-      S_{B,3,1}^{(k)}\\
-      S_{B,3,2}^{(k)}\\
-      \vdots\\
-      S_{B,3,N_z-1}^{(k)}\\
-      S_{B,3,N_z}^{(k)}\\
-    \end{bmatrix}
-    =
-    \begin{bmatrix}
-      0\\
-      R_{1,2}\\
-      \vdots\\
-      R_{1,N_z-1}\\
-      G_1 \\
-      0\\
-      R_{2,2}\\
-      \vdots\\
-      R_{2,N_z-1}\\
-      G_2\\
-      0\\
-      R_{3,2}\\
-      \vdots\\
-      R_{3,N_z-1}\\
-      G_3\\
-    \end{bmatrix}
-  $}
+   0\\
+    R_{2}\\
+    R_{3}\\
+    \vdots\\
+    R_{N_z-1}\\
+    C_3
+  \end{bmatrix}
 \end{equation}
-
-This matrix is shown for three substrates, but the pattern continues for more (or less) substrates.  The first $N_x$ rows corespond to substrate 1, the next $N_x$ rows for substrate 2, and so on.
-
-The first row for each substrate comes from Eq.~\ref{eq:BC1}.
-The second through second to last rows are Eq.~\ref{eq:diff_final} written with $i=2,\dots,N_z-1$ and the constants are $L=U=-1$,
+The first row comes from Eq.~\ref{eq:BC1}.
+The second through $N_z-1$ rows are Eq.~\ref{eq:diff_final} written with $i=2,\dots,N_z-1$ and the constants are $L=U=-1$,
 \begin{align*}
-  D_{k,i,m}&=\left( 2 \delta_{k,m} +\Delta z^2\frac{d g_k\left(\bm{S}_{B,i}^{(p-1)}\right)}{d S_{B,m}}\right)\text{\quad and}\\
-  R_{k,i}   &= \Delta z^2\sum_{m=1}^{N_S} \left( \frac{d g_k\left(\bm{S}_{B,i}^{(p-1)}\right)}{d S_{B,m}}  S_{B,m,i}^{(p-1)}\right) - \Delta z^2 g_k\left(\bm                          {S}_{B,i}^{(p-1)}\right) 
+  D&=\left( 2 +\Delta z^2\left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}}\right)\text{\quad and}\\
+  R_i&=\Delta z^2\left( S_{b,i}^{(k-1)} \left.\frac{d g}{d S_b}\right|_{S_{b,i}^{(k-1)}} - g\left(S_{b,i}^{(k-1)}\right)\right) 
 \end{align*}
-where $\delta_{k,m}$ is the Kronecker delta.
+The last row is Eq.~\ref{eq:BC2_dis2} with $C_1=D_e L_l$, $C_2=\left(D_e L_l + D_{\mathrm{aq}} \Delta z\right)$, and $C_3=D_{\mathrm{aq}} \Delta z S$.
 
-The last row in each set is Eq.~\ref{eq:BC2_dis2} with
-\begin{align}
-  E_k&=-D_{e,k} L_l,\\
-  F_k&=\left(D_{e,k} L_l + D_{\mathrm{aq},k} \Delta z\right),\text{ and}\\
-  G_k&=D_{\mathrm{aq},k} \Delta z S_k.
-\end{align}
-
-The right-hand-side depends on $S_{b,j,i}^{(k-1)}$, which is the concentration at the previous iteration.  The solution process is started with a guess, e.g., $S_b=0$. Iteration continues until
+The right-hand-side depends $S_{b,i}^{(k-1)}$, which is the concentration at the previous iteration.  The solution process is started with a guess, e.g., $S_b=0$. Iteration continues until
 \begin{equation*}
   \max\left| S_{b,i}^{(k)} - S_{b,i}^{(k-1)} \right| < \mathrm{tol},
 \end{equation*}
@@ -373,12 +324,12 @@ for a specified tolerance $\mathrm{tol}$.
 The flux term referenced in the discussion of equation ~\ref{eq:substrate gradient} is named $B_\mathrm{flux}$ and represents the growth of biomass in the biofilm. The result is utilized in the substrate balance in the tank (equation~\ref{eq: SubstrateEquation}).
 
 \begin{equation} \label{eq:Bflux}
-  B_{\mathrm{flux},k} = \sum_{j=1}^{N_x} \int_0^{L_f} \frac{\mu_j(\bm{S}_B) x_{B,j}}{Y_{j,k}} \, dz %= \frac{ X_b}{Y_{xs}} L_f \bar{\mu}
+  B_\mathrm{flux} = \int_0^{L_f} \frac{\mu(S_b) X_b}{Y_{xs}} \, dz = \frac{ X_b}{Y_{xs}}\int_0^{L_f} \mu(S_b) \, dz = \frac{ X_b}{Y_{xs}} L_f \bar{\mu}
 \end{equation}
-which is computed using the trapezoidal integration method. 
-%where $\bar{\mu}$ represents the average growth rate in the biofilm at a specific instant in time.
 
-\section{Biofilm Thickness}\textcolor{red}{Need to think about this for multiple species and substrates}
+where $\bar{\mu}$ represents the average growth rate in the biofilm at a specific instant in time.
+
+\section{Biofilm Thickness}
 With the current time-step's substrate concentrations throughout the biofilm and thickness computed, the next time-step's thickness of the biofilm may now be computed by solving the first order differential equation
 
 \begin{equation}

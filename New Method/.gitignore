@@ -1,0 +1,6 @@
+*.asv
+Theory/Theory.aux
+Theory/Theory.fdb_latexmk
+Theory/Theory.fls
+Theory/Theory.log
+Theory/Theory.synctex.gz

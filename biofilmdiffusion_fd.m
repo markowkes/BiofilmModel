@@ -1,71 +1,139 @@
-function [Sb,bflux]=biofilmdiffusion_fd(Sbold,S,Nz,dz,t,param)
+function [Sb,Sflux]=biofilmdiffusion_fd(t,S,Xb,Lf,param,grid)
 %% This function models the diffusion of a substrate within the biofilm
 %This Function will take tank conditions (So,Xb,LL) and various growth factors (Yxs,De,Km,Daq) model the diffusion of
 % substrates into the biofilm over the grid . The results of this uptake will be used to
 % model the manner in which tank conditions reach equilibrium
 
-Sb=Sbold; %preallocate array
-delta=1e-3;
+Ns = param.Ns;
+Nz = param.Nz;
+
+Sbold=zeros(Ns,Nz);
+Sb =S.*ones(Ns,Nz);
 
 % Get variables out of param
-Xb=param.Xb;
-Yxs=param.Yxs;
 De=param.De;
 LL=param.LL;
 Daq=param.Daq;
-tol=param.dtol;
+dz = grid.dz;
+tol=param.tol;
 
 %Iterations
 iter=100; %maximum iterations
 
-% Define RHS of ODE
-g=@(S) mu(S,param)*Xb/(Yxs*De);
+L = -1;
+U = -1;
 
 %Iterations
-for i=1:iter
+for n=1:iter
+
+    % Preallocate solution array
+    A = zeros(Nz*Ns, Nz*Ns);
+    B = zeros(Nz*Ns,1);
+
+    % Precompute g(k) at z(i)  %%%% Need to vectoriz %%%%
+    g=zeros(Nz,Ns);
+    for k=1:Ns
+        g(:,k)=compute_g(t,k,Sb,Xb,Lf,param,grid);
+    end
+
+    % Precompute dg(k)/ds(m) at z(i)
+    dgds=zeros(Ns,Nz,Ns);
+    for k=1:Ns
+        for m=1:Ns
+            dgds(m,:,k)=compute_dgds(t,k,m,Sb,Xb,Lf,g,param,grid);
+        end
+    end
     
-    % Interior points
-    Sb_p=Sb(2:Nz-1)+delta;
-    Sb_m=max(Sb(2:Nz-1)-delta,0);
-    dgds=[0,(g(Sb_p)-g(Sb_m))./(Sb_p-Sb_m),0];
-    A = diag(2+dz^2*dgds, 0) ... % Main  diagonal
-        + diag(-1*ones(1,Nz-1),-1) ... % Lower diagonal
-        + diag(-1*ones(1,Nz-1), 1) ;   % Upper diagonal
-    B = (dz^2*(Sb.*dgds-g(Sb)))';
-    
-    % First row - No flux BC at bottom of biofilm
-    A(1,1)=1; A(1,2)=-1; B(1,1)=0; 
+
+    % Loop over substrates
+    for k=1:Ns
         
-    % Last row - Flux match BC at top of biofilm
-    A(Nz,Nz  )= De*LL+Daq*dz;
-    A(Nz,Nz-1)=-De*LL;
-    B(Nz,1)   =Daq*dz*S;
-    
+        % Bottom of biofilm
+        i=1; % Index
+        d=(k-1)*Nz+i; % Row for this substrate 
+        A(d,d  ) = L + 2;  % Add lower diagonal to main diagonal (Neuman)
+        A(d,d+1) = U; 
+        B(d,1  ) = R(k,i,Ns,dz,Sb,g,dgds); % RHS
+        
+        % Top of biofilm
+        i=Nz; % Index
+        d=(k-1)*Nz+i; % Row for this substrate 
+        % Top of biofilm - flux matching condition between biofilm and tank
+        A(d,d  ) = ((3*Daq(k)*dz + 2*De(k)*LL))/(Daq(k)*dz + 2*De(k)*LL);
+        A(d,d-1) = L; 
+        B(Nz*k) = R(k,i,Ns,dz,Sb,g,dgds) + (2*Daq(k)*S(k)*dz)/(Daq(k)*dz + 2*De(k)*LL);
+
+        % Interior points
+        for i=2:Nz-1
+            d=(k-1)*Nz+i; % Row for this substrate 
+            A(d,d-1) = L;
+            A(d,d+1) = U;
+            A(d,d  ) = 2;
+            B(d,1  ) = R(k,i,Ns,dz,Sb,g,dgds);
+        end
+
+        % All points
+        for i=1:Nz
+            d=(k-1)*Nz+i; % Row for this substrate 
+            for m=1:Ns               
+                % D, populates dia. and off dia. interior points
+                A(d,(m-1)*Nz+i) = A(d,(m-1)*Nz+i) ...
+                    + dz^2*dgds(m,i,k);
+            end
+        end
+    end
+
     % Solve for new concentration
     Sb=(A\B)';
-               
+
     % Non Zero Condition
     Sb(Sb < 0) = 0;
+
+    % Reshape from vector to a more readable matrix
+    Sb = reshape(Sb,[Nz,Ns]);
+    Sb = Sb';
     
     % Check if converged
     if max(abs(Sb-Sbold))<tol
         break
     else
-        if i==iter
+        if n==iter
              fprintf('Diffusion Unable to Converge at time %3.8f\n',t)
         end
     end
-    
-    % Transfer solution for next iteration
-    Sbold=Sb;
+    % Save current iteration Sb value
+    Sbold = Sb;
+end
+
+% Compute Sflux at top of biofilm
+S_top = (Daq*dz/2.*S + De*LL.*Sb(:,end))./(Daq*dz/2 + De*LL);
+Sflux = De.*(S_top - Sb(:,end))/(dz/2);
+end
+
+% k -> substrate
+% i -> location in biofilm
+function R = R(k,i,Ns,dz,Sb,g,dgds)
+    R = 0;
+    for m = 1:Ns
+        R = R + dz^2*dgds(m,i,k).*Sb(m,i);
+    end
+    R = R - dz^2*g(i,k);
+end
+% Define RHS of ODE
+function g = compute_g(t,k,Sb,Xb,Lf,param,grid)
+    theavi = mod(t, 1);
+    g = sum(param.mu(Sb,Xb,Lf,theavi,grid.z(1:end-1),param).*Xb./(param.Yxs(:,k)*param.De(k)),1);
+end
+% Define dgds = (g(Sb+)-g(Sb-))/dS
+function dgds = compute_dgds(t,k,m,Sb,Xb,Lf,g,param,grid) 
+    % Define Sb plus and Sb minus, delta is added/subtracted to Sb(i,m)
+    delta=1e-3; 
+    Sb_p = Sb; Sb_p(m,:)=Sb_p(m,:)+delta;
+    % Compute g at plus and minus points
+    gp=compute_g(t,k,Sb_p,Xb,Lf,param,grid);
+    gm=g(:,k)';
+    % Compute derivative
+    dgds=(gp-gm)/delta;
 end
 
 
-% Flux = \int_0^Lf mu(S) * xB / Yxs dz = xB/Yxs * int_0^Lf mu dz
-bflux = 0;
-for i=1:length(Sb)-1
-    bflux=bflux+dz*((mu(Sb(i),param)+mu(Sb(i+1),param))/2); %trapezoidal 
-end
-bflux=Xb/Yxs*bflux;
-
-end
