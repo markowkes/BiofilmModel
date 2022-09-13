@@ -1,73 +1,51 @@
 # BiofilmModel
 ## Code Execution
-In order to run this model, open the MAINDRIVER.m file in Matlab and type 
-”MAINDRIVER(number)” in the command window. The number within the 
-parentheses will correspond to the desired case to be run, which can be 
-inputted in the cases.m file.
+In order to run this model, open a case file in Matlab, input desired parameters, and run. Case file names are formatted as case_(name of case). If a new case file must be made, it is typically easiest to copy the format of an existing case file and update the parameters accordingly.
 
 ## Case Input Parameters
-Open the cases.m file and input all given parameters into defined arrays 
-under the "Constants" section. The array position for the particular case 
-that is being run will be used as the only input when MAINDRIVER.m is run.
+Open the case file and input all desired parameters.
 
-mumax: Maximum specific growth rate [1/days] 
-Km:    Monod Half saturation coefficient [g/m^3]
-Kib:   Inhibition Coefficient [g/m^3]
-Yxs:   Biomass yield coeffficient on substrate [g g/s]
-V:     Volume of CSTR [m^3]
-Q:     Flowrate [m^3/day]
-A:     Wetted Surface Area [m^2]
-Sin:   Influent Substrate Concentration [g/m^3]
-So:    Initial bulk fluid substrate concentration in tank [g/m^3]
-xo:    Initial biomass concentration in tank [g/m^3]
-Xb:    Biomass density in biofilm [g/m^3]
-Daq:   Diffusion coefficient of substrate in water [m^2/day]
-De:    Effective diffusion coefficient of substrate in biofilm [m^2/day]
-Lfo:   Initial biofilm thickness [m]
-LL:    Concentration boundary layer thickness [m]
-Kdet:  Detachment rate coefficient [1/(m days)]
+param.instantaneousDiffusion – When true, uses biofilmdiffusion_fd to calculate instantaneous diffusion. Some cases run faster with this on.  
+param.sourceTerm – Adds an extra source term to the growth equations. Was primarily used for dead cells that had a source term that depended on the death of live cells.  
+param.Pulse – Turns on pulsed inlet for substrates.  
+param.outPeriod – Sets how often the plots update. Useful for optimizing runtime.  
+Param.Title – Adds title for plots.  
+param.SNames – Defines substrate names for plot legends.  
+param.XNames – Defines particulate names for plot legends.  
+param.Xo – Particulate initial conditions in the tank. Formatted as a (# of particulates) x 1 array.  
+param.So – Substrate initial conditions in the tank. Formatted as a (# of substrates) x 1 array.  
+param.phibo – Particulates in the biofilm initial volume fractions. Must include values between 0 and 1 that sum to less than 1. Formatted as a (# of particulates) x 1 array.  
+param.Sbo – Substrates in the biofilm initial conditions. Formatted as a (# of substrates) x 1 array.  
+param.z – Grid points to solve over. Calculated as a linspace from 0 to the initial thickness with Nz points.  
+param.dz – Space between the grid points. Calculated by taking the difference of two grid points.  
+param.Daq – Substrate diffusion through the boundary layer. Formatted as a (# of substrates) x 1 array.  
+param.De – Substrate diffusion through the biofilm. Formatted as a (# of substrates) x 1 array.  
+param.rho – Particulate densities. Formatted as a (# of particulates) x 1 array.   
+param.Yxs – Yield coefficient. Formatted as a (# of substrates) x (# of particulates).  
+param.light – Equation for light intensity over time. Currently set as a truncated sin wave.  
+param.mu – Growth rate equations for each individual particulate. Formatted as a (# of particulates) x 1 array of equations.  
+param.phi_tot – Sum of particulate volume fractions. Calculated by taking the sum of phibo.  
+param.Ns – Number of substrates. Found using the size of the So array.   
+param.Nx – Number of particulates. Found using the size of the Xo array.  
+
+The following function can be found at the bottom of the solver:  
+function param = check_param(param)  
+
+The purpose of this function is to check that all parameters have been entered correctly. If not, the function will either throw an error or enter filler parameters. For example, the neutralization parameter is set to false if it is not entered and yeild coefficients of 0 are changed to inf.
+
 
 ### Time Parameters
-The next step is to determine the time parameters of the case being run.
+Determine the time parameters of the case being run.
 The entire duration, the time-step interval size, and the tolerance for 
 time-step convergence must all be defined.
 
-tFin:  duration [days]
-dt:    time-step interval size [days]
-ttol:  tolerance for time-step conversion
+tFin - duration [days]  
+dt - time-step interval size [days]  
+ttol - tolerance for time-step conversion  
+outPeriod - frequency of plot updates
+
 
 ### Growth Rate Models
-The next step is to determine the desired growth rate model for this case.
-This can be done in the "Growth Rate Models" section where there are five 
-available models.
+The growth rate model is determined by the equations entered into the param.mu variable. When updating growth model, param.Yxs will also have to be updated to reflect the new yeild coefficients.  
 
-model 1: Linear Growth Rate
-model 2: Monod Growth Rate 
-model 3: Double Monod Growth Rate
-model 4: Inhibition Growth Rate
-model 5: None
 
-### Biofilm Gridsize
-Now the biofilm gridsize must be defined. The gridsize will determine the
-precision of the solution this model produces, as a higher gridsize will 
-produce a higher precision in the solutions. The tolerance for diffusion 
-convergence must also be defined.
-
-Nz:   Linear grid points to describe biofilm
-dtol: tolerance for substrate diffusion convergence
-
-### Tank Geometry
-This step requires the size and geometry of the tank for the controlled 
-stirred tank reactor (CSTR) to be defined.
-
-L:    Length [m]
-W:    Width [m]
-H:    Height [m]
-
-### Frequency of Plots
-This section requires determination for the amount of steps between
-each update in the plots being produced. When high volumes of iterations 
-are being used, it makes sense to increase the time between plot updates 
-to inmprove the efficiency of the model.
-
-outfreq: Number of steps between plot updates
